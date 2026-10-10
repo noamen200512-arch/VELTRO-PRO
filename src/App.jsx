@@ -1,413 +1,999 @@
-import React from "react";
+import React, { useState } from "react";
+
 import {
-LayoutDashboard,
-ShoppingCart,
-Package,
-Truck,
-Users,
-Wallet,
-ChartNoAxesCombined,
-Settings,
-Bell,
-Search,
-ArrowUpRight,
-ArrowDownRight,
-MoreHorizontal,
-Boxes,
-CreditCard,
-CircleHelp,
-ChevronDown,
-Zap,
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Truck,
+  Users,
+  Wallet,
+  BarChart3,
+  Settings,
+  Bell,
+  Search,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
+  Boxes,
+  CreditCard,
+  CircleHelp,
+  ChevronDown,
+  Zap,
+  CalendarDays,
+  Plus,
+  Download,
+  Filter,
+  Clock,
+  CheckCircle2,
+  Menu,
 } from "lucide-react";
+
 import {
-ResponsiveContainer,
-AreaChart,
-Area,
-XAxis,
-YAxis,
-CartesianGrid,
-Tooltip,
-BarChart,
-Bar,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  BarChart,
+  Bar,
 } from "recharts";
 
 const salesData = [
-{ day: "Mon", sales: 12000, purchases: 7000 },
-{ day: "Tue", sales: 18000, purchases: 11000 },
-{ day: "Wed", sales: 14000, purchases: 8500 },
-{ day: "Thu", sales: 25000, purchases: 15000 },
-{ day: "Fri", sales: 21000, purchases: 12000 },
-{ day: "Sat", sales: 32000, purchases: 19000 },
-{ day: "Sun", sales: 28000, purchases: 16000 },
+  { day: "Mon", sales: 24000, orders: 120 },
+  { day: "Tue", sales: 32000, orders: 145 },
+  { day: "Wed", sales: 28000, orders: 132 },
+  { day: "Thu", sales: 45000, orders: 190 },
+  { day: "Fri", sales: 38000, orders: 165 },
+  { day: "Sat", sales: 52000, orders: 220 },
+  { day: "Sun", sales: 61000, orders: 245 },
 ];
 
 const products = [
-{ name: "Premium Coffee", category: "Beverages", sold: 245, revenue: "122,500 DA", color: "#35d6c2" },
-{ name: "Mineral Water", category: "Drinks", sold: 198, revenue: "39,600 DA", color: "#a78bfa" },
-{ name: "Chocolate Biscuits", category: "Snacks", sold: 164, revenue: "32,800 DA", color: "#f6b860" },
-{ name: "Olive Oil 1L", category: "Grocery", sold: 120, revenue: "96,000 DA", color: "#60a5fa" },
+  {
+    id: 1,
+    name: "Premium Coffee",
+    category: "Beverages",
+    sku: "PRD-001",
+    stock: 245,
+    price: 450,
+    status: "In Stock",
+  },
+  {
+    id: 2,
+    name: "Mineral Water",
+    category: "Drinks",
+    sku: "PRD-002",
+    stock: 18,
+    price: 80,
+    status: "Low Stock",
+  },
+  {
+    id: 3,
+    name: "Chocolate Biscuits",
+    category: "Snacks",
+    sku: "PRD-003",
+    stock: 156,
+    price: 120,
+    status: "In Stock",
+  },
+  {
+    id: 4,
+    name: "Orange Juice",
+    category: "Beverages",
+    sku: "PRD-004",
+    stock: 0,
+    price: 180,
+    status: "Out of Stock",
+  },
+  {
+    id: 5,
+    name: "Potato Chips",
+    category: "Snacks",
+    sku: "PRD-005",
+    stock: 82,
+    price: 100,
+    status: "In Stock",
+  },
 ];
 
 const navGroups = [
-{
-title: "GENERAL",
-items: [
-{ label: "Dashboard", icon: LayoutDashboard, active: true },
-{ label: "Settings", icon: Settings },
-],
-},
-{
-title: "COMMERCE",
-items: [
-{ label: "Point of Sale", icon: ShoppingCart, badge: "POS" },
-{ label: "Products", icon: Package },
-{ label: "Purchases", icon: Truck },
-{ label: "Orders", icon: Boxes },
-],
-},
-{
-title: "MANAGEMENT",
-items: [
-{ label: "Customers", icon: Users },
-{ label: "Suppliers", icon: Truck },
-{ label: "Inventory", icon: Package },
-],
-},
-{
-title: "FINANCE & ANALYTICS",
-items: [
-{ label: "Cash Register", icon: Wallet },
-{ label: "Expenses", icon: CreditCard },
-{ label: "Reports", icon: ChartNoAxesCombined },
-],
-},
+  {
+    title: "GENERAL",
+    items: [
+      {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        active: true,
+      },
+      {
+        label: "Settings",
+        icon: Settings,
+      },
+    ],
+  },
+  {
+    title: "COMMERCE",
+    items: [
+      {
+        label: "Point of Sale",
+        icon: ShoppingCart,
+      },
+      {
+        label: "Products",
+        icon: Package,
+      },
+      {
+        label: "Categories",
+        icon: Boxes,
+      },
+      {
+        label: "Purchases",
+        icon: CreditCard,
+      },
+      {
+        label: "Orders",
+        icon: ShoppingCart,
+      },
+      {
+        label: "Suppliers",
+        icon: Truck,
+      },
+      {
+        label: "Customers",
+        icon: Users,
+      },
+    ],
+  },
+  {
+    title: "FINANCE",
+    items: [
+      {
+        label: "Cash Register",
+        icon: Wallet,
+      },
+      {
+        label: "Reports",
+        icon: BarChart3,
+      },
+    ],
+  },
 ];
 
-function StatCard({ title, value, change, icon: Icon, tone, positive = true }) {
-return (
-<article className="stat-card">
-<div className="stat-card-top">
-<div className={"stat-icon ${tone}"}>
-<Icon size={21} strokeWidth={1.8} />
-</div>
-<button className="icon-button subtle" aria-label="More options">
-<MoreHorizontal size={20} />
-</button>
-</div>
-<p className="stat-title">{title}</p>
-<div className="stat-value-row">
-<h2>{value}</h2>
-{positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-{change}
-</span>
-</div>
-<p className="stat-footnote">Compared to last month</p>
-</article>
-);
+const activities = [
+  {
+    title: "New order received",
+    detail: "Order #ORD-1048",
+    time: "5 minutes ago",
+    icon: ShoppingCart,
+    color: "purple",
+  },
+  {
+    title: "Stock updated",
+    detail: "Premium Coffee",
+    time: "18 minutes ago",
+    icon: Package,
+    color: "cyan",
+  },
+  {
+    title: "Payment completed",
+    detail: "Order #ORD-1047",
+    time: "32 minutes ago",
+    icon: CreditCard,
+    color: "green",
+  },
+  {
+    title: "New customer added",
+    detail: "Customer registration",
+    time: "1 hour ago",
+    icon: Users,
+    color: "orange",
+  },
+];
+
+function formatMoney(value) {
+  return `${Number(value).toLocaleString("fr-DZ")} DA`;
 }
 
-function Sidebar() {
-return (
-<aside className="sidebar">
-<a className="brand" href="#dashboard">
-<div className="brand-mark"><Zap size={24} fill="currentColor" /></div>
-<div className="brand-copy">
-<span className="brand-name">VELTRO<span>.</span></span>
-<span className="brand-subtitle">BUSINESS CONTROL</span>
-</div>
-</a>
+function StatCard({
+  title,
+  value,
+  change,
+  positive = true,
+  icon: Icon,
+  accent = "cyan",
+  subtitle,
+}) {
+  return (
+    <article className={`stat-card accent-${accent}`}>
+      <div className="stat-card-top">
+        <div className="stat-icon">
+          <Icon size={21} strokeWidth={1.8} />
+        </div>
 
-  <div className="workspace">
-    <div className="workspace-avatar">V</div>
-    <div className="workspace-copy">
-      <strong>My Business</strong>
-      <span>Professional plan</span>
-    </div>
-    <ChevronDown size={16} className="workspace-chevron" />
-  </div>
-
-  <nav className="sidebar-navigation">
-    {navGroups.map((group) => (
-      <div className="nav-group" key={group.title}>
-        <p className="nav-group-title">{group.title}</p>
-        {group.items.map(({ label, icon: Icon, active, badge }) => (
-          <a
-            href={`#${label.toLowerCase().replaceAll(" ", "-")}`}
-            className={`nav-item ${active ? "active" : ""}`}
-            key={label}
-            onClick={(event) => {
-              if (label !== "Dashboard") event.preventDefault();
-            }}
-          >
-            <Icon size={18} strokeWidth={1.8} />
-            <span>{label}</span>
-            {badge && <span className="nav-badge">{badge}</span>}
-            {active && <span className="active-indicator" />}
-          </a>
-        ))}
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
       </div>
-    ))}
-  </nav>
 
-  <div className="sidebar-bottom">
-    <div className="upgrade-card">
-      <div className="upgrade-icon"><Zap size={17} /></div>
-      <strong>Unlock your potential</strong>
-      <p>Discover powerful tools for your business.</p>
-      <button type="button">Explore features <ArrowUpRight size={14} /></button>
-    </div>
-    <a href="#help" className="help-link">
-      <CircleHelp size={18} />
-      <span>Help & Support</span>
-    </a>
-    <div className="sidebar-version">VELTRO PRO <span>v1.0.0</span></div>
-  </div>
-</aside>
+      <p className="stat-title">{title}</p>
 
-);
+      <div className="stat-value-row">
+        <h2>{value}</h2>
+
+        <span
+          className={`change-badge ${
+            positive ? "positive" : "negative"
+          }`}
+        >
+          {positive ? (
+            <ArrowUpRight size={14} />
+          ) : (
+            <ArrowDownRight size={14} />
+          )}
+
+          {change}
+        </span>
+      </div>
+
+      <p className="stat-subtitle">
+        {subtitle || "Compared to last month"}
+      </p>
+    </article>
+  );
 }
 
-function DashboardHeader() {
-return (
-<header className="topbar">
-<div className="breadcrumb">
-<span>Workspace</span>
-<span className="breadcrumb-divider">/</span>
-<strong>Dashboard</strong>
-</div>
-<div className="topbar-actions">
-<label className="search-box">
-<Search size={17} />
-<input type="search" placeholder="Search anything..." aria-label="Search" />
-<kbd>⌘ K</kbd>
-</label>
-<button className="icon-button notification-button" aria-label="Notifications">
-<Bell size={19} />
-<span />
-</button>
-<div className="topbar-divider" />
-<button className="profile-button" type="button">
-<div className="profile-avatar">N</div>
-<div className="profile-copy">
-<strong>Administrator</strong>
-<span>Super Admin</span>
-</div>
-<ChevronDown size={15} />
-</button>
-</div>
-</header>
-);
+function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
+  return (
+    <>
+      {mobileOpen && (
+        <button
+          className="sidebar-overlay"
+          type="button"
+          aria-label="Close navigation"
+          onClick={onClose}
+        />
+      )}
+
+      <aside
+        className={`sidebar ${
+          mobileOpen ? "sidebar-open" : ""
+        }`}
+      >
+        <div className="sidebar-brand">
+          <div className="brand-symbol">
+            <Zap size={23} fill="currentColor" />
+          </div>
+
+          <div className="brand-text">
+            <h2>VELTRO</h2>
+            <span>BUSINESS SUITE</span>
+          </div>
+
+          <button
+            className="mobile-close icon-button"
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
+
+        <div className="sidebar-workspace">
+          <div className="workspace-avatar">V</div>
+
+          <div className="workspace-info">
+            <strong>My Business</strong>
+            <span>Business workspace</span>
+          </div>
+
+          <ChevronDown size={16} />
+        </div>
+
+        <nav className="sidebar-nav">
+          {navGroups.map((group) => (
+            <div className="nav-group" key={group.title}>
+              <p className="nav-group-title">{group.title}</p>
+
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = activePage === item.label;
+
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={`nav-item ${
+                      active ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      onNavigate(item.label);
+                      onClose();
+                    }}
+                  >
+                    <Icon size={19} strokeWidth={1.8} />
+
+                    <span>{item.label}</span>
+
+                    {item.label === "Point of Sale" && (
+                      <span className="nav-badge">POS</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom">
+          <div className="help-card">
+            <div className="help-icon">
+              <CircleHelp size={20} />
+            </div>
+
+            <strong>Need help?</strong>
+
+            <p>Find answers and learn how to use VELTRO.</p>
+
+            <button type="button" onClick={() => alert("Help center coming soon.")}>
+              Help Center
+              <ArrowUpRight size={15} />
+            </button>
+          </div>
+
+          <div className="sidebar-footer">
+            <span className="online-dot" />
+            <span>System operational</span>
+            <span className="version">v1.0.0</span>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function DashboardHeader({
+  activePage,
+  search,
+  onSearchChange,
+  onMenuClick,
+}) {
+  return (
+    <header className="dashboard-header">
+      <div className="header-heading">
+        <button
+          className="mobile-menu icon-button"
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open navigation"
+        >
+          <Menu size={22} />
+        </button>
+
+        <div>
+          <div className="breadcrumb">
+            <span>Workspace</span>
+            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-current">{activePage}</span>
+          </div>
+
+          <h1>{activePage}</h1>
+
+          <p className="header-description">
+            Here&apos;s what&apos;s happening with your business today.
+          </p>
+        </div>
+      </div>
+
+      <div className="header-actions">
+        <label className="search-box">
+          <Search size={18} />
+
+          <input
+            type="search"
+            placeholder="Search anything..."
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+
+          <kbd>/</kbd>
+        </label>
+
+        <button
+          className="header-icon-button"
+          type="button"
+          aria-label="Notifications"
+          onClick={() => alert("Notifications coming soon.")}
+        >
+          <Bell size={20} />
+          <span className="notification-dot" />
+        </button>
+
+        <div className="header-profile">
+          <div className="profile-avatar">AD</div>
+
+          <div className="profile-info">
+            <strong>Administrator</strong>
+            <span>Business Owner</span>
+          </div>
+
+          <ChevronDown size={16} />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) {
+    return null;
+  }
+
+  return (
+    <div className="chart-tooltip">
+      <p>{label}</p>
+
+      {payload.map((entry) => (
+        <div className="tooltip-row" key={entry.dataKey}>
+          <span
+            className="tooltip-dot"
+            style={{ background: entry.color }}
+          />
+
+          <span>
+            {entry.dataKey === "sales" ? "Sales" : "Orders"}
+          </span>
+
+          <strong>
+            {entry.dataKey === "sales"
+              ? formatMoney(entry.value)
+              : entry.value}
+          </strong>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function SalesChart() {
-return (
-<section className="panel sales-panel">
-<div className="panel-header">
-<div>
-<h3>Revenue Overview</h3>
-<p>Track your business performance over time.</p>
-</div>
-<select className="period-select" defaultValue="7days" aria-label="Chart period">
-<option value="7days">Last 7 days</option>
-<option value="30days">Last 30 days</option>
-</select>
-</div>
+  const [period, setPeriod] = useState("7 days");
 
-  <div className="chart-legend">
-    <span><i className="legend-dot turquoise" /> Revenue</span>
-    <span><i className="legend-dot violet" /> Purchases</span>
-  </div>
+  return (
+    <section className="panel sales-panel">
+      <div className="panel-header">
+        <div>
+          <div className="panel-title-row">
+            <h3>Sales Overview</h3>
 
-  <div className="sales-chart">
-    <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={salesData} margin={{ top: 12, right: 8, left: -12, bottom: 0 }}>
-        <defs>
-          <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#35d6c2" stopOpacity={0.23} />
-            <stop offset="100%" stopColor="#35d6c2" stopOpacity={0} />
-          </linearGradient>
-          <linearGradient id="purchaseGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.15} />
-            <stop offset="100%" stopColor="#a78bfa" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid stroke="#222b3b" strokeDasharray="3 5" vertical={false} />
-        <XAxis dataKey="day" tick={{ fill: "#7e8ba3", fontSize: 11 }} axisLine={false} tickLine={false} dy={10} />
-        <YAxis tick={{ fill: "#7e8ba3", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-        <Tooltip
-          contentStyle={{ background: "#111827", border: "1px solid #293448", borderRadius: 12, color: "#f4f7fb" }}
-          formatter={(value) => [`${Number(value).toLocaleString()} DA`]}
-        />
-        <Area type="monotone" dataKey="purchases" stroke="#a78bfa" strokeWidth={2} fill="url(#purchaseGradient)" />
-        <Area type="monotone" dataKey="sales" stroke="#35d6c2" strokeWidth={2.5} fill="url(#revenueGradient)" activeDot={{ r: 5, fill: "#35d6c2", stroke: "#0b1220", strokeWidth: 3 }} />
-      </AreaChart>
-    </ResponsiveContainer>
-  </div>
-</section>
+            <span className="live-indicator">
+              <span />
+              Live overview
+            </span>
+          </div>
 
-);
+          <p className="panel-description">
+            Monitor your sales performance over time.
+          </p>
+        </div>
+
+        <div className="panel-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => alert("Export feature coming soon.")}
+          >
+            <Download size={16} />
+            Export
+          </button>
+
+          <select
+            className="select-control"
+            value={period}
+            onChange={(event) => setPeriod(event.target.value)}
+            aria-label="Sales chart period"
+          >
+            <option>7 days</option>
+            <option>30 days</option>
+            <option>90 days</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="chart-summary">
+        <div>
+          <span className="chart-summary-label">Total revenue</span>
+
+          <div className="chart-summary-value">
+            {formatMoney(280000)}
+          </div>
+        </div>
+
+        <div className="chart-summary-change">
+          <ArrowUpRight size={17} />
+          <span>12.8%</span>
+          <small>vs previous period</small>
+        </div>
+      </div>
+
+      <div className="sales-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={salesData}
+            margin={{
+              top: 12,
+              right: 8,
+              left: 0,
+              bottom: 0,
+            }}
+          >
+            <defs>
+              <linearGradient
+                id="salesGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop
+                  offset="0%"
+                  stopColor="#36d9c3"
+                  stopOpacity={0.28}
+                />
+
+                <stop
+                  offset="100%"
+                  stopColor="#36d9c3"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              stroke="#252c3d"
+              strokeDasharray="4 5"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 12 }}
+              dy={12}
+            />
+
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 11 }}
+              tickFormatter={(value) => `${value / 1000}k`}
+              width={42}
+            />
+
+            <Tooltip content={<ChartTooltip />} />
+
+            <Area
+              type="monotone"
+              dataKey="sales"
+              stroke="#36d9c3"
+              strokeWidth={2.5}
+              fill="url(#salesGradient)"
+              activeDot={{
+                r: 5,
+                stroke: "#080b14",
+                strokeWidth: 2,
+                fill: "#36d9c3",
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="chart-footer">
+        <span>
+          <span className="legend-dot" />
+          Sales revenue
+        </span>
+
+        <span>Sample dashboard data</span>
+      </div>
+    </section>
+  );
 }
 
 function OrdersChart() {
-const data = [
-{ name: "Mon", orders: 32 },
-{ name: "Tue", orders: 48 },
-{ name: "Wed", orders: 38 },
-{ name: "Thu", orders: 64 },
-{ name: "Fri", orders: 52 },
-{ name: "Sat", orders: 82 },
-{ name: "Sun", orders: 69 },
-];
+  return (
+    <section className="panel orders-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Orders Analytics</h3>
 
-return (
-<section className="panel orders-panel">
-<div className="panel-header">
-<div>
-<h3>Orders Analytics</h3>
-<p>Order volume this week.</p>
-</div>
-<button className="icon-button subtle" aria-label="More order options">
-<MoreHorizontal size={20} />
-</button>
-</div>
-<div className="orders-total">
-<strong>385</strong>
-<span className="change-badge positive"><ArrowUpRight size={13} /> 12.8%</span>
-</div>
-<div className="orders-chart">
-<ResponsiveContainer width="100%" height="100%">
-<BarChart data={data} margin={{ top: 8, right: 0, left: -25, bottom: 0 }}>
-<CartesianGrid stroke="#222b3b" strokeDasharray="3 5" vertical={false} />
-<XAxis dataKey="name" tick={{ fill: "#7e8ba3", fontSize: 10 }} axisLine={false} tickLine={false} />
-<YAxis hide />
-<Tooltip
-cursor={{ fill: "#ffffff", opacity: 0.035 }}
-contentStyle={{ background: "#111827", border: "1px solid #293448", borderRadius: 10 }}
-/>
-<Bar dataKey="orders" fill="#35d6c2" radius={[5, 5, 0, 0]} maxBarSize={25} />
-</BarChart>
-</ResponsiveContainer>
-</div>
-</section>
-);
+          <p className="panel-description">
+            Orders processed this week.
+          </p>
+        </div>
+
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More order chart options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
+
+      <div className="orders-total">
+        <strong>1,217</strong>
+
+        <span className="change-badge positive">
+          <ArrowUpRight size={14} />
+          8.4%
+        </span>
+      </div>
+
+      <div className="orders-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={salesData}
+            margin={{
+              top: 8,
+              right: 0,
+              left: 0,
+              bottom: 0,
+            }}
+          >
+            <CartesianGrid
+              stroke="#252c3d"
+              strokeDasharray="4 5"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 11 }}
+            />
+
+            <Tooltip
+              cursor={{ fill: "rgba(255,255,255,0.035)" }}
+              formatter={(value) => [value, "Orders"]}
+            />
+
+            <Bar
+              dataKey="orders"
+              fill="#8a79ff"
+              radius={[5, 5, 0, 0]}
+              maxBarSize={28}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="orders-footer">
+        <span>
+          <span className="legend-dot violet" />
+          Completed orders
+        </span>
+
+        <span>Last 7 days</span>
+      </div>
+    </section>
+  );
 }
 
-function ProductsTable() {
-return (
-<section className="panel products-panel">
-<div className="panel-header">
-<div>
-<h3>Top Selling Products</h3>
-<p>Your best performing products this month.</p>
-</div>
-<button className="text-button" type="button">View all <ArrowUpRight size={15} /></button>
-</div>
+function ProductsTable({ search }) {
+  const filteredProducts = products.filter((product) => {
+    const query = search.trim().toLowerCase();
 
-  <div className="table-scroll">
-    <table className="products-table">
-      <thead>
-        <tr>
-          <th>PRODUCT</th>
-          <th>CATEGORY</th>
-          <th>SOLD</th>
-          <th>REVENUE</th>
-        </tr>
-      </thead>
-      <tbody>
-        {products.map((product, index) => (
-          <tr key={product.name}>
-            <td>
-              <div className="product-cell">
-                <div className="product-symbol" style={{ "--product-color": product.color }}>
-                  <Package size={18} />
-                </div>
-                <div>
-                  <strong>{product.name}</strong>
-                  <span>SKU-00{index + 1}</span>
-                </div>
-              </div>
-            </td>
-            <td><span className="category-pill">{product.category}</span></td>
-            <td className="sold-cell">{product.sold}</td>
-            <td className="revenue-cell">{product.revenue}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-  <div className="table-footer">
-    <span>Showing <strong>4</strong> of <strong>24</strong> products</span>
-    <div className="pagination">
-      <button type="button" disabled aria-label="Previous page">‹</button>
-      <button type="button" className="current-page" aria-label="Page 1">1</button>
-      <button type="button" aria-label="Page 2">2</button>
-      <button type="button" aria-label="Next page">›</button>
-    </div>
-  </div>
-</section>
+    if (!query) {
+      return true;
+    }
 
-);
+    return (
+      product.name.toLowerCase().includes(query) ||
+      product.category.toLowerCase().includes(query) ||
+      product.sku.toLowerCase().includes(query)
+    );
+  });
+
+  return (
+    <section className="panel products-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Top Products</h3>
+
+          <p className="panel-description">
+            Overview of your current product inventory.
+          </p>
+        </div>
+
+        <div className="panel-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => alert("Product filters coming soon.")}
+          >
+            <Filter size={16} />
+            Filter
+          </button>
+
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => alert("Product management coming soon.")}
+          >
+            <Plus size={17} />
+            Add Product
+          </button>
+        </div>
+      </div>
+
+      <div className="table-wrapper">
+        <table className="products-table">
+          <thead>
+            <tr>
+              <th>PRODUCT</th>
+              <th>SKU</th>
+              <th>CATEGORY</th>
+              <th>STOCK</th>
+              <th>PRICE</th>
+              <th>STATUS</th>
+              <th />
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product.id}>
+                <td>
+                  <div className="product-name-cell">
+                    <div className="product-thumbnail">
+                      <Package size={19} />
+                    </div>
+
+                    <strong>{product.name}</strong>
+                  </div>
+                </td>
+
+                <td className="muted-cell">{product.sku}</td>
+
+                <td>{product.category}</td>
+
+                <td>
+                  <span
+                    className={
+                      product.stock <= 20
+                        ? "stock-warning"
+                        : "stock-normal"
+                    }
+                  >
+                    {product.stock}
+                  </span>
+                </td>
+
+                <td className="price-cell">
+                  {formatMoney(product.price)}
+                </td>
+
+                <td>
+                  <span
+                    className={`status-badge ${
+                      product.status === "In Stock"
+                        ? "status-success"
+                        : product.status === "Low Stock"
+                        ? "status-warning"
+                        : "status-danger"
+                    }`}
+                  >
+                    <span />
+
+                    {product.status}
+                  </span>
+                </td>
+
+                <td>
+                  <button
+                    className="icon-button"
+                    type="button"
+                    aria-label={`Options for ${product.name}`}
+                    onClick={() =>
+                      alert(`Product options: ${product.name}`)
+                    }
+                  >
+                    <MoreHorizontal size={19} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={7} className="empty-state">
+                  No products match your search.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="table-footer">
+        <span>
+          Showing {filteredProducts.length} of {products.length} products
+        </span>
+
+        <button
+          className="view-all-button"
+          type="button"
+          onClick={() => alert("Full product list coming soon.")}
+        >
+          View all products
+          <ArrowUpRight size={15} />
+        </button>
+      </div>
+    </section>
+  );
 }
 
 function ActivityPanel() {
-const activities = [
-{ icon: ShoppingCart, title: "New sale completed", detail: "Order #SL-1048", time: "2 min ago", tone: "turquoise" },
-{ icon: Package, title: "Stock running low", detail: "Mineral Water · 8 left", time: "18 min ago", tone: "orange" },
-{ icon: Users, title: "New customer added", detail: "Customer #CU-025", time: "45 min ago", tone: "violet" },
-{ icon: Truck, title: "Purchase received", detail: "Order #PU-021", time: "1 hour ago", tone: "blue" },
-];
+  return (
+    <section className="panel activity-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Recent Activity</h3>
 
-return (
-<section className="panel activity-panel">
-<div className="panel-header">
-<div>
-<h3>Recent Activity</h3>
-<p>Latest updates from your business.</p>
-</div>
-<button className="icon-button subtle" aria-label="Activity options"><MoreHorizontal size={20} /></button>
-</div>
-<div className="activity-list">
-{activities.map(({ icon: Icon, title, detail, time, tone }) => (
-<div className="activity-item" key={title}>
-<div className={"activity-icon ${tone}"}><Icon size={17} /></div>
-<div className="activity-copy">
-<strong>{title}</strong>
-<span>{detail}</span>
-</div>
-<time>{time}</time>
-</div>
-))}
-</div>
-<button className="activity-view-all" type="button">View all activity <ArrowUpRight size={15} /></button>
-</section>
-);
+          <p className="panel-description">
+            Latest updates from your business.
+          </p>
+        </div>
+
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More activity options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
+
+      <div className="activity-list">
+        {activities.map((activity, index) => {
+          const Icon = activity.icon;
+
+          return (
+            <div className="activity-item" key={activity.title}>
+              <div className={`activity-icon ${activity.color}`}>
+                <Icon size={18} />
+              </div>
+
+              <div className="activity-content">
+                <strong>{activity.title}</strong>
+                <span>{activity.detail}</span>
+              </div>
+
+              <div className="activity-time">
+                <Clock size={12} />
+                <span>{activity.time}</span>
+              </div>
+
+              {index !== activities.length - 1 && (
+                <span className="activity-connector" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        className="activity-view-all"
+        type="button"
+        onClick={() => alert("Activity history coming soon.")}
+      >
+        View activity history
+        <ArrowUpRight size={15} />
+      </button>
+    </section>
+  );
 }
 
-export default function App() {
-return (
-<div className="app-shell">
-<Sidebar />
-<main className="main-area" id="dashboard">
-<DashboardHeader />
-<div className="dashboard-content">
-<div className="welcome-row">
-<div>
-<div className="eyebrow"><span className="eyebrow-dot" /> YOUR BUSINESS AT A GLANCE</div>
-<h1>Good morning, <span>Administrator</span> <span className="wave">✦</span></h1>
-<p>Here's what's happening with your business today.</p>
-</div>
-<button className="date-button" type="button">
-<span className="date-icon">▦</span>
-October 10, 2026
-<ChevronDown size={15} />
-</button>
-</div>
+function Dashboard() {
+  const [search, setSearch] = useState("");
+
+  return (
+    <>
+      <div className="welcome-banner">
+        <div className="welcome-content">
+          <div className="welcome-eyebrow">
+            <Zap size={15} />
+            YOUR BUSINESS AT A GLANCE
+          </div>
+
+          <h2>Welcome back, Administrator 👋</h2>
+
+          <p>
+            Here&apos;s your business performance overview for today.
+          </p>
+
+          <div className="welcome-date">
+            <CalendarDays size={15} />
+            {new Date().toLocaleDateString("en-GB", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+        </div>
+
+        <div className="welcome-decoration">
+          <div className="decoration-ring ring-one" />
+          <div className="decoration-ring ring-two" />
+          <div className="decoration-center">
+            <BarChart3 size={42} />
+          </div>
+        </div>
+      </div>
+
+      <div className="section-heading">
+        <div>
+          <h2>Business Overview</h2>
+          <p>Your key business metrics at a glance.</p>
+        </div>
+
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={() => alert("Date range selection coming soon.")}
+        >
+          <CalendarDays size={16} />
+          Today
+          <ChevronDown size={15} />
+        </button>
+      </div>
 
       <div className="stats-grid">
-        <StatCard title="Total Revenue" value="284,650 DA" change="+12.8%" icon={Wallet} tone="tone-turquoise" />
-        <StatCard title="Total Orders" value="1,248" change="+8.2%" icon={ShoppingCart} tone="tone-violet" />
-        <StatCard title="Total Products" value="2,456" change="+4.6%" icon={Package} tone="tone-blue" />
-        <StatCard title="Net Profit" value="86,420 DA" change="+16.3%" icon={ChartNoAxesCombined} tone="tone-orange" />
+        <StatCard
+          title="Total Revenue"
+          value={formatMoney(284500)}
+          change="12.8%"
+          positive
+          icon={Wallet}
+          accent="cyan"
+        />
+
+        <StatCard
+          title="Total Orders"
+          value="1,284"
+          change="8.4%"
+          positive
+          icon={ShoppingCart}
+          accent="violet"
+        />
+
+        <StatCard
+          title="Total Products"
+          value="856"
+          change="4.2%"
+          positive
+          icon={Package}
+          accent="blue"
+        />
+
+        <StatCard
+          title="Net Profit"
+          value={formatMoney(82400)}
+          change="2.1%"
+          positive={false}
+          icon={BarChart3}
+          accent="orange"
+        />
       </div>
 
       <div className="charts-grid">
@@ -416,17 +1002,102 @@ October 10, 2026
       </div>
 
       <div className="bottom-grid">
-        <ProductsTable />
+        <ProductsTable search={search} />
         <ActivityPanel />
       </div>
 
-      <footer className="dashboard-footer">
-        <span>© 2026 VELTRO. All rights reserved.</span>
-        <span><i /> All systems operational</span>
-      </footer>
-    </div>
-  </main>
-</div>
+      <div className="dashboard-search-footer">
+        <Search size={16} />
 
-);
-  }
+        <input
+          type="search"
+          placeholder="Search products by name, category or SKU..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      </div>
+    </>
+  );
+}
+
+function PlaceholderPage({ title }) {
+  const icons = {
+    "Point of Sale": ShoppingCart,
+    Products: Package,
+    Categories: Boxes,
+    Purchases: CreditCard,
+    Orders: ShoppingCart,
+    Suppliers: Truck,
+    Customers: Users,
+    "Cash Register": Wallet,
+    Reports: BarChart3,
+    Settings,
+  };
+
+  const Icon = icons[title] || LayoutDashboard;
+
+  return (
+    <section className="panel placeholder-panel">
+      <div className="placeholder-icon">
+        <Icon size={34} />
+      </div>
+
+      <h2>{title}</h2>
+
+      <p>
+        This module is part of the VELTRO-PRO roadmap.
+        Its functionality will be developed in the next stages.
+      </p>
+
+      <div className="placeholder-status">
+        <CheckCircle2 size={17} />
+        Module planned
+      </div>
+    </section>
+  );
+}
+
+export default function App() {
+  const [activePage, setActivePage] = useState("Dashboard");
+  const [search, setSearch] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <div className="app-shell">
+      <Sidebar
+        activePage={activePage}
+        onNavigate={setActivePage}
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
+
+      <main className="main-content">
+        <DashboardHeader
+          activePage={activePage}
+          search={search}
+          onSearchChange={setSearch}
+          onMenuClick={() => setMobileOpen(true)}
+        />
+
+        <div className="page-content">
+          {activePage === "Dashboard" ? (
+            <Dashboard />
+          ) : (
+            <PlaceholderPage title={activePage} />
+          )}
+        </div>
+
+        <footer className="app-footer">
+          <span>
+            © {new Date().getFullYear()} VELTRO. All rights reserved.
+          </span>
+
+          <span className="footer-status">
+            <span />
+            All systems operational
+          </span>
+        </footer>
+      </main>
+    </div>
+  );
+    
