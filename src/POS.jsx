@@ -1,1050 +1,649 @@
 
-import React, { useState } from "react";
-import POS from "./POS";
-
+import React, { useMemo, useState } from "react";
 import {
-  LayoutDashboard,
+  Search,
+  Plus,
+  Minus,
+  Trash2,
   ShoppingCart,
   Package,
-  Truck,
-  Users,
-  Wallet,
-  BarChart3,
-  Settings,
-  Bell,
-  Search,
-  ArrowUpRight,
-  ArrowDownRight,
-  MoreHorizontal,
-  Boxes,
   CreditCard,
-  CircleHelp,
-  ChevronDown,
-  Zap,
-  CalendarDays,
-  Plus,
-  Download,
-  Filter,
-  Clock,
+  Banknote,
+  Smartphone,
+  ScanBarcode,
+  X,
   CheckCircle2,
-  Menu,
+  Receipt,
+  RotateCcw,
+  ShoppingBag,
 } from "lucide-react";
 
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  BarChart,
-  Bar,
-} from "recharts";
-
-const salesData = [
-  { day: "Mon", sales: 24000, orders: 120 },
-  { day: "Tue", sales: 32000, orders: 145 },
-  { day: "Wed", sales: 28000, orders: 132 },
-  { day: "Thu", sales: 45000, orders: 190 },
-  { day: "Fri", sales: 38000, orders: 165 },
-  { day: "Sat", sales: 52000, orders: 220 },
-  { day: "Sun", sales: 61000, orders: 245 },
+const INITIAL_PRODUCTS = [
+  { id: 1, name: "Premium Coffee", category: "Beverages", price: 450, stock: 24, sku: "PRD-001", color: "#8b6a4f" },
+  { id: 2, name: "Mineral Water", category: "Drinks", price: 80, stock: 120, sku: "PRD-002", color: "#4285f4" },
+  { id: 3, name: "Chocolate Biscuits", category: "Snacks", price: 120, stock: 45, sku: "PRD-003", color: "#b78353" },
+  { id: 4, name: "Orange Juice", category: "Beverages", price: 180, stock: 32, sku: "PRD-004", color: "#f59e0b" },
+  { id: 5, name: "Potato Chips", category: "Snacks", price: 100, stock: 38, sku: "PRD-005", color: "#e5b94d" },
+  { id: 6, name: "Fresh Milk", category: "Dairy", price: 140, stock: 20, sku: "PRD-006", color: "#a7c9ed" },
+  { id: 7, name: "Dark Chocolate", category: "Snacks", price: 250, stock: 17, sku: "PRD-007", color: "#795548" },
+  { id: 8, name: "Apple Juice", category: "Beverages", price: 160, stock: 28, sku: "PRD-008", color: "#e46b72" },
+  { id: 9, name: "Energy Drink", category: "Drinks", price: 220, stock: 36, sku: "PRD-009", color: "#39bda7" },
+  { id: 10, name: "Biscuits Mini", category: "Snacks", price: 50, stock: 80, sku: "PRD-010", color: "#d4a373" },
+  { id: 11, name: "Yogurt", category: "Dairy", price: 90, stock: 26, sku: "PRD-011", color: "#c084fc" },
+  { id: 12, name: "Sparkling Water", category: "Drinks", price: 110, stock: 42, sku: "PRD-012", color: "#60a5fa" },
 ];
 
-const products = [
-  {
-    id: 1,
-    name: "Premium Coffee",
-    category: "Beverages",
-    sku: "PRD-001",
-    stock: 245,
-    price: 450,
-    status: "In Stock",
-  },
-  {
-    id: 2,
-    name: "Mineral Water",
-    category: "Drinks",
-    sku: "PRD-002",
-    stock: 18,
-    price: 80,
-    status: "Low Stock",
-  },
-  {
-    id: 3,
-    name: "Chocolate Biscuits",
-    category: "Snacks",
-    sku: "PRD-003",
-    stock: 156,
-    price: 120,
-    status: "In Stock",
-  },
-  {
-    id: 4,
-    name: "Orange Juice",
-    category: "Beverages",
-    sku: "PRD-004",
-    stock: 0,
-    price: 180,
-    status: "Out of Stock",
-  },
-  {
-    id: 5,
-    name: "Potato Chips",
-    category: "Snacks",
-    sku: "PRD-005",
-    stock: 82,
-    price: 100,
-    status: "In Stock",
-  },
-];
+const CATEGORIES = ["All Products", "Beverages", "Drinks", "Snacks", "Dairy"];
 
-const navGroups = [
-  {
-    title: "GENERAL",
-    items: [
-      { label: "Dashboard", icon: LayoutDashboard },
-      { label: "Settings", icon: Settings },
-    ],
+const formatMoney = (value) =>
+  `${Number(value).toLocaleString("fr-DZ")} DA`;
+
+const styles = {
+  page: {
+    color: "#e9edf6",
+    fontFamily: "Inter, system-ui, sans-serif",
+    width: "100%",
+    minWidth: 0,
+    boxSizing: "border-box",
   },
-  {
-    title: "COMMERCE",
-    items: [
-      { label: "Point of Sale", icon: ShoppingCart },
-      { label: "Products", icon: Package },
-      { label: "Categories", icon: Boxes },
-      { label: "Purchases", icon: CreditCard },
-      { label: "Orders", icon: ShoppingCart },
-      { label: "Suppliers", icon: Truck },
-      { label: "Customers", icon: Users },
-    ],
+  card: {
+    background: "#111624",
+    border: "1px solid #252c3d",
+    borderRadius: 14,
+    minWidth: 0,
+    boxSizing: "border-box",
   },
-  {
-    title: "FINANCE",
-    items: [
-      { label: "Cash Register", icon: Wallet },
-      { label: "Reports", icon: BarChart3 },
-    ],
+  button: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    border: "1px solid #30394b",
+    background: "#171e2d",
+    color: "#dce4f2",
+    borderRadius: 9,
+    padding: "10px 13px",
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 600,
   },
-];
-
-const activities = [
-  {
-    title: "New order received",
-    detail: "Order #ORD-1048",
-    time: "5 minutes ago",
-    icon: ShoppingCart,
-    color: "purple",
+  input: {
+    background: "#0c111d",
+    border: "1px solid #2a3244",
+    borderRadius: 9,
+    padding: "12px",
+    color: "#e9edf6",
+    outline: "none",
+    width: "100%",
+    minWidth: 0,
+    boxSizing: "border-box",
+    fontSize: 13,
   },
-  {
-    title: "Stock updated",
-    detail: "Premium Coffee",
-    time: "18 minutes ago",
-    icon: Package,
-    color: "cyan",
-  },
-  {
-    title: "Payment completed",
-    detail: "Order #ORD-1047",
-    time: "32 minutes ago",
-    icon: CreditCard,
-    color: "green",
-  },
-  {
-    title: "New customer added",
-    detail: "Customer registration",
-    time: "1 hour ago",
-    icon: Users,
-    color: "orange",
-  },
-];
+};
 
-function formatMoney(value) {
-  return `${Number(value).toLocaleString("fr-DZ")} DA`;
-}
+export default function POS() {
+  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [cart, setCart] = useState([]);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("All Products");
+  const [paymentMethod, setPaymentMethod] = useState("Cash");
+  const [discount, setDiscount] = useState("0");
+  const [received, setReceived] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
+  const [lastSale, setLastSale] = useState(null);
+  const [message, setMessage] = useState("");
 
-function StatCard({
-  title,
-  value,
-  change,
-  positive = true,
-  icon: Icon,
-  accent = "cyan",
-  subtitle,
-}) {
-  return (
-    <article className={`stat-card accent-${accent}`}>
-      <div className="stat-card-top">
-        <div className="stat-icon">
-          <Icon size={21} strokeWidth={1.8} />
-        </div>
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
 
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="More options"
-        >
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
+    return products.filter((product) => {
+      const matchesCategory =
+        category === "All Products" || product.category === category;
 
-      <p className="stat-title">{title}</p>
+      const matchesSearch =
+        !query ||
+        product.name.toLowerCase().includes(query) ||
+        product.sku.toLowerCase().includes(query);
 
-      <div className="stat-value-row">
-        <h2>{value}</h2>
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, search, category]);
 
-        <span
-          className={`change-badge ${
-            positive ? "positive" : "negative"
-          }`}
-        >
-          {positive ? (
-            <ArrowUpRight size={14} />
-          ) : (
-            <ArrowDownRight size={14} />
-          )}
-          {change}
-        </span>
-      </div>
-
-      <p className="stat-subtitle">
-        {subtitle || "Compared to last month"}
-      </p>
-    </article>
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
   );
-}
 
-function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
-  return (
-    <>
-      {mobileOpen && (
-        <button
-          className="sidebar-overlay"
-          type="button"
-          aria-label="Close navigation"
-          onClick={onClose}
-        />
-      )}
-
-      <aside
-        className={`sidebar ${
-          mobileOpen ? "sidebar-open" : ""
-        }`}
-      >
-        <div className="sidebar-brand">
-          <div className="brand-symbol">
-            <Zap size={23} fill="currentColor" />
-          </div>
-
-          <div className="brand-text">
-            <h2>VELTRO</h2>
-            <span>BUSINESS SUITE</span>
-          </div>
-
-          <button
-            className="mobile-close icon-button"
-            type="button"
-            onClick={onClose}
-            aria-label="Close menu"
-          >
-            <Menu size={20} />
-          </button>
-        </div>
-
-        <div className="sidebar-workspace">
-          <div className="workspace-avatar">V</div>
-
-          <div className="workspace-info">
-            <strong>My Business</strong>
-            <span>Business workspace</span>
-          </div>
-
-          <ChevronDown size={16} />
-        </div>
-
-        <nav className="sidebar-nav">
-          {navGroups.map((group) => (
-            <div className="nav-group" key={group.title}>
-              <p className="nav-group-title">{group.title}</p>
-
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const active = activePage === item.label;
-
-                return (
-                  <button
-                    key={item.label}
-                    type="button"
-                    className={`nav-item ${
-                      active ? "active" : ""
-                    }`}
-                    onClick={() => {
-                      onNavigate(item.label);
-                      onClose();
-                    }}
-                  >
-                    <Icon size={19} strokeWidth={1.8} />
-                    <span>{item.label}</span>
-
-                    {item.label === "Point of Sale" && (
-                      <span className="nav-badge">POS</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="help-card">
-            <div className="help-icon">
-              <CircleHelp size={20} />
-            </div>
-
-            <strong>Need help?</strong>
-            <p>Find answers and learn how to use VELTRO.</p>
-
-            <button
-              type="button"
-              onClick={() => alert("Help center coming soon.")}
-            >
-              Help Center
-              <ArrowUpRight size={15} />
-            </button>
-          </div>
-
-          <div className="sidebar-footer">
-            <span className="online-dot" />
-            <span>System operational</span>
-            <span className="version">v1.0.0</span>
-          </div>
-        </div>
-      </aside>
-    </>
+  const discountValue = Math.min(
+    subtotal,
+    Math.max(0, Number(discount) || 0)
   );
-}
 
-function DashboardHeader({
-  activePage,
-  search,
-  onSearchChange,
-  onMenuClick,
-}) {
-  return (
-    <header className="dashboard-header">
-      <div className="header-heading">
-        <button
-          className="mobile-menu icon-button"
-          type="button"
-          onClick={onMenuClick}
-          aria-label="Open navigation"
-        >
-          <Menu size={22} />
-        </button>
+  const total = subtotal - discountValue;
 
-        <div>
-          <div className="breadcrumb">
-            <span>Workspace</span>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{activePage}</span>
-          </div>
+  const paidAmount =
+    paymentMethod === "Cash" ? Number(received) || 0 : total;
 
-          <h1>{activePage}</h1>
+  const change = Math.max(0, paidAmount - total);
 
-          <p className="header-description">
-            Here's what's happening with your business today.
-          </p>
-        </div>
-      </div>
+  function addToCart(product) {
+    if (product.stock <= 0) {
+      setMessage("This product is out of stock.");
+      return;
+    }
 
-      <div className="header-actions">
-        <label className="search-box">
-          <Search size={18} />
+    setCart((current) => {
+      const existing = current.find((item) => item.id === product.id);
 
-          <input
-            type="search"
-            placeholder="Search anything..."
-            value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
-          />
+      if (existing) {
+        if (existing.quantity >= product.stock) {
+          setMessage("Not enough stock for this quantity.");
+          return current;
+        }
 
-          <kbd>/</kbd>
-        </label>
+        return current.map((item) =>
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+      }
 
-        <button
-          className="header-icon-button"
-          type="button"
-          aria-label="Notifications"
-          onClick={() => alert("Notifications coming soon.")}
-        >
-          <Bell size={20} />
-          <span className="notification-dot" />
-        </button>
+      return [...current, { ...product, quantity: 1 }];
+    });
 
-        <div className="header-profile">
-          <div className="profile-avatar">AD</div>
+    setMessage("");
+    setLastSale(null);
+  }
 
-          <div className="profile-info">
-            <strong>Administrator</strong>
-            <span>Business Owner</span>
-          </div>
+  function updateQuantity(id, amount) {
+    setCart((current) =>
+      current
+        .map((item) => {
+          if (item.id !== id) return item;
 
-          <ChevronDown size={16} />
-        </div>
-      </div>
-    </header>
-  );
-}
+          const product = products.find((p) => p.id === id);
+          const quantity = item.quantity + amount;
 
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload || !payload.length) {
-    return null;
+          if (quantity > (product?.stock ?? 0)) {
+            setMessage("Not enough stock for this quantity.");
+            return item;
+          }
+
+          return { ...item, quantity };
+        })
+        .filter((item) => item.quantity > 0)
+    );
+
+    setMessage("");
+  }
+
+  function removeItem(id) {
+    setCart((current) => current.filter((item) => item.id !== id));
+  }
+
+  function clearCart() {
+    setCart([]);
+    setDiscount("0");
+    setReceived("");
+    setMessage("");
+    setShowPayment(false);
+  }
+
+  function completeSale() {
+    if (!cart.length) {
+      setMessage("Add at least one product to the cart.");
+      return;
+    }
+
+    if (paymentMethod === "Cash" && paidAmount < total) {
+      setMessage("The amount received is less than the total.");
+      return;
+    }
+
+    const sale = {
+      id: `VLT-${Date.now().toString().slice(-7)}`,
+      date: new Date().toLocaleString("fr-DZ"),
+      items: cart.map((item) => ({ ...item })),
+      subtotal,
+      discount: discountValue,
+      total,
+      paymentMethod,
+      received: paidAmount,
+      change,
+    };
+
+    setProducts((current) =>
+      current.map((product) => {
+        const soldItem = cart.find((item) => item.id === product.id);
+
+        return soldItem
+          ? { ...product, stock: product.stock - soldItem.quantity }
+          : product;
+      })
+    );
+
+    setLastSale(sale);
+    setCart([]);
+    setDiscount("0");
+    setReceived("");
+    setShowPayment(false);
+    setMessage("Sale completed successfully.");
   }
 
   return (
-    <div className="chart-tooltip">
-      <p>{label}</p>
+    <div style={styles.page}>
+      <style>{`
+        .pos-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,360px); gap:18px; align-items:start; }
+        .pos-products { padding:20px; }
+        .pos-cart { padding:20px; position:sticky; top:16px; }
+        .pos-product-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+        .pos-product { border:1px solid #293145; border-radius:12px; background:#151c2b; padding:14px; text-align:left; color:#e9edf6; cursor:pointer; min-width:0; transition:border-color .15s, transform .15s; }
+        .pos-product:hover { border-color:#36d9c3; transform:translateY(-2px); }
+        .pos-category { border:1px solid #2a3244; border-radius:8px; background:#151b29; color:#9ba7bd; padding:9px 12px; cursor:pointer; white-space:nowrap; font-size:12px; }
+        .pos-category.active { background:rgba(54,217,195,.12); border-color:#36d9c3; color:#36d9c3; }
+        .pos-cart-items { display:flex; flex-direction:column; gap:12px; max-height:340px; overflow-y:auto; }
+        .pos-cart-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding-bottom:12px; border-bottom:1px solid #252c3d; }
+        .pos-qty { display:flex; align-items:center; gap:10px; }
+        .pos-qty button { display:flex; align-items:center; justify-content:center; width:27px; height:27px; border:1px solid #30394b; border-radius:7px; background:#1a2232; color:#e9edf6; cursor:pointer; }
+        .pos-primary { display:flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:9px; background:#36d9c3; color:#071411; padding:13px; width:100%; font-weight:800; font-size:14px; cursor:pointer; }
+        .pos-primary:disabled { opacity:.45; cursor:not-allowed; }
+        .pos-pay-option { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:13px 8px; background:#151b29; color:#aab5c9; border:1px solid #30394b; border-radius:10px; cursor:pointer; }
+        .pos-pay-option.active { border-color:#36d9c3; background:rgba(54,217,195,.1); color:#36d9c3; }
+        .pos-scroll { overflow-x:auto; display:flex; gap:8px; padding-bottom:4px; }
+        @media(max-width:1100px) { .pos-layout { grid-template-columns:minmax(0,1fr); } .pos-cart { position:static; } .pos-product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media(max-width:680px) { .pos-products,.pos-cart { padding:13px; } .pos-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } .pos-product { padding:11px; } .pos-heading { align-items:flex-start !important; flex-direction:column; } .pos-heading-actions { width:100%; } .pos-heading-actions button { flex:1; } .pos-product-art { height:76px !important; } }
+        @media(max-width:380px) { .pos-product-grid { grid-template-columns:minmax(0,1fr); } }
+      `}</style>
 
-      {payload.map((entry) => (
-        <div className="tooltip-row" key={entry.dataKey}>
-          <span
-            className="tooltip-dot"
-            style={{ background: entry.color }}
-          />
-
-          <span>
-            {entry.dataKey === "sales" ? "Sales" : "Orders"}
-          </span>
-
-          <strong>
-            {entry.dataKey === "sales"
-              ? formatMoney(entry.value)
-              : entry.value}
-          </strong>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function SalesChart() {
-  const [period, setPeriod] = useState("7 days");
-
-  return (
-    <section className="panel sales-panel">
-      <div className="panel-header">
+      <div
+        className="pos-heading"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 14,
+          marginBottom: 22,
+        }}
+      >
         <div>
-          <div className="panel-title-row">
-            <h3>Sales Overview</h3>
-
-            <span className="live-indicator">
-              <span />
-              Live overview
-            </span>
+          <div style={{ color: "#36d9c3", fontSize: 11, fontWeight: 800, letterSpacing: 2, marginBottom: 7 }}>
+            COMMERCE / CHECKOUT
           </div>
-
-          <p className="panel-description">
-            Monitor your sales performance over time.
+          <h2 style={{ fontSize: 25, margin: 0, letterSpacing: -0.7 }}>
+            Point of Sale
+          </h2>
+          <p style={{ color: "#8f9bb1", fontSize: 13, margin: "7px 0 0" }}>
+            Create sales and process customer payments.
           </p>
         </div>
 
-        <div className="panel-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => alert("Export feature coming soon.")}
-          >
-            <Download size={16} />
-            Export
+        <div className="pos-heading-actions" style={{ display: "flex", gap: 9 }}>
+          <button style={styles.button} onClick={clearCart}>
+            <RotateCcw size={15} />
+            New Sale
           </button>
-
-          <select
-            className="select-control"
-            value={period}
-            onChange={(event) => setPeriod(event.target.value)}
-            aria-label="Sales chart period"
-          >
-            <option>7 days</option>
-            <option>30 days</option>
-            <option>90 days</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="chart-summary">
-        <div>
-          <span className="chart-summary-label">Total revenue</span>
-          <div className="chart-summary-value">
-            {formatMoney(280000)}
+          <div style={{ ...styles.button, color: "#36d9c3", borderColor: "#254b49" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#36d9c3" }} />
+            Register Open
           </div>
         </div>
-
-        <div className="chart-summary-change">
-          <ArrowUpRight size={17} />
-          <span>12.8%</span>
-          <small>vs previous period</small>
-        </div>
       </div>
 
-      <div className="sales-chart">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
-            data={salesData}
-            margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient
-                id="salesGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="#36d9c3"
-                  stopOpacity={0.28}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="#36d9c3"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-
-            <CartesianGrid
-              stroke="#252c3d"
-              strokeDasharray="4 5"
-              vertical={false}
-            />
-
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#8993a8", fontSize: 12 }}
-              dy={12}
-            />
-
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#8993a8", fontSize: 11 }}
-              tickFormatter={(value) => `${value / 1000}k`}
-              width={42}
-            />
-
-            <Tooltip content={<ChartTooltip />} />
-
-            <Area
-              type="monotone"
-              dataKey="sales"
-              stroke="#36d9c3"
-              strokeWidth={2.5}
-              fill="url(#salesGradient)"
-              activeDot={{
-                r: 5,
-                stroke: "#080b14",
-                strokeWidth: 2,
-                fill: "#36d9c3",
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="chart-footer">
-        <span>
-          <span className="legend-dot" />
-          Sales revenue
-        </span>
-        <span>Sample dashboard data</span>
-      </div>
-    </section>
-  );
-}
-
-function OrdersChart() {
-  return (
-    <section className="panel orders-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Orders Analytics</h3>
-          <p className="panel-description">
-            Orders processed this week.
-          </p>
-        </div>
-
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="More order chart options"
+      {message && (
+        <div
+          role="status"
+          style={{
+            padding: "11px 14px",
+            marginBottom: 15,
+            borderRadius: 9,
+            background: message.includes("successfully")
+              ? "rgba(54,217,195,.1)"
+              : "rgba(245,158,11,.1)",
+            color: message.includes("successfully") ? "#36d9c3" : "#fbbf24",
+            border: "1px solid #30394b",
+            fontSize: 13,
+          }}
         >
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
+          {message}
+        </div>
+      )}
 
-      <div className="orders-total">
-        <strong>1,217</strong>
-        <span className="change-badge positive">
-          <ArrowUpRight size={14} />
-          8.4%
-        </span>
-      </div>
-
-      <div className="orders-chart">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={salesData}
-            margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
-          >
-            <CartesianGrid
-              stroke="#252c3d"
-              strokeDasharray="4 5"
-              vertical={false}
-            />
-
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#8993a8", fontSize: 11 }}
-            />
-
-            <Tooltip
-              cursor={{ fill: "rgba(255,255,255,0.035)" }}
-              formatter={(value) => [value, "Orders"]}
-            />
-
-            <Bar
-              dataKey="orders"
-              fill="#8a79ff"
-              radius={[5, 5, 0, 0]}
-              maxBarSize={28}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="orders-footer">
-        <span>
-          <span className="legend-dot violet" />
-          Completed orders
-        </span>
-        <span>Last 7 days</span>
-      </div>
-    </section>
-  );
-}
-
-function ProductsTable({ search }) {
-  const filteredProducts = products.filter((product) => {
-    const query = search.trim().toLowerCase();
-
-    if (!query) return true;
-
-    return (
-      product.name.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query) ||
-      product.sku.toLowerCase().includes(query)
-    );
-  });
-
-  return (
-    <section className="panel products-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Top Products</h3>
-          <p className="panel-description">
-            Overview of your current product inventory.
+      {lastSale && (
+        <div style={{ ...styles.card, padding: 16, marginBottom: 16, borderColor: "#28665e" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <CheckCircle2 color="#36d9c3" size={22} />
+            <div style={{ flex: 1 }}>
+              <strong style={{ color: "#36d9c3" }}>Sale completed</strong>
+              <p style={{ color: "#9ba7bd", fontSize: 12, margin: "5px 0" }}>
+                Receipt {lastSale.id} · {lastSale.date}
+              </p>
+            </div>
+            <strong>{formatMoney(lastSale.total)}</strong>
+          </div>
+          <p style={{ fontSize: 12, color: "#9ba7bd", marginBottom: 0 }}>
+            Payment: {lastSale.paymentMethod}
+            {lastSale.paymentMethod === "Cash" ? ` · Change: ${formatMoney(lastSale.change)}` : ""}
           </p>
         </div>
+      )}
 
-        <div className="panel-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => alert("Product filters coming soon.")}
-          >
-            <Filter size={16} />
-            Filter
-          </button>
+      <div className="pos-layout">
+        <section style={styles.card} className="pos-products">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 18 }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16 }}>Products</h3>
+              <p style={{ margin: "5px 0 0", color: "#8f9bb1", fontSize: 12 }}>
+                {filteredProducts.length} products available
+              </p>
+            </div>
+            <div style={{ color: "#36d9c3", background: "rgba(54,217,195,.1)", padding: 10, borderRadius: 10 }}>
+              <Package size={20} />
+            </div>
+          </div>
 
-          <button
-            className="primary-button"
-            type="button"
-            onClick={() => alert("Product management coming soon.")}
-          >
-            <Plus size={17} />
-            Add Product
-          </button>
-        </div>
-      </div>
+          <div style={{ position: "relative", marginBottom: 15 }}>
+            <Search size={17} color="#8290a8" style={{ position: "absolute", left: 13, top: 13 }} />
+            <input
+              style={{ ...styles.input, paddingLeft: 39 }}
+              placeholder="Search product name or SKU..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
 
-      <div className="table-wrapper">
-        <table className="products-table">
-          <thead>
-            <tr>
-              <th>PRODUCT</th>
-              <th>SKU</th>
-              <th>CATEGORY</th>
-              <th>STOCK</th>
-              <th>PRICE</th>
-              <th>STATUS</th>
-              <th />
-            </tr>
-          </thead>
+          <div className="pos-scroll" style={{ marginBottom: 17 }}>
+            {CATEGORIES.map((item) => (
+              <button
+                key={item}
+                className={`pos-category ${category === item ? "active" : ""}`}
+                onClick={() => setCategory(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
 
-          <tbody>
+          <div className="pos-product-grid">
             {filteredProducts.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  <div className="product-name-cell">
-                    <div className="product-thumbnail">
-                      <Package size={19} />
-                    </div>
-                    <strong>{product.name}</strong>
-                  </div>
-                </td>
+              <button
+                key={product.id}
+                className="pos-product"
+                onClick={() => addToCart(product)}
+                disabled={product.stock <= 0}
+                style={{ opacity: product.stock <= 0 ? 0.5 : 1 }}
+              >
+                <div
+                  className="pos-product-art"
+                  style={{
+                    height: 95,
+                    borderRadius: 9,
+                    background: `linear-gradient(145deg, ${product.color}25, ${product.color}08)`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 12,
+                    color: product.color,
+                  }}
+                >
+                  <ShoppingBag size={34} strokeWidth={1.4} />
+                </div>
 
-                <td className="muted-cell">{product.sku}</td>
-                <td>{product.category}</td>
+                <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.4, minHeight: 36 }}>
+                  {product.name}
+                </div>
 
-                <td>
-                  <span
-                    className={
-                      product.stock <= 20
-                        ? "stock-warning"
-                        : "stock-normal"
-                    }
-                  >
-                    {product.stock}
+                <div style={{ color: "#8996ad", fontSize: 10, margin: "6px 0 10px" }}>
+                  {product.sku} · Stock: {product.stock}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                  <strong style={{ color: "#36d9c3", fontSize: 13 }}>
+                    {formatMoney(product.price)}
+                  </strong>
+                  <span style={{ background: "#243c3a", color: "#36d9c3", padding: 4, borderRadius: 6, display: "flex" }}>
+                    <Plus size={14} />
                   </span>
-                </td>
-
-                <td className="price-cell">
-                  {formatMoney(product.price)}
-                </td>
-
-                <td>
-                  <span
-                    className={`status-badge ${
-                      product.status === "In Stock"
-                        ? "status-success"
-                        : product.status === "Low Stock"
-                        ? "status-warning"
-                        : "status-danger"
-                    }`}
-                  >
-                    <span />
-                    {product.status}
-                  </span>
-                </td>
-
-                <td>
-                  <button
-                    className="icon-button"
-                    type="button"
-                    aria-label={`Options for ${product.name}`}
-                    onClick={() =>
-                      alert(`Product options: ${product.name}`)
-                    }
-                  >
-                    <MoreHorizontal size={19} />
-                  </button>
-                </td>
-              </tr>
+                </div>
+              </button>
             ))}
 
             {filteredProducts.length === 0 && (
-              <tr>
-                <td colSpan={7} className="empty-state">
-                  No products match your search.
-                </td>
-              </tr>
+              <div style={{ gridColumn: "1/-1", textAlign: "center", padding: 35, color: "#8996ad" }}>
+                No products found.
+              </div>
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
 
-      <div className="table-footer">
-        <span>
-          Showing {filteredProducts.length} of {products.length} products
-        </span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", color: "#77849a", fontSize: 11, borderTop: "1px solid #252c3d", paddingTop: 14 }}>
+            <ScanBarcode size={16} />
+            Select a product to add it to the current sale.
+          </div>
+        </section>
 
-        <button
-          className="view-all-button"
-          type="button"
-          onClick={() => alert("Full product list coming soon.")}
-        >
-          View all products
-          <ArrowUpRight size={15} />
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function ActivityPanel() {
-  return (
-    <section className="panel activity-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Recent Activity</h3>
-          <p className="panel-description">
-            Latest updates from your business.
-          </p>
-        </div>
-
-        <button
-          className="icon-button"
-          type="button"
-          aria-label="More activity options"
-        >
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
-
-      <div className="activity-list">
-        {activities.map((activity, index) => {
-          const Icon = activity.icon;
-
-          return (
-            <div className="activity-item" key={activity.title}>
-              <div className={`activity-icon ${activity.color}`}>
-                <Icon size={18} />
+        <section style={styles.card} className="pos-cart">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 17 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ background: "rgba(54,217,195,.12)", color: "#36d9c3", borderRadius: 9, padding: 10 }}>
+                <ShoppingCart size={20} />
               </div>
-
-              <div className="activity-content">
-                <strong>{activity.title}</strong>
-                <span>{activity.detail}</span>
+              <div>
+                <h3 style={{ fontSize: 16, margin: 0 }}>Current Sale</h3>
+                <p style={{ color: "#8996ad", fontSize: 11, margin: "5px 0 0" }}>
+                  {cart.reduce((sum, item) => sum + item.quantity, 0)} items
+                </p>
               </div>
-
-              <div className="activity-time">
-                <Clock size={12} />
-                <span>{activity.time}</span>
-              </div>
-
-              {index !== activities.length - 1 && (
-                <span className="activity-connector" />
-              )}
             </div>
-          );
-        })}
+            <button
+              style={{ ...styles.button, padding: 8 }}
+              onClick={clearCart}
+              title="Clear cart"
+              aria-label="Clear cart"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+
+          <div style={{ borderTop: "1px solid #252c3d", paddingTop: 15, marginBottom: 14 }}>
+            {cart.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "30px 8px", color: "#8996ad" }}>
+                <ShoppingCart size={32} style={{ marginBottom: 10, opacity: 0.6 }} />
+                <p style={{ fontSize: 13, margin: 0 }}>Your cart is empty</p>
+                <p style={{ fontSize: 11, marginTop: 6 }}>Choose products to start a sale.</p>
+              </div>
+            ) : (
+              <div className="pos-cart-items">
+                {cart.map((item) => (
+                  <div className="pos-cart-item" key={item.id}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.4 }}>
+                        {item.name}
+                      </div>
+                      <div style={{ fontSize: 11, color: "#8996ad", marginTop: 5 }}>
+                        {formatMoney(item.price)} each
+                      </div>
+                      <div className="pos-qty" style={{ marginTop: 9 }}>
+                        <button onClick={() => updateQuantity(item.id, -1)} aria-label={`Decrease ${item.name}`}>
+                          <Minus size={12} />
+                        </button>
+                        <span style={{ fontSize: 12, minWidth: 12, textAlign: "center" }}>{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.id, 1)} aria-label={`Increase ${item.name}`}>
+                          <Plus size={12} />
+                        </button>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          aria-label={`Remove ${item.name}`}
+                          style={{ marginLeft: 3, color: "#fb7185" }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <strong style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                      {formatMoney(item.price * item.quantity)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ borderTop: "1px solid #252c3d", paddingTop: 15 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 13 }}>
+              <span style={{ fontSize: 12, color: "#9ba7bd" }}>Subtotal</span>
+              <strong style={{ fontSize: 13 }}>{formatMoney(subtotal)}</strong>
+            </div>
+
+            <label style={{ display: "block", fontSize: 12, color: "#9ba7bd", marginBottom: 7 }}>
+              Discount (DA)
+            </label>
+            <input
+              style={{ ...styles.input, marginBottom: 13 }}
+              type="number"
+              min="0"
+              max={subtotal}
+              value={discount}
+              onChange={(event) => setDiscount(event.target.value)}
+              placeholder="0"
+            />
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 17 }}>
+              <span style={{ fontSize: 13, fontWeight: 700 }}>Total due</span>
+              <strong style={{ fontSize: 23, color: "#36d9c3" }}>{formatMoney(total)}</strong>
+            </div>
+
+            <div style={{ fontSize: 12, color: "#9ba7bd", marginBottom: 10 }}>Payment method</div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 7, marginBottom: 15 }}>
+              {[
+                { name: "Cash", label: "Cash", Icon: Banknote },
+                { name: "Card", label: "Card", Icon: CreditCard },
+                { name: "Mobile", label: "Mobile", Icon: Smartphone },
+              ].map(({ name, label, Icon }) => (
+                <button
+                  key={name}
+                  className={`pos-pay-option ${paymentMethod === name ? "active" : ""}`}
+                  onClick={() => setPaymentMethod(name)}
+                >
+                  <Icon size={19} />
+                  <span style={{ fontSize: 11 }}>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {paymentMethod === "Cash" && (
+              <>
+                <label style={{ display: "block", fontSize: 12, color: "#9ba7bd", marginBottom: 7 }}>
+                  Amount received (DA)
+                </label>
+                <input
+                  style={{ ...styles.input, marginBottom: 12 }}
+                  type="number"
+                  min="0"
+                  value={received}
+                  onChange={(event) => setReceived(event.target.value)}
+                  placeholder={`e.g. ${total}`}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 15, fontSize: 12 }}>
+                  <span style={{ color: "#9ba7bd" }}>Change due</span>
+                  <strong style={{ color: "#36d9c3" }}>{formatMoney(change)}</strong>
+                </div>
+              </>
+            )}
+
+            <button
+              className="pos-primary"
+              onClick={() => setShowPayment(true)}
+              disabled={cart.length === 0}
+            >
+              <CreditCard size={18} />
+              Proceed to Payment
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#77849a", fontSize: 10, marginTop: 12 }}>
+              <Receipt size={13} />
+              Review your sale before confirming.
+            </div>
+          </div>
+        </section>
       </div>
 
-      <button
-        className="activity-view-all"
-        type="button"
-        onClick={() => alert("Activity history coming soon.")}
-      >
-        View activity history
-        <ArrowUpRight size={15} />
-      </button>
-    </section>
-  );
-}
-
-function Dashboard() {
-  const [search, setSearch] = useState("");
-
-  return (
-    <>
-      <div className="welcome-banner">
-        <div className="welcome-content">
-          <div className="welcome-eyebrow">
-            <Zap size={15} />
-            YOUR BUSINESS AT A GLANCE
-          </div>
-
-          <h2>Welcome back, Administrator 👋</h2>
-
-          <p>
-            Here's your business performance overview for today.
-          </p>
-
-          <div className="welcome-date">
-            <CalendarDays size={15} />
-            {new Date().toLocaleDateString("en-GB", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </div>
-        </div>
-
-        <div className="welcome-decoration">
-          <div className="decoration-ring ring-one" />
-          <div className="decoration-ring ring-two" />
-          <div className="decoration-center">
-            <BarChart3 size={42} />
-          </div>
-        </div>
-      </div>
-
-      <div className="section-heading">
-        <div>
-          <h2>Business Overview</h2>
-          <p>Your key business metrics at a glance.</p>
-        </div>
-
-        <button
-          className="secondary-button"
-          type="button"
-          onClick={() => alert("Date range selection coming soon.")}
+      {showPayment && (
+        <div
+          role="presentation"
+          onClick={() => setShowPayment(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(3,6,13,.78)",
+            backdropFilter: "blur(5px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 18,
+          }}
         >
-          <CalendarDays size={16} />
-          Today
-          <ChevronDown size={15} />
-        </button>
-      </div>
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pos-confirm-title"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              ...styles.card,
+              width: "100%",
+              maxWidth: 420,
+              padding: 24,
+              boxShadow: "0 25px 100px rgba(0,0,0,.4)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 id="pos-confirm-title" style={{ margin: 0, fontSize: 19 }}>Confirm Sale</h3>
+              <button style={styles.button} onClick={() => setShowPayment(false)} aria-label="Close dialog">
+                <X size={17} />
+              </button>
+            </div>
 
-      <div className="stats-grid">
-        <StatCard
-          title="Total Revenue"
-          value={formatMoney(284500)}
-          change="12.8%"
-          positive
-          icon={Wallet}
-          accent="cyan"
-        />
+            <div style={{ textAlign: "center", padding: "25px 0" }}>
+              <div style={{ color: "#36d9c3", marginBottom: 10 }}>
+                <Receipt size={38} style={{ margin: "0 auto" }} />
+              </div>
+              <div style={{ fontSize: 12, color: "#9ba7bd" }}>Amount to charge</div>
+              <div style={{ fontSize: 31, fontWeight: 800, color: "#36d9c3", marginTop: 7 }}>
+                {formatMoney(total)}
+              </div>
+              <div style={{ color: "#9ba7bd", fontSize: 12, marginTop: 8 }}>
+                {cart.reduce((sum, item) => sum + item.quantity, 0)} items · {paymentMethod}
+              </div>
+            </div>
 
-        <StatCard
-          title="Total Orders"
-          value="1,284"
-          change="8.4%"
-          positive
-          icon={ShoppingCart}
-          accent="violet"
-        />
+            {paymentMethod === "Cash" && paidAmount < total && (
+              <p style={{ color: "#fbbf24", fontSize: 12, textAlign: "center" }}>
+                The received amount does not cover the total.
+              </p>
+            )}
 
-        <StatCard
-          title="Total Products"
-          value="856"
-          change="4.2%"
-          positive
-          icon={Package}
-          accent="blue"
-        />
+            <button
+              className="pos-primary"
+              onClick={completeSale}
+              disabled={paymentMethod === "Cash" && paidAmount < total}
+            >
+              <CheckCircle2 size={18} />
+              Confirm and Complete Sale
+            </button>
 
-        <StatCard
-          title="Net Profit"
-          value={formatMoney(82400)}
-          change="2.1%"
-          positive={false}
-          icon={BarChart3}
-          accent="orange"
-        />
-      </div>
+            <button
+              style={{ ...styles.button, width: "100%", marginTop: 9 }}
+              onClick={() => setShowPayment(false)}
+            >
+              Back to cart
+            </button>
 
-      <div className="charts-grid">
-        <SalesChart />
-        <OrdersChart />
-      </div>
-
-      <div className="bottom-grid">
-        <ProductsTable search={search} />
-        <ActivityPanel />
-      </div>
-
-      <div className="dashboard-search-footer">
-        <Search size={16} />
-
-        <input
-          type="search"
-          placeholder="Search products by name, category or SKU..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
-    </>
-  );
-}
-
-function PlaceholderPage({ title }) {
-  const icons = {
-    "Point of Sale": ShoppingCart,
-    Products: Package,
-    Categories: Boxes,
-    Purchases: CreditCard,
-    Orders: ShoppingCart,
-    Suppliers: Truck,
-    Customers: Users,
-    "Cash Register": Wallet,
-    Reports: BarChart3,
-    Settings,
-  };
-
-  const Icon = icons[title] || LayoutDashboard;
-
-  return (
-    <section className="panel placeholder-panel">
-      <div className="placeholder-icon">
-        <Icon size={34} />
-      </div>
-
-      <h2>{title}</h2>
-
-      <p>
-        This module is part of the VELTRO-PRO roadmap.
-        Its functionality will be developed in the next stages.
-      </p>
-
-      <div className="placeholder-status">
-        <CheckCircle2 size={17} />
-        Module planned
-      </div>
-    </section>
-  );
-}
-
-export default function App() {
-  const [activePage, setActivePage] = useState("Dashboard");
-  const [search, setSearch] = useState("");
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  return (
-    <div className="app-shell">
-      <Sidebar
-        activePage={activePage}
-        onNavigate={setActivePage}
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      />
-
-      <main className="main-content">
-        <DashboardHeader
-          activePage={activePage}
-          search={search}
-          onSearchChange={setSearch}
-          onMenuClick={() => setMobileOpen(true)}
-        />
-
-        <div className="page-content">
-          {activePage === "Dashboard" ? (
-            <Dashboard />
-          ) : activePage === "Point of Sale" ? (
-            <POS />
-          ) : (
-            <PlaceholderPage title={activePage} />
-          )}
+            <p style={{ fontSize: 10, lineHeight: 1.5, color: "#77849a", textAlign: "center", marginBottom: 0, marginTop: 14 }}>
+              Demo mode: this sale updates the sample stock in this page only.
+            </p>
+          </section>
         </div>
-
-        <footer className="app-footer">
-          <span>
-            © {new Date().getFullYear()} VELTRO. All rights reserved.
-          </span>
-
-          <span className="footer-status">
-            <span />
-            All systems operational
-          </span>
-        </footer>
-      </main>
+      )}
     </div>
   );
 }
