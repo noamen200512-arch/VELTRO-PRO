@@ -97,7 +97,6 @@ return (
 <p className="stat-title">{title}</p>
 <div className="stat-value-row">
 <h2>{value}</h2>
-<span className={"change-badge ${positive ? "positive" : "negative"}"}>
 {positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
 {change}
 </span>
