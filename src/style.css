@@ -2114,3 +2114,101 @@ svg {
     animation-iteration-count: 1 !important;
   }
 }
+/* VELTRO-PRO — Mobile icon and spacing fix */
+
+@media (max-width: 620px) {
+  /* تصغير أيقونات شريط الأعلى */
+  .icon-button,
+  .icon-button.notification-button {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .icon-button svg,
+  .search-box svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* تصغير صورة الحساب */
+  .profile-avatar {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  /* تقليل المسافات في الشريط العلوي */
+  .topbar {
+    gap: 5px;
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .topbar-actions {
+    gap: 4px;
+  }
+
+  .breadcrumb {
+    gap: 4px;
+    font-size: 9px;
+  }
+
+  /* تصغير أيقونات بطاقات الإحصائيات */
+  .stat-icon {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+
+  .stat-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* تقليل المسافات داخل البطاقات */
+  .stat-card {
+    padding: 11px 9px;
+  }
+
+  .stat-card-top {
+    margin-bottom: 10px;
+  }
+
+  /* منع تجاوز المحتوى عرض الشاشة */
+  .main-area,
+  .dashboard-content,
+  .stats-grid,
+  .charts-grid,
+  .bottom-grid,
+  .panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .breadcrumb {
+    font-size: 8px;
+  }
+
+  .breadcrumb strong {
+    max-width: 75px;
+  }
+
+  .topbar-actions {
+    gap: 3px;
+  }
+
+  .stat-card {
+    padding: 9px 7px;
+  }
+
+  .stat-value-row h2 {
+    font-size: 14px;
+  }
+}
