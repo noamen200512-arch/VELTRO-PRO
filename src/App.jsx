@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -39,6 +38,9 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+
+// استيراد صفحة نقطة البيع الجديدة
+import POS from "./POS";
 
 const salesData = [
   { day: "Mon", sales: 24000, orders: 120 },
@@ -102,61 +104,27 @@ const navGroups = [
   {
     title: "GENERAL",
     items: [
-      {
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        active: true,
-      },
-      {
-        label: "Settings",
-        icon: Settings,
-      },
+      { label: "Dashboard", icon: LayoutDashboard },
+      { label: "Settings", icon: Settings },
     ],
   },
   {
     title: "COMMERCE",
     items: [
-      {
-        label: "Point of Sale",
-        icon: ShoppingCart,
-      },
-      {
-        label: "Products",
-        icon: Package,
-      },
-      {
-        label: "Categories",
-        icon: Boxes,
-      },
-      {
-        label: "Purchases",
-        icon: CreditCard,
-      },
-      {
-        label: "Orders",
-        icon: ShoppingCart,
-      },
-      {
-        label: "Suppliers",
-        icon: Truck,
-      },
-      {
-        label: "Customers",
-        icon: Users,
-      },
+      { label: "Point of Sale", icon: ShoppingCart },
+      { label: "Products", icon: Package },
+      { label: "Categories", icon: Boxes },
+      { label: "Purchases", icon: CreditCard },
+      { label: "Orders", icon: ShoppingCart },
+      { label: "Suppliers", icon: Truck },
+      { label: "Customers", icon: Users },
     ],
   },
   {
     title: "FINANCE",
     items: [
-      {
-        label: "Cash Register",
-        icon: Wallet,
-      },
-      {
-        label: "Reports",
-        icon: BarChart3,
-      },
+      { label: "Cash Register", icon: Wallet },
+      { label: "Reports", icon: BarChart3 },
     ],
   },
 ];
@@ -236,7 +204,6 @@ function StatCard({
           ) : (
             <ArrowDownRight size={14} />
           )}
-
           {change}
         </span>
       </div>
@@ -260,11 +227,7 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
         />
       )}
 
-      <aside
-        className={`sidebar ${
-          mobileOpen ? "sidebar-open" : ""
-        }`}
-      >
+      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-brand">
           <div className="brand-symbol">
             <Zap size={23} fill="currentColor" />
@@ -309,16 +272,13 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
                   <button
                     key={item.label}
                     type="button"
-                    className={`nav-item ${
-                      active ? "active" : ""
-                    }`}
+                    className={`nav-item ${active ? "active" : ""}`}
                     onClick={() => {
                       onNavigate(item.label);
                       onClose();
                     }}
                   >
                     <Icon size={19} strokeWidth={1.8} />
-
                     <span>{item.label}</span>
 
                     {item.label === "Point of Sale" && (
@@ -338,10 +298,12 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
             </div>
 
             <strong>Need help?</strong>
-
             <p>Find answers and learn how to use VELTRO.</p>
 
-            <button type="button" onClick={() => alert("Help center coming soon.")}>
+            <button
+              type="button"
+              onClick={() => alert("Help center coming soon.")}
+            >
               Help Center
               <ArrowUpRight size={15} />
             </button>
@@ -508,10 +470,7 @@ function SalesChart() {
       <div className="chart-summary">
         <div>
           <span className="chart-summary-label">Total revenue</span>
-
-          <div className="chart-summary-value">
-            {formatMoney(280000)}
-          </div>
+          <div className="chart-summary-value">{formatMoney(280000)}</div>
         </div>
 
         <div className="chart-summary-change">
@@ -525,12 +484,7 @@ function SalesChart() {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={salesData}
-            margin={{
-              top: 12,
-              right: 8,
-              left: 0,
-              bottom: 0,
-            }}
+            margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
           >
             <defs>
               <linearGradient
@@ -545,7 +499,6 @@ function SalesChart() {
                   stopColor="#36d9c3"
                   stopOpacity={0.28}
                 />
-
                 <stop
                   offset="100%"
                   stopColor="#36d9c3"
@@ -600,7 +553,6 @@ function SalesChart() {
           <span className="legend-dot" />
           Sales revenue
         </span>
-
         <span>Sample dashboard data</span>
       </div>
     </section>
@@ -613,7 +565,6 @@ function OrdersChart() {
       <div className="panel-header">
         <div>
           <h3>Orders Analytics</h3>
-
           <p className="panel-description">
             Orders processed this week.
           </p>
@@ -630,7 +581,6 @@ function OrdersChart() {
 
       <div className="orders-total">
         <strong>1,217</strong>
-
         <span className="change-badge positive">
           <ArrowUpRight size={14} />
           8.4%
@@ -641,12 +591,7 @@ function OrdersChart() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={salesData}
-            margin={{
-              top: 8,
-              right: 0,
-              left: 0,
-              bottom: 0,
-            }}
+            margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
           >
             <CartesianGrid
               stroke="#252c3d"
@@ -681,7 +626,6 @@ function OrdersChart() {
           <span className="legend-dot violet" />
           Completed orders
         </span>
-
         <span>Last 7 days</span>
       </div>
     </section>
@@ -692,9 +636,7 @@ function ProductsTable({ search }) {
   const filteredProducts = products.filter((product) => {
     const query = search.trim().toLowerCase();
 
-    if (!query) {
-      return true;
-    }
+    if (!query) return true;
 
     return (
       product.name.toLowerCase().includes(query) ||
@@ -708,7 +650,6 @@ function ProductsTable({ search }) {
       <div className="panel-header">
         <div>
           <h3>Top Products</h3>
-
           <p className="panel-description">
             Overview of your current product inventory.
           </p>
@@ -757,13 +698,11 @@ function ProductsTable({ search }) {
                     <div className="product-thumbnail">
                       <Package size={19} />
                     </div>
-
                     <strong>{product.name}</strong>
                   </div>
                 </td>
 
                 <td className="muted-cell">{product.sku}</td>
-
                 <td>{product.category}</td>
 
                 <td>
@@ -778,9 +717,7 @@ function ProductsTable({ search }) {
                   </span>
                 </td>
 
-                <td className="price-cell">
-                  {formatMoney(product.price)}
-                </td>
+                <td className="price-cell">{formatMoney(product.price)}</td>
 
                 <td>
                   <span
@@ -793,7 +730,6 @@ function ProductsTable({ search }) {
                     }`}
                   >
                     <span />
-
                     {product.status}
                   </span>
                 </td>
@@ -803,9 +739,7 @@ function ProductsTable({ search }) {
                     className="icon-button"
                     type="button"
                     aria-label={`Options for ${product.name}`}
-                    onClick={() =>
-                      alert(`Product options: ${product.name}`)
-                    }
+                    onClick={() => alert(`Product options: ${product.name}`)}
                   >
                     <MoreHorizontal size={19} />
                   </button>
@@ -848,7 +782,6 @@ function ActivityPanel() {
       <div className="panel-header">
         <div>
           <h3>Recent Activity</h3>
-
           <p className="panel-description">
             Latest updates from your business.
           </p>
@@ -1022,7 +955,6 @@ function Dashboard() {
 
 function PlaceholderPage({ title }) {
   const icons = {
-    "Point of Sale": ShoppingCart,
     Products: Package,
     Categories: Boxes,
     Purchases: CreditCard,
@@ -1082,6 +1014,8 @@ export default function App() {
         <div className="page-content">
           {activePage === "Dashboard" ? (
             <Dashboard />
+          ) : activePage === "Point of Sale" ? (
+            <POS />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
