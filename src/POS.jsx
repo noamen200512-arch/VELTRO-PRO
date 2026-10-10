@@ -1,532 +1,1050 @@
-import React, { useMemo, useState } from "react";
+
+import React, { useState } from "react";
+import POS from "./POS";
+
 import {
-  Search,
+  LayoutDashboard,
   ShoppingCart,
-  Plus,
-  Minus,
-  X,
-  Trash2,
   Package,
-  ScanBarcode,
-  CreditCard,
-  Banknote,
-  Smartphone,
-  CheckCircle2,
-  ArrowRight,
-  RotateCcw,
+  Truck,
+  Users,
+  Wallet,
+  BarChart3,
+  Settings,
+  Bell,
+  Search,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
   Boxes,
+  CreditCard,
+  CircleHelp,
+  ChevronDown,
+  Zap,
+  CalendarDays,
+  Plus,
+  Download,
+  Filter,
+  Clock,
+  CheckCircle2,
+  Menu,
 } from "lucide-react";
 
-const initialProducts = [
-  { id: 1, name: "Premium Coffee", category: "Boissons", sku: "PRD-001", barcode: "613001000001", price: 450, cartonQty: 12, cartonPrice: 5100, stock: 245, icon: "☕", color: "coffee" },
-  { id: 2, name: "Mineral Water", category: "Boissons", sku: "PRD-002", barcode: "613001000002", price: 80, cartonQty: 12, cartonPrice: 900, stock: 180, icon: "💧", color: "water" },
-  { id: 3, name: "Chocolate Biscuits", category: "Biscuits", sku: "PRD-003", barcode: "613001000003", price: 120, cartonQty: 24, cartonPrice: 2700, stock: 156, icon: "🍪", color: "biscuit" },
-  { id: 4, name: "Orange Juice", category: "Boissons", sku: "PRD-004", barcode: "613001000004", price: 180, cartonQty: 6, cartonPrice: 1000, stock: 90, icon: "🧃", color: "juice" },
-  { id: 5, name: "Potato Chips", category: "Snacks", sku: "PRD-005", barcode: "613001000005", price: 100, cartonQty: 20, cartonPrice: 1800, stock: 82, icon: "🍟", color: "chips" },
-  { id: 6, name: "Milk", category: "Produits laitiers", sku: "PRD-006", barcode: "613001000006", price: 150, cartonQty: 12, cartonPrice: 1650, stock: 72, icon: "🥛", color: "milk" },
-  { id: 7, name: "Chocolate Bar", category: "Snacks", sku: "PRD-007", barcode: "613001000007", price: 130, cartonQty: 24, cartonPrice: 2900, stock: 110, icon: "🍫", color: "chocolate" },
-  { id: 8, name: "Tomato Paste", category: "Épicerie", sku: "PRD-008", barcode: "613001000008", price: 140, cartonQty: 12, cartonPrice: 1550, stock: 64, icon: "🥫", color: "tomato" },
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  BarChart,
+  Bar,
+} from "recharts";
+
+const salesData = [
+  { day: "Mon", sales: 24000, orders: 120 },
+  { day: "Tue", sales: 32000, orders: 145 },
+  { day: "Wed", sales: 28000, orders: 132 },
+  { day: "Thu", sales: 45000, orders: 190 },
+  { day: "Fri", sales: 38000, orders: 165 },
+  { day: "Sat", sales: 52000, orders: 220 },
+  { day: "Sun", sales: 61000, orders: 245 },
 ];
 
-const categories = ["Tous", ...new Set(initialProducts.map((p) => p.category))];
+const products = [
+  {
+    id: 1,
+    name: "Premium Coffee",
+    category: "Beverages",
+    sku: "PRD-001",
+    stock: 245,
+    price: 450,
+    status: "In Stock",
+  },
+  {
+    id: 2,
+    name: "Mineral Water",
+    category: "Drinks",
+    sku: "PRD-002",
+    stock: 18,
+    price: 80,
+    status: "Low Stock",
+  },
+  {
+    id: 3,
+    name: "Chocolate Biscuits",
+    category: "Snacks",
+    sku: "PRD-003",
+    stock: 156,
+    price: 120,
+    status: "In Stock",
+  },
+  {
+    id: 4,
+    name: "Orange Juice",
+    category: "Beverages",
+    sku: "PRD-004",
+    stock: 0,
+    price: 180,
+    status: "Out of Stock",
+  },
+  {
+    id: 5,
+    name: "Potato Chips",
+    category: "Snacks",
+    sku: "PRD-005",
+    stock: 82,
+    price: 100,
+    status: "In Stock",
+  },
+];
 
-const money = (value) =>
-  `${Number(value || 0).toLocaleString("fr-DZ")} DA`;
+const navGroups = [
+  {
+    title: "GENERAL",
+    items: [
+      { label: "Dashboard", icon: LayoutDashboard },
+      { label: "Settings", icon: Settings },
+    ],
+  },
+  {
+    title: "COMMERCE",
+    items: [
+      { label: "Point of Sale", icon: ShoppingCart },
+      { label: "Products", icon: Package },
+      { label: "Categories", icon: Boxes },
+      { label: "Purchases", icon: CreditCard },
+      { label: "Orders", icon: ShoppingCart },
+      { label: "Suppliers", icon: Truck },
+      { label: "Customers", icon: Users },
+    ],
+  },
+  {
+    title: "FINANCE",
+    items: [
+      { label: "Cash Register", icon: Wallet },
+      { label: "Reports", icon: BarChart3 },
+    ],
+  },
+];
 
-export default function POS() {
-  const [products, setProducts] = useState(initialProducts);
-  const [cart, setCart] = useState([]);
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("Tous");
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [unit, setUnit] = useState("piece");
-  const [quantity, setQuantity] = useState(1);
-  const [payment, setPayment] = useState("cash");
-  const [completedReceipt, setCompletedReceipt] = useState(null);
-  const [receiptNumber, setReceiptNumber] = useState(1001);
-  const [showReceipt, setShowReceipt] = useState(false);
+const activities = [
+  {
+    title: "New order received",
+    detail: "Order #ORD-1048",
+    time: "5 minutes ago",
+    icon: ShoppingCart,
+    color: "purple",
+  },
+  {
+    title: "Stock updated",
+    detail: "Premium Coffee",
+    time: "18 minutes ago",
+    icon: Package,
+    color: "cyan",
+  },
+  {
+    title: "Payment completed",
+    detail: "Order #ORD-1047",
+    time: "32 minutes ago",
+    icon: CreditCard,
+    color: "green",
+  },
+  {
+    title: "New customer added",
+    detail: "Customer registration",
+    time: "1 hour ago",
+    icon: Users,
+    color: "orange",
+  },
+];
 
-  const filteredProducts = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+function formatMoney(value) {
+  return `${Number(value).toLocaleString("fr-DZ")} DA`;
+}
 
-    return products.filter((product) => {
-      const matchesCategory =
-        category === "Tous" || product.category === category;
+function StatCard({
+  title,
+  value,
+  change,
+  positive = true,
+  icon: Icon,
+  accent = "cyan",
+  subtitle,
+}) {
+  return (
+    <article className={`stat-card accent-${accent}`}>
+      <div className="stat-card-top">
+        <div className="stat-icon">
+          <Icon size={21} strokeWidth={1.8} />
+        </div>
 
-      const matchesSearch =
-        !normalized ||
-        product.name.toLowerCase().includes(normalized) ||
-        product.sku.toLowerCase().includes(normalized) ||
-        product.barcode.includes(normalized);
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
 
-      return matchesCategory && matchesSearch;
-    });
-  }, [products, query, category]);
+      <p className="stat-title">{title}</p>
 
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+      <div className="stat-value-row">
+        <h2>{value}</h2>
 
-  function openProduct(product) {
-    setSelectedProduct(product);
-    setUnit("piece");
-    setQuantity(1);
-  }
+        <span
+          className={`change-badge ${
+            positive ? "positive" : "negative"
+          }`}
+        >
+          {positive ? (
+            <ArrowUpRight size={14} />
+          ) : (
+            <ArrowDownRight size={14} />
+          )}
+          {change}
+        </span>
+      </div>
 
-  function addToCart() {
-    if (!selectedProduct || quantity < 1) return;
+      <p className="stat-subtitle">
+        {subtitle || "Compared to last month"}
+      </p>
+    </article>
+  );
+}
 
-    const product = selectedProduct;
-    const itemUnit = unit;
-    const itemPrice =
-      itemUnit === "carton" ? product.cartonPrice : product.price;
+function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
+  return (
+    <>
+      {mobileOpen && (
+        <button
+          className="sidebar-overlay"
+          type="button"
+          aria-label="Close navigation"
+          onClick={onClose}
+        />
+      )}
 
-    const availableUnits =
-      itemUnit === "carton"
-        ? Math.floor(product.stock / product.cartonQty)
-        : product.stock;
+      <aside
+        className={`sidebar ${
+          mobileOpen ? "sidebar-open" : ""
+        }`}
+      >
+        <div className="sidebar-brand">
+          <div className="brand-symbol">
+            <Zap size={23} fill="currentColor" />
+          </div>
 
-    if (quantity > availableUnits) {
-      window.alert("Stock insuffisant pour cette quantité.");
-      return;
-    }
+          <div className="brand-text">
+            <h2>VELTRO</h2>
+            <span>BUSINESS SUITE</span>
+          </div>
 
-    const key = `${product.id}-${itemUnit}`;
+          <button
+            className="mobile-close icon-button"
+            type="button"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <Menu size={20} />
+          </button>
+        </div>
 
-    setCart((current) => {
-      const existing = current.find((item) => item.key === key);
+        <div className="sidebar-workspace">
+          <div className="workspace-avatar">V</div>
 
-      if (existing) {
-        return current.map((item) =>
-          item.key === key
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
+          <div className="workspace-info">
+            <strong>My Business</strong>
+            <span>Business workspace</span>
+          </div>
 
-      return [
-        ...current,
-        {
-          key,
-          productId: product.id,
-          name: product.name,
-          unit: itemUnit,
-          unitLabel: itemUnit === "carton" ? "Carton" : "Pièce",
-          price: itemPrice,
-          quantity,
-          cartonQty: product.cartonQty,
-        },
-      ];
-    });
+          <ChevronDown size={16} />
+        </div>
 
-    setSelectedProduct(null);
-  }
+        <nav className="sidebar-nav">
+          {navGroups.map((group) => (
+            <div className="nav-group" key={group.title}>
+              <p className="nav-group-title">{group.title}</p>
 
-  function changeQuantity(key, change) {
-    setCart((current) =>
-      current
-        .map((item) =>
-          item.key === key
-            ? { ...item, quantity: item.quantity + change }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  }
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = activePage === item.label;
 
-  function removeItem(key) {
-    setCart((current) => current.filter((item) => item.key !== key));
-  }
+                return (
+                  <button
+                    key={item.label}
+                    type="button"
+                    className={`nav-item ${
+                      active ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      onNavigate(item.label);
+                      onClose();
+                    }}
+                  >
+                    <Icon size={19} strokeWidth={1.8} />
+                    <span>{item.label}</span>
 
-  function completeSale() {
-    if (!cart.length) {
-      window.alert("Ajoutez au moins un produit au panier.");
-      return;
-    }
+                    {item.label === "Point of Sale" && (
+                      <span className="nav-badge">POS</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </nav>
 
-    const insufficient = cart.some((item) => {
-      const product = products.find((p) => p.id === item.productId);
-      const needed = item.quantity * (
-        item.unit === "carton" ? item.cartonQty : 1
-      );
-      return !product || needed > product.stock;
-    });
+        <div className="sidebar-bottom">
+          <div className="help-card">
+            <div className="help-icon">
+              <CircleHelp size={20} />
+            </div>
 
-    if (insufficient) {
-      window.alert("Le stock a changé ou est insuffisant. Vérifiez le panier.");
-      return;
-    }
+            <strong>Need help?</strong>
+            <p>Find answers and learn how to use VELTRO.</p>
 
-    const receipt = {
-      number: receiptNumber,
-      items: cart.map((item) => ({ ...item })),
-      total,
-      payment,
-      date: new Date().toLocaleString("fr-DZ"),
-    };
+            <button
+              type="button"
+              onClick={() => alert("Help center coming soon.")}
+            >
+              Help Center
+              <ArrowUpRight size={15} />
+            </button>
+          </div>
 
-    setProducts((current) =>
-      current.map((product) => {
-        const sold = cart
-          .filter((item) => item.productId === product.id)
-          .reduce(
-            (sum, item) =>
-              sum +
-              item.quantity *
-                (item.unit === "carton" ? item.cartonQty : 1),
-            0
-          );
+          <div className="sidebar-footer">
+            <span className="online-dot" />
+            <span>System operational</span>
+            <span className="version">v1.0.0</span>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
 
-        return { ...product, stock: product.stock - sold };
-      })
-    );
+function DashboardHeader({
+  activePage,
+  search,
+  onSearchChange,
+  onMenuClick,
+}) {
+  return (
+    <header className="dashboard-header">
+      <div className="header-heading">
+        <button
+          className="mobile-menu icon-button"
+          type="button"
+          onClick={onMenuClick}
+          aria-label="Open navigation"
+        >
+          <Menu size={22} />
+        </button>
 
-    setCompletedReceipt(receipt);
-    setReceiptNumber((number) => number + 1);
-    setCart([]);
-    setShowReceipt(true);
-  }
+        <div>
+          <div className="breadcrumb">
+            <span>Workspace</span>
+            <span className="breadcrumb-separator">/</span>
+            <span className="breadcrumb-current">{activePage}</span>
+          </div>
 
-  function startNewSale() {
-    setShowReceipt(false);
-    setCompletedReceipt(null);
-    setQuery("");
-    setCategory("Tous");
-    setPayment("cash");
+          <h1>{activePage}</h1>
+
+          <p className="header-description">
+            Here's what's happening with your business today.
+          </p>
+        </div>
+      </div>
+
+      <div className="header-actions">
+        <label className="search-box">
+          <Search size={18} />
+
+          <input
+            type="search"
+            placeholder="Search anything..."
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+
+          <kbd>/</kbd>
+        </label>
+
+        <button
+          className="header-icon-button"
+          type="button"
+          aria-label="Notifications"
+          onClick={() => alert("Notifications coming soon.")}
+        >
+          <Bell size={20} />
+          <span className="notification-dot" />
+        </button>
+
+        <div className="header-profile">
+          <div className="profile-avatar">AD</div>
+
+          <div className="profile-info">
+            <strong>Administrator</strong>
+            <span>Business Owner</span>
+          </div>
+
+          <ChevronDown size={16} />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) {
+    return null;
   }
 
   return (
-    <section className="pos-page">
-      <header className="pos-heading">
+    <div className="chart-tooltip">
+      <p>{label}</p>
+
+      {payload.map((entry) => (
+        <div className="tooltip-row" key={entry.dataKey}>
+          <span
+            className="tooltip-dot"
+            style={{ background: entry.color }}
+          />
+
+          <span>
+            {entry.dataKey === "sales" ? "Sales" : "Orders"}
+          </span>
+
+          <strong>
+            {entry.dataKey === "sales"
+              ? formatMoney(entry.value)
+              : entry.value}
+          </strong>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SalesChart() {
+  const [period, setPeriod] = useState("7 days");
+
+  return (
+    <section className="panel sales-panel">
+      <div className="panel-header">
         <div>
-          <div className="pos-eyebrow">
-            <span className="pos-live-dot" />
-            VELTRO COMMERCE
+          <div className="panel-title-row">
+            <h3>Sales Overview</h3>
+
+            <span className="live-indicator">
+              <span />
+              Live overview
+            </span>
           </div>
-          <h1>Point de <span>Vente</span></h1>
-          <p>Gérez vos ventes et encaissez en toute simplicité.</p>
+
+          <p className="panel-description">
+            Monitor your sales performance over time.
+          </p>
         </div>
 
-        <div className="pos-heading-badge">
-          <span className="pos-live-dot" />
-          Caisse active
+        <div className="panel-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => alert("Export feature coming soon.")}
+          >
+            <Download size={16} />
+            Export
+          </button>
+
+          <select
+            className="select-control"
+            value={period}
+            onChange={(event) => setPeriod(event.target.value)}
+            aria-label="Sales chart period"
+          >
+            <option>7 days</option>
+            <option>30 days</option>
+            <option>90 days</option>
+          </select>
         </div>
-      </header>
-
-      <div className="pos-workspace">
-        <section className="pos-catalog">
-          <div className="pos-search-row">
-            <label className="pos-search">
-              <Search size={19} />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Rechercher un produit, SKU ou code-barres..."
-              />
-              <ScanBarcode size={20} className="pos-search-scan" />
-            </label>
-          </div>
-
-          <div className="pos-category-row">
-            {categories.map((item) => (
-              <button
-                key={item}
-                className={`pos-category ${category === item ? "active" : ""}`}
-                onClick={() => setCategory(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-
-          <div className="pos-catalog-title">
-            <div>
-              <h2>Catalogue produits</h2>
-              <p>{filteredProducts.length} produits disponibles dans la liste</p>
-            </div>
-            <div className="pos-catalog-icon">
-              <Boxes size={19} />
-            </div>
-          </div>
-
-          <div className="pos-product-grid">
-            {filteredProducts.map((product) => (
-              <button
-                className="pos-product-card"
-                key={product.id}
-                onClick={() => openProduct(product)}
-                disabled={product.stock <= 0}
-              >
-                <div className={`pos-product-art ${product.color}`}>
-                  <span>{product.icon}</span>
-                  <span className="pos-product-plus"><Plus size={17} /></span>
-                </div>
-                <div className="pos-product-info">
-                  <span className="pos-product-category">{product.category}</span>
-                  <strong>{product.name}</strong>
-                  <div className="pos-product-bottom">
-                    <span className="pos-product-price">{money(product.price)}</span>
-                    <span className={`pos-stock ${product.stock < 15 ? "low" : ""}`}>
-                      {product.stock} pcs
-                    </span>
-                  </div>
-                  <span className="pos-carton-hint">
-                    Carton de {product.cartonQty}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {filteredProducts.length === 0 && (
-            <div className="pos-empty">
-              <Package size={28} />
-              <strong>Aucun produit trouvé</strong>
-              <span>Essayez un autre nom, code ou catégorie.</span>
-            </div>
-          )}
-        </section>
-
-        <aside className="pos-cart-panel">
-          <div className="pos-cart-header">
-            <div className="pos-cart-title">
-              <div className="pos-cart-icon"><ShoppingCart size={19} /></div>
-              <div>
-                <h2>Panier</h2>
-                <p>Nouvelle vente</p>
-              </div>
-            </div>
-            <span className="pos-cart-count">{itemCount} article(s)</span>
-          </div>
-
-          <div className="pos-receipt-meta">
-            <span>Ticket provisoire</span>
-            <strong>#{receiptNumber}</strong>
-          </div>
-
-          <div className="pos-cart-items">
-            {cart.length === 0 ? (
-              <div className="pos-cart-empty">
-                <div><ShoppingCart size={25} /></div>
-                <strong>Votre panier est vide</strong>
-                <span>Sélectionnez un produit pour commencer.</span>
-              </div>
-            ) : (
-              cart.map((item) => (
-                <div className="pos-cart-item" key={item.key}>
-                  <div className="pos-cart-item-main">
-                    <div className="pos-cart-item-art">
-                      {item.unit === "carton" ? "📦" : "🛍️"}
-                    </div>
-                    <div className="pos-cart-item-info">
-                      <strong>{item.name}</strong>
-                      <span>{item.unitLabel} · {money(item.price)}</span>
-                    </div>
-                    <button
-                      className="pos-remove-item"
-                      onClick={() => removeItem(item.key)}
-                      aria-label={`Retirer ${item.name}`}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                  <div className="pos-cart-item-bottom">
-                    <div className="pos-quantity-control">
-                      <button onClick={() => changeQuantity(item.key, -1)}>
-                        <Minus size={13} />
-                      </button>
-                      <strong>{item.quantity}</strong>
-                      <button onClick={() => changeQuantity(item.key, 1)}>
-                        <Plus size={13} />
-                      </button>
-                    </div>
-                    <strong className="pos-line-total">
-                      {money(item.price * item.quantity)}
-                    </strong>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="pos-cart-summary">
-            <div><span>Sous-total</span><strong>{money(total)}</strong></div>
-            <div><span>Remise</span><strong>{money(0)}</strong></div>
-            <div className="pos-total-row"><span>Total à payer</span><strong>{money(total)}</strong></div>
-          </div>
-
-          <div className="pos-payment-title">Mode de paiement</div>
-          <div className="pos-payment-options">
-            <button
-              className={payment === "cash" ? "selected" : ""}
-              onClick={() => setPayment("cash")}
-            >
-              <Banknote size={17} />
-              <span>Espèces</span>
-            </button>
-            <button
-              className={payment === "card" ? "selected" : ""}
-              onClick={() => setPayment("card")}
-            >
-              <CreditCard size={17} />
-              <span>Carte</span>
-            </button>
-            <button
-              className={payment === "mobile" ? "selected" : ""}
-              onClick={() => setPayment("mobile")}
-            >
-              <Smartphone size={17} />
-              <span>Mobile</span>
-            </button>
-          </div>
-
-          <button
-            className="pos-checkout-button"
-            onClick={completeSale}
-            disabled={cart.length === 0}
-          >
-            <span>Encaisser la vente</span>
-            <strong>{money(total)}</strong>
-            <ArrowRight size={18} />
-          </button>
-
-          <button
-            className="pos-clear-button"
-            onClick={() => {
-              if (cart.length && window.confirm("Vider tout le panier ?")) {
-                setCart([]);
-              }
-            }}
-            disabled={cart.length === 0}
-          >
-            <RotateCcw size={14} /> Vider le panier
-          </button>
-        </aside>
       </div>
 
-      {selectedProduct && (
-        <div className="pos-modal-backdrop" onClick={() => setSelectedProduct(null)}>
-          <section
-            className="pos-product-modal"
-            onClick={(event) => event.stopPropagation()}
+      <div className="chart-summary">
+        <div>
+          <span className="chart-summary-label">Total revenue</span>
+          <div className="chart-summary-value">
+            {formatMoney(280000)}
+          </div>
+        </div>
+
+        <div className="chart-summary-change">
+          <ArrowUpRight size={17} />
+          <span>12.8%</span>
+          <small>vs previous period</small>
+        </div>
+      </div>
+
+      <div className="sales-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={salesData}
+            margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
           >
-            <button
-              className="pos-modal-close"
-              onClick={() => setSelectedProduct(null)}
-              aria-label="Fermer"
-            >
-              <X size={19} />
-            </button>
-
-            <div className={`pos-modal-art ${selectedProduct.color}`}>
-              <span>{selectedProduct.icon}</span>
-            </div>
-
-            <span className="pos-product-category">{selectedProduct.category}</span>
-            <h2>{selectedProduct.name}</h2>
-            <p className="pos-modal-sku">
-              Référence : {selectedProduct.sku} · Stock : {selectedProduct.stock} pièces
-            </p>
-
-            <div className="pos-unit-label">Choisir l'unité de vente</div>
-            <div className="pos-unit-options">
-              <button
-                className={unit === "piece" ? "selected" : ""}
-                onClick={() => {
-                  setUnit("piece");
-                  setQuantity(1);
-                }}
+            <defs>
+              <linearGradient
+                id="salesGradient"
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
               >
-                <span>À la pièce</span>
-                <strong>{money(selectedProduct.price)}</strong>
-              </button>
-              <button
-                className={unit === "carton" ? "selected" : ""}
-                onClick={() => {
-                  setUnit("carton");
-                  setQuantity(1);
-                }}
-              >
-                <span>À la cartonne</span>
-                <strong>{money(selectedProduct.cartonPrice)}</strong>
-                <small>{selectedProduct.cartonQty} pièces / carton</small>
-              </button>
-            </div>
+                <stop
+                  offset="0%"
+                  stopColor="#36d9c3"
+                  stopOpacity={0.28}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="#36d9c3"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+            </defs>
 
-            <div className="pos-modal-quantity-row">
-              <div>
-                <strong>Quantité</strong>
-                <span>{unit === "carton" ? "Cartons" : "Pièces"}</span>
-              </div>
-              <div className="pos-quantity-control large">
-                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-                  <Minus size={15} />
-                </button>
-                <strong>{quantity}</strong>
-                <button onClick={() => setQuantity((q) => q + 1)}>
-                  <Plus size={15} />
-                </button>
-              </div>
-            </div>
+            <CartesianGrid
+              stroke="#252c3d"
+              strokeDasharray="4 5"
+              vertical={false}
+            />
 
-            <div className="pos-modal-total">
-              <span>Total de la ligne</span>
-              <strong>
-                {money(
-                  quantity *
-                    (unit === "carton"
-                      ? selectedProduct.cartonPrice
-                      : selectedProduct.price)
-                )}
-              </strong>
-            </div>
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 12 }}
+              dy={12}
+            />
 
-            <button
-              className="pos-checkout-button"
-              onClick={addToCart}
-              disabled={
-                quantity >
-                (unit === "carton"
-                  ? Math.floor(selectedProduct.stock / selectedProduct.cartonQty)
-                  : selectedProduct.stock)
-              }
-            >
-              <Plus size={18} />
-              Ajouter au panier
-            </button>
-          </section>
-        </div>
-      )}
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 11 }}
+              tickFormatter={(value) => `${value / 1000}k`}
+              width={42}
+            />
 
-      {showReceipt && completedReceipt && (
-        <div className="pos-modal-backdrop">
-          <section className="pos-receipt-modal">
-            <div className="pos-success-icon"><CheckCircle2 size={30} /></div>
-            <h2>Vente enregistrée</h2>
-            <p className="pos-receipt-subtitle">Le ticket de démonstration a été créé.</p>
-            <div className="pos-receipt-number">Ticket #{completedReceipt.number}</div>
-            <div className="pos-receipt-lines">
-              {completedReceipt.items.map((item, index) => (
-                <div key={`${item.key}-${index}`}>
-                  <span>{item.name} × {item.quantity} ({item.unitLabel})</span>
-                  <strong>{money(item.price * item.quantity)}</strong>
-                </div>
-              ))}
-            </div>
-            <div className="pos-receipt-total">
-              <span>Total encaissé</span>
-              <strong>{money(completedReceipt.total)}</strong>
-            </div>
-            <p className="pos-receipt-payment">
-              Paiement : {completedReceipt.payment === "cash"
-                ? "Espèces"
-                : completedReceipt.payment === "card" ? "Carte" : "Mobile"}
-            </p>
-            <button className="pos-checkout-button" onClick={startNewSale}>
-              Nouvelle vente <ArrowRight size={18} />
-            </button>
-          </section>
-        </div>
-      )}
+            <Tooltip content={<ChartTooltip />} />
+
+            <Area
+              type="monotone"
+              dataKey="sales"
+              stroke="#36d9c3"
+              strokeWidth={2.5}
+              fill="url(#salesGradient)"
+              activeDot={{
+                r: 5,
+                stroke: "#080b14",
+                strokeWidth: 2,
+                fill: "#36d9c3",
+              }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="chart-footer">
+        <span>
+          <span className="legend-dot" />
+          Sales revenue
+        </span>
+        <span>Sample dashboard data</span>
+      </div>
     </section>
+  );
+}
+
+function OrdersChart() {
+  return (
+    <section className="panel orders-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Orders Analytics</h3>
+          <p className="panel-description">
+            Orders processed this week.
+          </p>
+        </div>
+
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More order chart options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
+
+      <div className="orders-total">
+        <strong>1,217</strong>
+        <span className="change-badge positive">
+          <ArrowUpRight size={14} />
+          8.4%
+        </span>
+      </div>
+
+      <div className="orders-chart">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={salesData}
+            margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid
+              stroke="#252c3d"
+              strokeDasharray="4 5"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="day"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8993a8", fontSize: 11 }}
+            />
+
+            <Tooltip
+              cursor={{ fill: "rgba(255,255,255,0.035)" }}
+              formatter={(value) => [value, "Orders"]}
+            />
+
+            <Bar
+              dataKey="orders"
+              fill="#8a79ff"
+              radius={[5, 5, 0, 0]}
+              maxBarSize={28}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="orders-footer">
+        <span>
+          <span className="legend-dot violet" />
+          Completed orders
+        </span>
+        <span>Last 7 days</span>
+      </div>
+    </section>
+  );
+}
+
+function ProductsTable({ search }) {
+  const filteredProducts = products.filter((product) => {
+    const query = search.trim().toLowerCase();
+
+    if (!query) return true;
+
+    return (
+      product.name.toLowerCase().includes(query) ||
+      product.category.toLowerCase().includes(query) ||
+      product.sku.toLowerCase().includes(query)
+    );
+  });
+
+  return (
+    <section className="panel products-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Top Products</h3>
+          <p className="panel-description">
+            Overview of your current product inventory.
+          </p>
+        </div>
+
+        <div className="panel-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => alert("Product filters coming soon.")}
+          >
+            <Filter size={16} />
+            Filter
+          </button>
+
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => alert("Product management coming soon.")}
+          >
+            <Plus size={17} />
+            Add Product
+          </button>
+        </div>
+      </div>
+
+      <div className="table-wrapper">
+        <table className="products-table">
+          <thead>
+            <tr>
+              <th>PRODUCT</th>
+              <th>SKU</th>
+              <th>CATEGORY</th>
+              <th>STOCK</th>
+              <th>PRICE</th>
+              <th>STATUS</th>
+              <th />
+            </tr>
+          </thead>
+
+          <tbody>
+            {filteredProducts.map((product) => (
+              <tr key={product.id}>
+                <td>
+                  <div className="product-name-cell">
+                    <div className="product-thumbnail">
+                      <Package size={19} />
+                    </div>
+                    <strong>{product.name}</strong>
+                  </div>
+                </td>
+
+                <td className="muted-cell">{product.sku}</td>
+                <td>{product.category}</td>
+
+                <td>
+                  <span
+                    className={
+                      product.stock <= 20
+                        ? "stock-warning"
+                        : "stock-normal"
+                    }
+                  >
+                    {product.stock}
+                  </span>
+                </td>
+
+                <td className="price-cell">
+                  {formatMoney(product.price)}
+                </td>
+
+                <td>
+                  <span
+                    className={`status-badge ${
+                      product.status === "In Stock"
+                        ? "status-success"
+                        : product.status === "Low Stock"
+                        ? "status-warning"
+                        : "status-danger"
+                    }`}
+                  >
+                    <span />
+                    {product.status}
+                  </span>
+                </td>
+
+                <td>
+                  <button
+                    className="icon-button"
+                    type="button"
+                    aria-label={`Options for ${product.name}`}
+                    onClick={() =>
+                      alert(`Product options: ${product.name}`)
+                    }
+                  >
+                    <MoreHorizontal size={19} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={7} className="empty-state">
+                  No products match your search.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="table-footer">
+        <span>
+          Showing {filteredProducts.length} of {products.length} products
+        </span>
+
+        <button
+          className="view-all-button"
+          type="button"
+          onClick={() => alert("Full product list coming soon.")}
+        >
+          View all products
+          <ArrowUpRight size={15} />
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ActivityPanel() {
+  return (
+    <section className="panel activity-panel">
+      <div className="panel-header">
+        <div>
+          <h3>Recent Activity</h3>
+          <p className="panel-description">
+            Latest updates from your business.
+          </p>
+        </div>
+
+        <button
+          className="icon-button"
+          type="button"
+          aria-label="More activity options"
+        >
+          <MoreHorizontal size={20} />
+        </button>
+      </div>
+
+      <div className="activity-list">
+        {activities.map((activity, index) => {
+          const Icon = activity.icon;
+
+          return (
+            <div className="activity-item" key={activity.title}>
+              <div className={`activity-icon ${activity.color}`}>
+                <Icon size={18} />
+              </div>
+
+              <div className="activity-content">
+                <strong>{activity.title}</strong>
+                <span>{activity.detail}</span>
+              </div>
+
+              <div className="activity-time">
+                <Clock size={12} />
+                <span>{activity.time}</span>
+              </div>
+
+              {index !== activities.length - 1 && (
+                <span className="activity-connector" />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        className="activity-view-all"
+        type="button"
+        onClick={() => alert("Activity history coming soon.")}
+      >
+        View activity history
+        <ArrowUpRight size={15} />
+      </button>
+    </section>
+  );
+}
+
+function Dashboard() {
+  const [search, setSearch] = useState("");
+
+  return (
+    <>
+      <div className="welcome-banner">
+        <div className="welcome-content">
+          <div className="welcome-eyebrow">
+            <Zap size={15} />
+            YOUR BUSINESS AT A GLANCE
+          </div>
+
+          <h2>Welcome back, Administrator 👋</h2>
+
+          <p>
+            Here's your business performance overview for today.
+          </p>
+
+          <div className="welcome-date">
+            <CalendarDays size={15} />
+            {new Date().toLocaleDateString("en-GB", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+        </div>
+
+        <div className="welcome-decoration">
+          <div className="decoration-ring ring-one" />
+          <div className="decoration-ring ring-two" />
+          <div className="decoration-center">
+            <BarChart3 size={42} />
+          </div>
+        </div>
+      </div>
+
+      <div className="section-heading">
+        <div>
+          <h2>Business Overview</h2>
+          <p>Your key business metrics at a glance.</p>
+        </div>
+
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={() => alert("Date range selection coming soon.")}
+        >
+          <CalendarDays size={16} />
+          Today
+          <ChevronDown size={15} />
+        </button>
+      </div>
+
+      <div className="stats-grid">
+        <StatCard
+          title="Total Revenue"
+          value={formatMoney(284500)}
+          change="12.8%"
+          positive
+          icon={Wallet}
+          accent="cyan"
+        />
+
+        <StatCard
+          title="Total Orders"
+          value="1,284"
+          change="8.4%"
+          positive
+          icon={ShoppingCart}
+          accent="violet"
+        />
+
+        <StatCard
+          title="Total Products"
+          value="856"
+          change="4.2%"
+          positive
+          icon={Package}
+          accent="blue"
+        />
+
+        <StatCard
+          title="Net Profit"
+          value={formatMoney(82400)}
+          change="2.1%"
+          positive={false}
+          icon={BarChart3}
+          accent="orange"
+        />
+      </div>
+
+      <div className="charts-grid">
+        <SalesChart />
+        <OrdersChart />
+      </div>
+
+      <div className="bottom-grid">
+        <ProductsTable search={search} />
+        <ActivityPanel />
+      </div>
+
+      <div className="dashboard-search-footer">
+        <Search size={16} />
+
+        <input
+          type="search"
+          placeholder="Search products by name, category or SKU..."
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      </div>
+    </>
+  );
+}
+
+function PlaceholderPage({ title }) {
+  const icons = {
+    "Point of Sale": ShoppingCart,
+    Products: Package,
+    Categories: Boxes,
+    Purchases: CreditCard,
+    Orders: ShoppingCart,
+    Suppliers: Truck,
+    Customers: Users,
+    "Cash Register": Wallet,
+    Reports: BarChart3,
+    Settings,
+  };
+
+  const Icon = icons[title] || LayoutDashboard;
+
+  return (
+    <section className="panel placeholder-panel">
+      <div className="placeholder-icon">
+        <Icon size={34} />
+      </div>
+
+      <h2>{title}</h2>
+
+      <p>
+        This module is part of the VELTRO-PRO roadmap.
+        Its functionality will be developed in the next stages.
+      </p>
+
+      <div className="placeholder-status">
+        <CheckCircle2 size={17} />
+        Module planned
+      </div>
+    </section>
+  );
+}
+
+export default function App() {
+  const [activePage, setActivePage] = useState("Dashboard");
+  const [search, setSearch] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <div className="app-shell">
+      <Sidebar
+        activePage={activePage}
+        onNavigate={setActivePage}
+        mobileOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
+
+      <main className="main-content">
+        <DashboardHeader
+          activePage={activePage}
+          search={search}
+          onSearchChange={setSearch}
+          onMenuClick={() => setMobileOpen(true)}
+        />
+
+        <div className="page-content">
+          {activePage === "Dashboard" ? (
+            <Dashboard />
+          ) : activePage === "Point of Sale" ? (
+            <POS />
+          ) : (
+            <PlaceholderPage title={activePage} />
+          )}
+        </div>
+
+        <footer className="app-footer">
+          <span>
+            © {new Date().getFullYear()} VELTRO. All rights reserved.
+          </span>
+
+          <span className="footer-status">
+            <span />
+            All systems operational
+          </span>
+        </footer>
+      </main>
+    </div>
   );
 }
