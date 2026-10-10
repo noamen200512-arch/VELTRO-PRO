@@ -2212,3 +2212,120 @@ svg {
     font-size: 14px;
   }
 }
+/* VELTRO-PRO — Mobile sidebar drawer fix */
+
+@media (max-width: 620px) {
+  .sidebar {
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+
+    width: min(280px, 85vw);
+    height: 100vh;
+    height: 100dvh;
+
+    padding: 25px 17px 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    z-index: 1001;
+
+    transform: translateX(-105%);
+    visibility: hidden;
+    pointer-events: none;
+
+    background: #0b101a;
+    border-right: 1px solid #222c3c;
+
+    transition:
+      transform 180ms ease,
+      visibility 180ms ease;
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Restore sidebar content hidden by tablet rules */
+  .sidebar .brand-copy,
+  .sidebar .workspace-copy,
+  .sidebar .workspace-chevron,
+  .sidebar .nav-group-title,
+  .sidebar .nav-item > span:not(.active-indicator),
+  .sidebar .upgrade-card,
+  .sidebar .help-link > span,
+  .sidebar .sidebar-version {
+    display: initial;
+  }
+
+  .sidebar .brand-copy,
+  .sidebar .workspace-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .sidebar .nav-group-title {
+    display: block;
+  }
+
+  .sidebar .upgrade-card {
+    display: block;
+  }
+
+  .sidebar .sidebar-version {
+    display: flex;
+  }
+
+  .sidebar .brand {
+    justify-content: flex-start;
+    padding: 0 7px;
+  }
+
+  .sidebar .workspace {
+    justify-content: flex-start;
+    width: auto;
+    padding: 10px;
+    background: #121a27;
+    border: 1px solid #263144;
+  }
+
+  .sidebar .nav-item {
+    justify-content: flex-start;
+    padding: 0 11px;
+  }
+
+  .sidebar .help-link {
+    justify-content: flex-start;
+    padding: 17px 9px;
+  }
+
+  .sidebar .active-indicator {
+    right: -1px;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    background: rgba(0, 0, 0, 0.65);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+  }
+
+  .main-area {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+}
