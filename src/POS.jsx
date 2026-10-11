@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, CreditCard,
   Banknote, Smartphone, X, CheckCircle2, Receipt,
@@ -132,7 +132,6 @@ export default function POS() {
 
   const [bills, setBills] = useState(() => {
     const saved = readBills();
-
     if (saved.length) return saved;
 
     const first = blankBill(1);
@@ -194,6 +193,11 @@ export default function POS() {
   const [showProducts, setShowProducts] = useState(true);
   const [message, setMessage] = useState("");
   const [showPayment, setShowPayment] = useState(false);
+  const [processing, setProcessing] = useState(false);
+
+  // يمنع بدء عمليتي بيع حتى لو تم النقر بسرعة متكررة.
+  const processingRef = useRef(false);
+
   const [managerDialog, setManagerDialog] = useState(null);
   const [pin, setPin] = useState("");
   const [role, setRole] = useState(
@@ -246,10 +250,12 @@ export default function POS() {
   function refreshProducts() {
     try {
       const latest = getProducts();
+
       if (!Array.isArray(latest)) {
         setMessage("تعذر قراءة قائمة المنتجات.");
         return products;
       }
+
       setProducts(latest);
       return latest;
     } catch {
@@ -281,9 +287,7 @@ export default function POS() {
   const categories = useMemo(
     () => [
       "All Products",
-      ...new Set(
-        products.map((p) => String(p.category || "General"))
-      ),
+      ...new Set(products.map((p) => String(p.category || "General"))),
     ],
     [products]
   );
@@ -307,11 +311,7 @@ export default function POS() {
   }, [products, search, category]);
 
   const pageSize = 9;
-  const pageCount = Math.max(
-    1,
-    Math.ceil(filteredProducts.length / pageSize)
-  );
-
+  const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
   const safePage = Math.min(page, pageCount);
 
   const visibleProducts = filteredProducts.slice(
@@ -334,10 +334,7 @@ export default function POS() {
 
   const paid =
     activeBill?.paymentMethod === "Cash"
-      ? (
-          activeBill?.received === "" ||
-          activeBill?.received == null
-        )
+      ? activeBill?.received === "" || activeBill?.received == null
         ? total
         : Math.max(0, Number(activeBill?.received) || 0)
       : total;
@@ -351,8 +348,8 @@ export default function POS() {
     }
 
     const latest = refreshProducts();
-
     const productId = product.id ?? product.productId;
+
     const p = latest.find(
       (x) => (x.id ?? x.productId) === productId
     );
@@ -370,7 +367,10 @@ export default function POS() {
       ? (activeBill.originalItems || [])
           .filter((i) => i.productId === productId)
           .reduce(
-            (sum, i) => sum + i.quantity * i.piecesPerUnit,
+            (sum, i) =>
+              sum +
+              (Number(i.quantity) || 0) *
+                (Number(i.piecesPerUnit) || 1),
             0
           )
       : 0;
@@ -378,7 +378,10 @@ export default function POS() {
     const alreadyInCart = cart
       .filter((i) => i.productId === productId)
       .reduce(
-        (sum, i) => sum + i.quantity * i.piecesPerUnit,
+        (sum, i) =>
+          sum +
+          (Number(i.quantity) || 0) *
+            (Number(i.piecesPerUnit) || 1),
         0
       );
 
@@ -476,7 +479,10 @@ export default function POS() {
       ? (activeBill.originalItems || [])
           .filter((i) => i.productId === item.productId)
           .reduce(
-            (sum, i) => sum + i.quantity * i.piecesPerUnit,
+            (sum, i) =>
+              sum +
+              (Number(i.quantity) || 0) *
+                (Number(i.piecesPerUnit) || 1),
             0
           )
       : 0;
@@ -484,7 +490,10 @@ export default function POS() {
     const inCartUnits = cart
       .filter((i) => i.productId === item.productId)
       .reduce(
-        (sum, i) => sum + i.quantity * i.piecesPerUnit,
+        (sum, i) =>
+          sum +
+          (Number(i.quantity) || 0) *
+            (Number(i.piecesPerUnit) || 1),
         0
       );
 
@@ -503,6 +512,7 @@ export default function POS() {
         i.id === itemId ? { ...i, quantity: nextQty } : i
       )
     );
+
     setMessage("");
   }
 
@@ -542,9 +552,7 @@ export default function POS() {
     const bill = bills.find((b) => b.id === request.billId);
 
     if (request.action === "edit-price" && bill) {
-      const item = bill.items.find(
-        (i) => i.id === request.itemId
-      );
+      const item = bill.items.find((i) => i.id === request.itemId);
 
       if (item) {
         setEditItem({ ...item, billId: bill.id });
@@ -587,9 +595,7 @@ export default function POS() {
     );
 
     if (persist(next, bill.id)) {
-      setMessage(
-        "تم فتح البون للتعديل. لم يتغير المخزون بعد."
-      );
+      setMessage("تم فتح البون للتعديل. لم يتغير المخزون بعد.");
     }
   }
 
@@ -602,10 +608,7 @@ export default function POS() {
       1,
       Math.floor(Number(editItem.piecesPerUnit) || 1)
     );
-    const pieces = Math.max(
-      1,
-      Math.floor(Number(editPieces) || 1)
-    );
+    const pieces = Math.max(1, Math.floor(Number(editPieces) || 1));
 
     if (!Number.isFinite(price) || price < 0) {
       setMessage("أدخل سعرًا صحيحًا.");
@@ -640,6 +643,9 @@ export default function POS() {
   }
 
   function finalizeSale() {
+    // منع النقر المتكرر قبل انتهاء عملية البيع السابقة.
+    if (processingRef.current) return;
+
     if (!activeBill || !cart.length) {
       setMessage("أضف منتجًا واحدًا على الأقل.");
       return;
@@ -653,165 +659,214 @@ export default function POS() {
       return;
     }
 
-    let latest;
-
-    try {
-      latest = getProducts();
-    } catch {
-      setMessage("تعذر قراءة المخزون.");
+    if (isEditingClosed && !reason.trim()) {
+      setMessage("أدخل سبب تعديل الفاتورة.");
       return;
     }
 
-    if (!Array.isArray(latest)) {
-      setMessage("قائمة المنتجات غير صالحة.");
-      return;
-    }
+    processingRef.current = true;
+    setProcessing(true);
+    setMessage("");
 
-    // أثناء تعديل فاتورة مغلقة، استعد الكمية الأصلية
-    // حسابيًا مرة واحدة قبل خصم الكمية الجديدة.
-    const originalItems = isEditingClosed
-      ? activeBill.originalItems || []
-      : [];
+    let originalProducts = null;
+    let inventoryWasChanged = false;
 
-    const stockAfterRestore = latest.map((p) => {
-      const id = p.id ?? p.productId;
-
-      const oldQty = originalItems
-        .filter((i) => i.productId === id)
-        .reduce(
-          (sum, i) =>
-            sum + i.quantity * i.piecesPerUnit,
-          0
-        );
-
-      return oldQty
-        ? { ...p, stock: getStock(p) + oldQty }
-        : p;
-    });
-
-    const requiredByProduct = new Map();
-
-    for (const item of cart) {
-      requiredByProduct.set(
-        item.productId,
-        (requiredByProduct.get(item.productId) || 0) +
-          item.quantity * item.piecesPerUnit
-      );
-    }
-
-    for (const [productId, qty] of requiredByProduct) {
-      const p = stockAfterRestore.find(
-        (x) => (x.id ?? x.productId) === productId
-      );
-
-      if (!p) {
-        setMessage(
-          `المنتج غير موجود: ${
-            cart.find((i) => i.productId === productId)?.name || ""
-          }`
-        );
-        return;
-      }
-
-      if (getStock(p) < qty) {
-        setMessage(
-          `المخزون غير كافٍ للمنتج: ${
-            cart.find((i) => i.productId === productId)?.name || ""
-          }`
-        );
-        return;
-      }
-    }
-
-    const nextProducts = stockAfterRestore.map((p) => {
-      const id = p.id ?? p.productId;
-      const qty = requiredByProduct.get(id) || 0;
-
-      return qty
-        ? { ...p, stock: getStock(p) - qty }
-        : p;
-    });
-
-    // التعديل الأساسي: لا نتابع إتمام البيع إذا فشل حفظ المخزون.
     try {
+      const latest = getProducts();
+
+      if (!Array.isArray(latest)) {
+        setMessage("قائمة المنتجات غير صالحة.");
+        return;
+      }
+
+      originalProducts = latest.map((p) => ({ ...p }));
+
+      // عند تعديل فاتورة مغلقة، أعد الكمية القديمة حسابيًا أولًا.
+      const originalItems = isEditingClosed
+        ? activeBill.originalItems || []
+        : [];
+
+      const stockAfterRestore = latest.map((p) => {
+        const id = p.id ?? p.productId;
+
+        const oldQty = originalItems
+          .filter((i) => i.productId === id)
+          .reduce(
+            (sum, i) =>
+              sum +
+              (Number(i.quantity) || 0) *
+                (Number(i.piecesPerUnit) || 1),
+            0
+          );
+
+        return oldQty
+          ? { ...p, stock: getStock(p) + oldQty }
+          : { ...p };
+      });
+
+      const requiredByProduct = new Map();
+
+      for (const item of cart) {
+        const qty =
+          (Number(item.quantity) || 0) *
+          (Number(item.piecesPerUnit) || 1);
+
+        requiredByProduct.set(
+          item.productId,
+          (requiredByProduct.get(item.productId) || 0) + qty
+        );
+      }
+
+      for (const [productId, qty] of requiredByProduct) {
+        const p = stockAfterRestore.find(
+          (x) => (x.id ?? x.productId) === productId
+        );
+
+        if (!p) {
+          setMessage(
+            `المنتج غير موجود: ${
+              cart.find((i) => i.productId === productId)?.name || ""
+            }`
+          );
+          return;
+        }
+
+        if (getStock(p) < qty) {
+          setMessage(
+            `المخزون غير كافٍ للمنتج: ${
+              cart.find((i) => i.productId === productId)?.name || ""
+            }`
+          );
+          return;
+        }
+      }
+
+      const nextProducts = stockAfterRestore.map((p) => {
+        const id = p.id ?? p.productId;
+        const qty = requiredByProduct.get(id) || 0;
+
+        return {
+          ...p,
+          stock: getStock(p) - qty,
+        };
+      });
+
+      // احفظ المخزون ثم تحقق من القيم الفعلية المخزنة.
       const saved = saveProducts(nextProducts);
 
-      if (!saved) {
+      if (saved === false) {
         setMessage("فشل حفظ المخزون. لم يتم إغلاق البون.");
         return;
       }
-    } catch {
-      setMessage("فشل حفظ المخزون. لم يتم إغلاق البون.");
-      return;
-    }
 
-    // التحقق من أن المخزون المحفوظ يطابق الكميات المطلوبة.
-    let verified;
+      inventoryWasChanged = true;
 
-    try {
-      verified = getProducts();
-    } catch {
-      setMessage("تعذر التحقق من حفظ المخزون.");
-      return;
-    }
+      const verified = getProducts();
 
-    if (!Array.isArray(verified)) {
-      setMessage("تعذر التحقق من المخزون المحفوظ.");
-      return;
-    }
+      if (!Array.isArray(verified)) {
+        throw new Error("تعذر التحقق من المخزون بعد الحفظ.");
+      }
 
-    const stockSaved = nextProducts.every((p) => {
-      const id = p.id ?? p.productId;
-      const check = verified.find(
-        (x) => (x.id ?? x.productId) === id
+      const stockSaved = nextProducts.every((p) => {
+        const id = p.id ?? p.productId;
+        const check = verified.find(
+          (x) => (x.id ?? x.productId) === id
+        );
+
+        return check && getStock(check) === getStock(p);
+      });
+
+      if (!stockSaved) {
+        throw new Error("المخزون المحفوظ لا يطابق الكميات المطلوبة.");
+      }
+
+      const now = new Date().toISOString();
+
+      const closed = {
+        ...activeBill,
+        items: cart.map((i) => ({ ...i })),
+        subtotal,
+        discount,
+        total,
+        paymentMethod: activeBill.paymentMethod || "Cash",
+        received: paid,
+        change,
+        status: "closed",
+        closedAt: now,
+        originalItems: undefined,
+        history: [
+          ...(activeBill.history || []),
+          {
+            date: now,
+            action: isEditingClosed
+              ? "bill edited and closed"
+              : "sale completed",
+            reason: isEditingClosed ? reason : "",
+          },
+        ],
+      };
+
+      const nextBills = bills.map((b) =>
+        b.id === closed.id ? closed : b
       );
 
-      return check && getStock(check) === getStock(p);
-    });
+      // احفظ الفاتورة قبل إغلاق النافذة.
+      if (!writeBills(nextBills)) {
+        throw new Error("تعذر حفظ الفاتورة.");
+      }
 
-    if (!stockSaved) {
-      setMessage(
-        "لم يتطابق المخزون بعد الحفظ. لم يتم إغلاق البون؛ تحقق من التخزين."
-      );
-      return;
-    }
+      // حدّث الحالة بعد نجاح حفظ المخزون والفاتورة.
+      setBills(nextBills);
+      setActiveId("");
 
-    const now = new Date().toISOString();
+      try {
+        localStorage.removeItem(ACTIVE_KEY);
+      } catch {}
 
-    const closed = {
-      ...activeBill,
-      items: cart.map((i) => ({ ...i })),
-      subtotal,
-      discount,
-      total,
-      paymentMethod: activeBill.paymentMethod || "Cash",
-      received: paid,
-      change,
-      status: "closed",
-      closedAt: now,
-      originalItems: undefined,
-      history: [
-        ...(activeBill.history || []),
-        {
-          date: now,
-          action: isEditingClosed
-            ? "bill edited and closed"
-            : "sale completed",
-          reason: isEditingClosed ? reason : "",
-        },
-      ],
-    };
-
-    const nextBills = bills.map((b) =>
-      b.id === closed.id ? closed : b
-    );
-
-    if (persist(nextBills, "")) {
       setProducts(verified);
       setShowPayment(false);
       setReason("");
       setPrintBill(closed);
       setMessage("تم حفظ البيع وتحديث المخزون بنجاح.");
+    } catch (error) {
+      console.error("VELTRO POS finalizeSale error:", error);
+
+      // إذا تغير المخزون ثم تعذّر إكمال العملية،
+      // حاول استعادة المخزون الذي كان موجودًا قبل البيع.
+      if (inventoryWasChanged && originalProducts) {
+        try {
+          const rollback = saveProducts(originalProducts);
+
+          if (rollback === false) {
+            setProducts(getProducts());
+            setMessage(
+              "خطأ في إتمام البيع وتعذرت استعادة المخزون تلقائيًا. تحقق من المخزون قبل إعادة البيع."
+            );
+          } else {
+            setProducts(originalProducts);
+            setMessage(
+              `لم يكتمل البيع: ${error?.message || "خطأ غير معروف"}. تمت محاولة استعادة المخزون السابق. تحقق من المخزون قبل إعادة المحاولة.`
+            );
+          }
+        } catch (rollbackError) {
+          console.error("VELTRO stock rollback error:", rollbackError);
+
+          try {
+            setProducts(getProducts());
+          } catch {}
+
+          setMessage(
+            "حدث خطأ أثناء إتمام البيع واستعادة المخزون. تحقق من المخزون والفاتورة يدويًا قبل إعادة البيع."
+          );
+        }
+      } else {
+        setMessage(
+          `تعذر إتمام البيع: ${error?.message || "خطأ غير معروف"}.`
+        );
+      }
+    } finally {
+      processingRef.current = false;
+      setProcessing(false);
     }
   }
 
@@ -835,9 +890,13 @@ export default function POS() {
 
   function billTotals(bill) {
     const sub = (bill.items || []).reduce(
-      (sum, i) => sum + i.price * i.quantity,
+      (sum, i) =>
+        sum +
+        (Number(i.price) || 0) *
+          (Number(i.quantity) || 0),
       0
     );
+
     const disc = Math.min(
       sub,
       Math.max(0, Number(bill.discount) || 0)
@@ -858,9 +917,7 @@ export default function POS() {
       return;
     }
 
-    const currentIndex = closed.findIndex(
-      (b) => b.id === activeId
-    );
+    const currentIndex = closed.findIndex((b) => b.id === activeId);
 
     const start =
       currentIndex >= 0
@@ -1120,9 +1177,11 @@ export default function POS() {
                 }
 
                 setActiveId(b.id);
+
                 try {
                   localStorage.setItem(ACTIVE_KEY, b.id);
                 } catch {}
+
                 setMessage("");
               }}
             >
@@ -1422,9 +1481,7 @@ export default function POS() {
                 <button
                   style={styles.button}
                   disabled={safePage >= pageCount}
-                  onClick={() =>
-                    setPage((p) => Math.min(pageCount, p + 1))
-                  }
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
                 >
                   Next <ChevronRight size={15} />
                 </button>
@@ -1452,7 +1509,7 @@ export default function POS() {
 
             <button
               style={styles.button}
-              disabled={!cart.length || isClosed}
+              disabled={!cart.length || isClosed || processing}
               onClick={() => updateItems([])}
             >
               <Trash2 size={15} />
@@ -1499,7 +1556,7 @@ export default function POS() {
 
                     <div className="pos-qty">
                       <button
-                        disabled={isClosed}
+                        disabled={isClosed || processing}
                         onClick={() => changeQuantity(item.id, -1)}
                       >
                         <Minus size={12} />
@@ -1508,14 +1565,14 @@ export default function POS() {
                       <span>{item.quantity}</span>
 
                       <button
-                        disabled={isClosed}
+                        disabled={isClosed || processing}
                         onClick={() => changeQuantity(item.id, 1)}
                       >
                         <Plus size={12} />
                       </button>
 
                       <button
-                        disabled={isClosed}
+                        disabled={isClosed || processing}
                         onClick={() => removeItem(item.id)}
                         style={{ color: "#fb7185" }}
                       >
@@ -1523,7 +1580,7 @@ export default function POS() {
                       </button>
 
                       <button
-                        disabled={isClosed}
+                        disabled={isClosed || processing}
                         onClick={() =>
                           requestManager("edit-price", activeBill, item)
                         }
@@ -1569,7 +1626,7 @@ export default function POS() {
               style={{ ...styles.input, margin: "6px 0 13px" }}
               type="number"
               min="0"
-              disabled={!activeBill || isClosed}
+              disabled={!activeBill || isClosed || processing}
               value={activeBill?.discount ?? 0}
               onChange={(e) =>
                 activeBill &&
@@ -1602,7 +1659,7 @@ export default function POS() {
               ].map(([method, Icon]) => (
                 <button
                   key={method}
-                  disabled={!activeBill || isClosed}
+                  disabled={!activeBill || isClosed || processing}
                   className={`pos-chip ${
                     activeBill?.paymentMethod === method ? "active" : ""
                   }`}
@@ -1627,7 +1684,7 @@ export default function POS() {
                   style={{ ...styles.input, margin: "6px 0 10px" }}
                   type="number"
                   min="0"
-                  disabled={isClosed}
+                  disabled={isClosed || processing}
                   value={activeBill.received || ""}
                   onChange={(e) =>
                     updateBill(activeBill.id, { received: e.target.value })
@@ -1653,7 +1710,7 @@ export default function POS() {
 
             <button
               className="pos-primary"
-              disabled={!cart.length || isClosed}
+              disabled={!cart.length || isClosed || processing}
               onClick={() => setShowPayment(true)}
             >
               <CreditCard size={17} /> Review and Complete Sale
@@ -1662,6 +1719,7 @@ export default function POS() {
             {isEditingClosed && (
               <button
                 style={{ ...styles.button, width: "100%", marginTop: 9 }}
+                disabled={processing}
                 onClick={() => setShowPayment(true)}
               >
                 Save bill changes
@@ -1672,7 +1730,10 @@ export default function POS() {
       </div>
 
       {showPayment && (
-        <div className="pos-modal" onClick={() => setShowPayment(false)}>
+        <div
+          className="pos-modal"
+          onClick={() => !processing && setShowPayment(false)}
+        >
           <section
             className="pos-modal-card"
             role="dialog"
@@ -1686,6 +1747,7 @@ export default function POS() {
               <h3 style={{ margin: 0 }}>Confirm Bill {activeBill?.number}</h3>
               <button
                 style={styles.button}
+                disabled={processing}
                 onClick={() => setShowPayment(false)}
               >
                 <X size={16} />
@@ -1709,6 +1771,7 @@ export default function POS() {
                 <label style={{ fontSize: 12 }}>Reason for editing</label>
                 <input
                   style={{ ...styles.input, margin: "6px 0 12px" }}
+                  disabled={processing}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Explain the correction"
@@ -1725,6 +1788,7 @@ export default function POS() {
             <button
               className="pos-primary"
               disabled={
+                processing ||
                 !cart.length ||
                 (activeBill?.paymentMethod === "Cash" && paid < total) ||
                 (isEditingClosed && !reason.trim())
@@ -1732,13 +1796,16 @@ export default function POS() {
               onClick={finalizeSale}
             >
               <CheckCircle2 size={17} />
-              {isEditingClosed
-                ? "Save changes and close bill"
-                : "Confirm sale and deduct stock"}
+              {processing
+                ? "Processing sale..."
+                : isEditingClosed
+                  ? "Save changes and close bill"
+                  : "Confirm sale and deduct stock"}
             </button>
 
             <button
               style={{ ...styles.button, width: "100%", marginTop: 9 }}
+              disabled={processing}
               onClick={() => setShowPayment(false)}
             >
               Back to bill
