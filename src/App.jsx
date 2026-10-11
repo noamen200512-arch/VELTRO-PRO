@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   LayoutDashboard,
@@ -39,8 +40,8 @@ import {
   Bar,
 } from "recharts";
 
-// استيراد صفحة نقطة البيع الجديدة
 import POS from "./POS";
+import Products from "./Products.jsx";
 
 const salesData = [
   { day: "Mon", sales: 24000, orders: 120 },
@@ -632,7 +633,7 @@ function OrdersChart() {
   );
 }
 
-function ProductsTable({ search }) {
+function ProductsTable({ search, onNavigate }) {
   const filteredProducts = products.filter((product) => {
     const query = search.trim().toLowerCase();
 
@@ -668,7 +669,7 @@ function ProductsTable({ search }) {
           <button
             className="primary-button"
             type="button"
-            onClick={() => alert("Product management coming soon.")}
+            onClick={() => onNavigate("Products")}
           >
             <Plus size={17} />
             Add Product
@@ -739,7 +740,7 @@ function ProductsTable({ search }) {
                     className="icon-button"
                     type="button"
                     aria-label={`Options for ${product.name}`}
-                    onClick={() => alert(`Product options: ${product.name}`)}
+                    onClick={() => onNavigate("Products")}
                   >
                     <MoreHorizontal size={19} />
                   </button>
@@ -766,7 +767,7 @@ function ProductsTable({ search }) {
         <button
           className="view-all-button"
           type="button"
-          onClick={() => alert("Full product list coming soon.")}
+          onClick={() => onNavigate("Products")}
         >
           View all products
           <ArrowUpRight size={15} />
@@ -836,7 +837,7 @@ function ActivityPanel() {
   );
 }
 
-function Dashboard() {
+function Dashboard({ onNavigate }) {
   const [search, setSearch] = useState("");
 
   return (
@@ -935,7 +936,7 @@ function Dashboard() {
       </div>
 
       <div className="bottom-grid">
-        <ProductsTable search={search} />
+        <ProductsTable search={search} onNavigate={onNavigate} />
         <ActivityPanel />
       </div>
 
@@ -955,7 +956,6 @@ function Dashboard() {
 
 function PlaceholderPage({ title }) {
   const icons = {
-    Products: Package,
     Categories: Boxes,
     Purchases: CreditCard,
     Orders: ShoppingCart,
@@ -1013,9 +1013,11 @@ export default function App() {
 
         <div className="page-content">
           {activePage === "Dashboard" ? (
-            <Dashboard />
+            <Dashboard onNavigate={setActivePage} />
           ) : activePage === "Point of Sale" ? (
             <POS />
+          ) : activePage === "Products" ? (
+            <Products />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
