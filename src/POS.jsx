@@ -1,12 +1,47 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
+
 import {
-  Search, Plus, Minus, Trash2, ShoppingCart, CreditCard,
-  Banknote, Smartphone, X, CheckCircle2, Receipt,
-  ChevronLeft, ChevronRight, Eye, EyeOff, Printer,
-  Lock, Unlock, Pencil, Save, Barcode, ShieldCheck,
-  ShoppingBag, ScanBarcode, RotateCcw
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  ShoppingCart,
+  CreditCard,
+  Banknote,
+  Smartphone,
+  X,
+  CheckCircle2,
+  Receipt,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Printer,
+  Lock,
+  Unlock,
+  Pencil,
+  Save,
+  Barcode,
+  ShieldCheck,
+  ShoppingBag,
+  ScanBarcode,
+  RotateCcw,
+  Camera,
+  ClipboardList,
+  Play,
+  AlertTriangle,
+  History,
 } from "lucide-react";
-import { getProducts, saveProducts } from "./productStore.js";
+
+import {
+  getProducts,
+  saveProducts,
+} from "./productStore.js";
 
 const BILLS_KEY = "veltro_pos_bills";
 const ACTIVE_KEY = "veltro_pos_active_bill";
@@ -19,11 +54,15 @@ const money = (value) =>
   })} DA`;
 
 const uid = () =>
-  `VLT-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  `VLT-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 7)}`;
 
 const readBills = () => {
   try {
-    const value = JSON.parse(localStorage.getItem(BILLS_KEY) || "[]");
+    const value = JSON.parse(
+      localStorage.getItem(BILLS_KEY) || "[]"
+    );
     return Array.isArray(value) ? value : [];
   } catch {
     return [];
@@ -32,7 +71,10 @@ const readBills = () => {
 
 const writeBills = (bills) => {
   try {
-    localStorage.setItem(BILLS_KEY, JSON.stringify(bills));
+    localStorage.setItem(
+      BILLS_KEY,
+      JSON.stringify(bills)
+    );
     return true;
   } catch {
     return false;
@@ -96,27 +138,76 @@ const styles = {
 };
 
 const getName = (p) =>
-  String(p?.name ?? p?.productName ?? p?.designation ?? "");
+  String(
+    p?.name ??
+    p?.productName ??
+    p?.designation ??
+    ""
+  );
 
 const getSKU = (p) =>
   String(p?.sku ?? p?.reference ?? p?.ref ?? "");
 
 const getBarcode = (p) =>
-  String(p?.barcode ?? p?.barCode ?? p?.codeBar ?? "");
+  String(
+    p?.barcode ??
+    p?.barCode ??
+    p?.codeBar ??
+    ""
+  );
 
-const getStock = (p) => Math.max(0, Number(p?.stock) || 0);
+const getStock = (p) =>
+  Math.max(0, Number(p?.stock) || 0);
 
-const getPrice = (p) => Math.max(0, Number(p?.price) || 0);
+const getPrice = (p) =>
+  Math.max(0, Number(p?.price) || 0);
 
 const getPieces = (p) =>
-  Math.max(1, Math.floor(Number(p?.piecesPerCarton) || 1));
+  Math.max(
+    1,
+    Math.floor(Number(p?.piecesPerCarton) || 1)
+  );
 
 const getColor = (category = "") => {
-  const v = String(category).toLowerCase();
-  if (v.includes("drink") || v.includes("beverage")) return "#60a5fa";
-  if (v.includes("snack") || v.includes("biscuit")) return "#d4a373";
-  if (v.includes("dairy") || v.includes("milk")) return "#a7c9ed";
+  const value = String(category).toLowerCase();
+
+  if (
+    value.includes("drink") ||
+    value.includes("beverage")
+  ) return "#60a5fa";
+
+  if (
+    value.includes("snack") ||
+    value.includes("biscuit")
+  ) return "#d4a373";
+
+  if (
+    value.includes("dairy") ||
+    value.includes("milk")
+  ) return "#a7c9ed";
+
   return "#36d9c3";
+};
+
+const getBillTotals = (bill) => {
+  const subtotal = (bill?.items || []).reduce(
+    (sum, item) =>
+      sum +
+      (Number(item.price) || 0) *
+        (Number(item.quantity) || 0),
+    0
+  );
+
+  const discount = Math.min(
+    subtotal,
+    Math.max(0, Number(bill?.discount) || 0)
+  );
+
+  return {
+    subtotal,
+    discount,
+    total: Math.max(0, subtotal - discount),
+  };
 };
 
 export default function POS() {
@@ -131,6 +222,7 @@ export default function POS() {
 
   const [bills, setBills] = useState(() => {
     const saved = readBills();
+
     if (saved.length) return saved;
 
     const first = blankBill(1);
@@ -147,32 +239,42 @@ export default function POS() {
     const saved = readBills();
 
     if (saved.length) {
-      const stored = localStorage.getItem(ACTIVE_KEY);
+      let stored = null;
+
+      try {
+        stored = localStorage.getItem(ACTIVE_KEY);
+      } catch {}
+
       const storedBill = saved.find(
-        (b) =>
-          b.id === stored &&
-          (b.status === "open" || b.status === "editing")
+        (bill) =>
+          bill.id === stored &&
+          ["open", "editing"].includes(bill.status)
       );
 
       if (storedBill) return storedBill.id;
 
-      const open = saved.find(
-        (b) => b.status === "open" || b.status === "editing"
+      const openBill = saved.find(
+        (bill) =>
+          ["open", "editing"].includes(bill.status)
       );
 
-      if (open) return open.id;
+      if (openBill) return openBill.id;
 
-      const first = blankBill(
-        saved.reduce((n, b) => Math.max(n, Number(b.number) || 0), 0) + 1
+      const next = blankBill(
+        saved.reduce(
+          (max, bill) =>
+            Math.max(max, Number(bill.number) || 0),
+          0
+        ) + 1
       );
 
-      writeBills([...saved, first]);
+      writeBills([...saved, next]);
 
       try {
-        localStorage.setItem(ACTIVE_KEY, first.id);
+        localStorage.setItem(ACTIVE_KEY, next.id);
       } catch {}
 
-      return first.id;
+      return next.id;
     }
 
     const first = blankBill(1);
@@ -194,29 +296,70 @@ export default function POS() {
   const [showPayment, setShowPayment] = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // يمنع بدء عمليتي بيع حتى لو تم النقر بسرعة متكررة.
   const processingRef = useRef(false);
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const scanTimerRef = useRef(null);
+  const scanBusyRef = useRef(false);
 
   const [managerDialog, setManagerDialog] = useState(null);
   const [pin, setPin] = useState("");
   const [role, setRole] = useState(
     () => localStorage.getItem(ROLE_KEY) || "Cashier"
   );
+
   const [editItem, setEditItem] = useState(null);
   const [editPrice, setEditPrice] = useState("");
   const [editPieces, setEditPieces] = useState("");
   const [reason, setReason] = useState("");
+
   const [printBill, setPrintBill] = useState(null);
   const [billBrowseIndex, setBillBrowseIndex] = useState(-1);
 
-  const activeBill = bills.find((b) => b.id === activeId) || null;
+  // النوافذ الجديدة
+  const [showPendingBills, setShowPendingBills] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraError, setCameraError] = useState("");
+
+  const activeBill =
+    bills.find((bill) => bill.id === activeId) || null;
+
   const cart = activeBill?.items || [];
   const isEditingClosed = activeBill?.status === "editing";
   const isClosed = activeBill?.status === "closed";
 
+  const pendingBills = useMemo(
+    () =>
+      bills
+        .filter((bill) =>
+          ["open", "editing"].includes(bill.status)
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt || 0) -
+            new Date(a.createdAt || 0)
+        ),
+    [bills]
+  );
+
+  const closedBills = useMemo(
+    () =>
+      bills
+        .filter((bill) => bill.status === "closed")
+        .sort(
+          (a, b) =>
+            new Date(b.closedAt || b.createdAt || 0) -
+            new Date(a.closedAt || a.createdAt || 0)
+        ),
+    [bills]
+  );
+
   function persist(nextBills, nextActive = activeId) {
     if (!writeBills(nextBills)) {
-      setMessage("تعذر حفظ البونات. تحقق من مساحة المتصفح.");
+      setMessage(
+        "تعذر حفظ البونات. تحقق من مساحة المتصفح."
+      );
       return false;
     }
 
@@ -235,14 +378,21 @@ export default function POS() {
   }
 
   function updateBill(id, changes) {
-    const next = bills.map((b) =>
-      b.id === id ? { ...b, ...changes } : b
+    const next = bills.map((bill) =>
+      bill.id === id
+        ? { ...bill, ...changes }
+        : bill
     );
+
     persist(next);
   }
 
   function updateItems(items) {
-    if (!activeBill || activeBill.status === "closed") return;
+    if (
+      !activeBill ||
+      activeBill.status === "closed"
+    ) return;
+
     updateBill(activeBill.id, { items });
   }
 
@@ -264,53 +414,86 @@ export default function POS() {
   }
 
   function createBill() {
-    const count = bills.filter(
-      (b) => b.status === "open" || b.status === "editing"
+    const count = bills.filter((bill) =>
+      ["open", "editing"].includes(bill.status)
     ).length;
 
     if (count >= 20) {
-      setMessage("وصلت إلى الحد الأقصى للبونات المفتوحة.");
+      setMessage(
+        "وصلت إلى الحد الأقصى للبونات المفتوحة."
+      );
       return;
     }
 
     const bill = blankBill(
-      bills.reduce((n, b) => Math.max(n, Number(b.number) || 0), 0) + 1
+      bills.reduce(
+        (max, current) =>
+          Math.max(max, Number(current.number) || 0),
+        0
+      ) + 1
     );
 
     if (persist([...bills, bill], bill.id)) {
       setMessage("تم فتح بون جديد.");
       setShowPayment(false);
+      setShowPendingBills(false);
     }
+  }
+
+  function activateBill(bill) {
+    if (!bill) return;
+
+    if (bill.status === "closed") {
+      setPrintBill(bill);
+      return;
+    }
+
+    setActiveId(bill.id);
+
+    try {
+      localStorage.setItem(ACTIVE_KEY, bill.id);
+    } catch {}
+
+    setShowPayment(false);
+    setShowPendingBills(false);
+    setMessage("");
   }
 
   const categories = useMemo(
     () => [
       "All Products",
-      ...new Set(products.map((p) => String(p.category || "General"))),
+      ...new Set(
+        products.map((p) =>
+          String(p.category || "General")
+        )
+      ),
     ],
     [products]
   );
 
   const filteredProducts = useMemo(() => {
-    const q = search.trim().toLocaleLowerCase();
+    const query = search.trim().toLocaleLowerCase();
 
-    return products.filter((p) => {
+    return products.filter((product) => {
       const categoryMatch =
         category === "All Products" ||
-        String(p.category || "General") === category;
+        String(product.category || "General") === category;
 
       const searchMatch =
-        !q ||
-        getName(p).toLocaleLowerCase().includes(q) ||
-        getSKU(p).toLocaleLowerCase().includes(q) ||
-        getBarcode(p).toLocaleLowerCase().includes(q);
+        !query ||
+        getName(product).toLocaleLowerCase().includes(query) ||
+        getSKU(product).toLocaleLowerCase().includes(query) ||
+        getBarcode(product).toLocaleLowerCase().includes(query);
 
       return categoryMatch && searchMatch;
     });
   }, [products, search, category]);
 
   const pageSize = 9;
-  const pageCount = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / pageSize)
+  );
   const safePage = Math.min(page, pageCount);
 
   const visibleProducts = filteredProducts.slice(
@@ -320,7 +503,9 @@ export default function POS() {
 
   const subtotal = cart.reduce(
     (sum, item) =>
-      sum + (Number(item.price) || 0) * (Number(item.quantity) || 0),
+      sum +
+      (Number(item.price) || 0) *
+        (Number(item.quantity) || 0),
     0
   );
 
@@ -333,15 +518,22 @@ export default function POS() {
 
   const paid =
     activeBill?.paymentMethod === "Cash"
-      ? activeBill?.received === "" || activeBill?.received == null
+      ? activeBill?.received === "" ||
+        activeBill?.received == null
         ? total
-        : Math.max(0, Number(activeBill?.received) || 0)
+        : Math.max(
+            0,
+            Number(activeBill?.received) || 0
+          )
       : total;
 
   const change = Math.max(0, paid - total);
 
   function addProduct(product, mode = "piece") {
-    if (!activeBill || activeBill.status === "closed") {
+    if (
+      !activeBill ||
+      activeBill.status === "closed"
+    ) {
       setMessage("افتح بونًا جديدًا قبل إضافة المنتجات.");
       return;
     }
@@ -349,76 +541,92 @@ export default function POS() {
     const latest = refreshProducts();
     const productId = product.id ?? product.productId;
 
-    const p = latest.find(
-      (x) => (x.id ?? x.productId) === productId
+    const currentProduct = latest.find(
+      (item) =>
+        (item.id ?? item.productId) === productId
     );
 
-    if (!p) {
-      setMessage("المنتج غير موجود. حدّث صفحة المنتجات.");
+    if (!currentProduct) {
+      setMessage(
+        "المنتج غير موجود. حدّث صفحة المنتجات."
+      );
       return;
     }
 
-    const pieces = getPieces(p);
-    const piecesPerUnit = mode === "carton" ? pieces : 1;
-    const stock = getStock(p);
+    const pieces = getPieces(currentProduct);
+    const piecesPerUnit =
+      mode === "carton" ? pieces : 1;
+    const stock = getStock(currentProduct);
 
     const oldBillUnits = isEditingClosed
       ? (activeBill.originalItems || [])
-          .filter((i) => i.productId === productId)
+          .filter(
+            (item) => item.productId === productId
+          )
           .reduce(
-            (sum, i) =>
+            (sum, item) =>
               sum +
-              (Number(i.quantity) || 0) *
-                (Number(i.piecesPerUnit) || 1),
+              (Number(item.quantity) || 0) *
+                (Number(item.piecesPerUnit) || 1),
             0
           )
       : 0;
 
     const alreadyInCart = cart
-      .filter((i) => i.productId === productId)
+      .filter((item) => item.productId === productId)
       .reduce(
-        (sum, i) =>
+        (sum, item) =>
           sum +
-          (Number(i.quantity) || 0) *
-            (Number(i.piecesPerUnit) || 1),
+          (Number(item.quantity) || 0) *
+            (Number(item.piecesPerUnit) || 1),
         0
       );
 
-    if (alreadyInCart + piecesPerUnit > stock + oldBillUnits) {
+    if (
+      alreadyInCart + piecesPerUnit >
+      stock + oldBillUnits
+    ) {
       setMessage("المخزون لا يكفي لهذه الكمية.");
       return;
     }
 
     const price =
       mode === "carton"
-        ? Number(p.cartonPrice) > 0
-          ? Number(p.cartonPrice)
-          : getPrice(p) * pieces
-        : getPrice(p);
+        ? Number(currentProduct.cartonPrice) > 0
+          ? Number(currentProduct.cartonPrice)
+          : getPrice(currentProduct) * pieces
+        : getPrice(currentProduct);
 
     const existing = cart.find(
-      (i) => i.productId === productId && i.mode === mode
+      (item) =>
+        item.productId === productId &&
+        item.mode === mode
     );
 
     const items = existing
-      ? cart.map((i) =>
-          i.id === existing.id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
+      ? cart.map((item) =>
+          item.id === existing.id
+            ? {
+                ...item,
+                quantity:
+                  (Number(item.quantity) || 0) + 1,
+              }
+            : item
         )
       : [
           ...cart,
           {
             id: uid(),
             productId,
-            name: getName(p),
-            sku: getSKU(p),
-            barcode: getBarcode(p),
+            name: getName(currentProduct),
+            sku: getSKU(currentProduct),
+            barcode: getBarcode(currentProduct),
             mode,
             quantity: 1,
             piecesPerUnit,
             price,
-            purchasePrice: Number(p.purchasePrice) || 0,
+            purchasePrice:
+              Number(currentProduct.purchasePrice) || 0,
           },
         ];
 
@@ -427,19 +635,21 @@ export default function POS() {
   }
 
   function scanBarcode(value) {
-    const code = String(value || "").trim().toLocaleLowerCase();
+    const code = String(value || "").trim().toLowerCase();
     if (!code) return;
 
     const latest = refreshProducts();
 
     const product = latest.find(
-      (p) =>
-        getBarcode(p).trim().toLocaleLowerCase() === code ||
-        getSKU(p).trim().toLocaleLowerCase() === code
+      (item) =>
+        getBarcode(item).trim().toLowerCase() === code ||
+        getSKU(item).trim().toLowerCase() === code
     );
 
     if (!product) {
-      setMessage("لم نعثر على منتج بهذا الباركود أو المرجع.");
+      setMessage(
+        "لم نعثر على منتج بهذا الباركود أو المرجع."
+      );
     } else {
       addProduct(product);
       setSearch("");
@@ -451,48 +661,64 @@ export default function POS() {
   }
 
   function changeQuantity(itemId, amount) {
-    if (!activeBill || activeBill.status === "closed") return;
+    if (
+      !activeBill ||
+      activeBill.status === "closed"
+    ) return;
 
-    const item = cart.find((i) => i.id === itemId);
+    const item = cart.find(
+      (current) => current.id === itemId
+    );
+
     if (!item) return;
 
-    const nextQty = item.quantity + amount;
+    const nextQty = Number(item.quantity) + amount;
 
     if (nextQty <= 0) {
-      updateItems(cart.filter((i) => i.id !== itemId));
+      updateItems(
+        cart.filter((current) => current.id !== itemId)
+      );
       setMessage("");
       return;
     }
 
     const latest = refreshProducts();
-    const p = latest.find(
-      (x) => (x.id ?? x.productId) === item.productId
+
+    const product = latest.find(
+      (current) =>
+        (current.id ?? current.productId) === item.productId
     );
 
-    if (!p) {
+    if (!product) {
       setMessage("المنتج غير موجود بالمخزون.");
       return;
     }
 
     const oldBillUnits = isEditingClosed
       ? (activeBill.originalItems || [])
-          .filter((i) => i.productId === item.productId)
+          .filter(
+            (current) =>
+              current.productId === item.productId
+          )
           .reduce(
-            (sum, i) =>
+            (sum, current) =>
               sum +
-              (Number(i.quantity) || 0) *
-                (Number(i.piecesPerUnit) || 1),
+              (Number(current.quantity) || 0) *
+                (Number(current.piecesPerUnit) || 1),
             0
           )
       : 0;
 
     const inCartUnits = cart
-      .filter((i) => i.productId === item.productId)
+      .filter(
+        (current) =>
+          current.productId === item.productId
+      )
       .reduce(
-        (sum, i) =>
+        (sum, current) =>
           sum +
-          (Number(i.quantity) || 0) *
-            (Number(i.piecesPerUnit) || 1),
+          (Number(current.quantity) || 0) *
+            (Number(current.piecesPerUnit) || 1),
         0
       );
 
@@ -501,14 +727,19 @@ export default function POS() {
       item.quantity * item.piecesPerUnit +
       nextQty * item.piecesPerUnit;
 
-    if (requested > getStock(p) + oldBillUnits) {
+    if (
+      requested >
+      getStock(product) + oldBillUnits
+    ) {
       setMessage("الكمية تتجاوز المخزون المتاح.");
       return;
     }
 
     updateItems(
-      cart.map((i) =>
-        i.id === itemId ? { ...i, quantity: nextQty } : i
+      cart.map((current) =>
+        current.id === itemId
+          ? { ...current, quantity: nextQty }
+          : current
       )
     );
 
@@ -516,10 +747,16 @@ export default function POS() {
   }
 
   function removeItem(id) {
-    updateItems(cart.filter((i) => i.id !== id));
+    updateItems(
+      cart.filter((item) => item.id !== id)
+    );
   }
 
-  function requestManager(action, bill = activeBill, item = null) {
+  function requestManager(
+    action,
+    bill = activeBill,
+    item = null
+  ) {
     setPin("");
     setManagerDialog({
       action,
@@ -529,7 +766,8 @@ export default function POS() {
   }
 
   function authorizeManager() {
-    const correctPin = localStorage.getItem(PIN_KEY) || "1234";
+    const correctPin =
+      localStorage.getItem(PIN_KEY) || "1234";
 
     if (pin !== correctPin) {
       setMessage("رمز المدير غير صحيح.");
@@ -548,10 +786,14 @@ export default function POS() {
 
     if (!request) return;
 
-    const bill = bills.find((b) => b.id === request.billId);
+    const bill = bills.find(
+      (current) => current.id === request.billId
+    );
 
     if (request.action === "edit-price" && bill) {
-      const item = bill.items.find((i) => i.id === request.itemId);
+      const item = bill.items.find(
+        (current) => current.id === request.itemId
+      );
 
       if (item) {
         setEditItem({ ...item, billId: bill.id });
@@ -567,6 +809,10 @@ export default function POS() {
     if (request.action === "change-role") {
       setMessage("تم تفعيل صلاحيات المدير.");
     }
+
+    if (request.action === "delete-bill" && bill) {
+      setDeleteTarget(bill);
+    }
   }
 
   function beginEditClosed(bill) {
@@ -575,26 +821,31 @@ export default function POS() {
       return;
     }
 
-    const next = bills.map((b) =>
-      b.id === bill.id
+    const next = bills.map((current) =>
+      current.id === bill.id
         ? {
-            ...b,
+            ...current,
             status: "editing",
-            originalItems: (b.items || []).map((i) => ({ ...i })),
-            originalTotal: b.total,
+            originalItems: (current.items || []).map(
+              (item) => ({ ...item })
+            ),
+            originalTotal: current.total,
             history: [
-              ...(b.history || []),
+              ...(current.history || []),
               {
                 date: new Date().toISOString(),
                 action: "edit started",
               },
             ],
           }
-        : b
+        : current
     );
 
     if (persist(next, bill.id)) {
-      setMessage("تم فتح البون للتعديل. لم يتغير المخزون بعد.");
+      setMessage(
+        "تم فتح البون للتعديل. لم يتغير المخزون بعد."
+      );
+      setPrintBill(null);
     }
   }
 
@@ -602,12 +853,20 @@ export default function POS() {
     if (!editItem || !activeBill) return;
 
     const price = Number(editPrice);
-    const oldPrice = Math.max(0, Number(editItem.price) || 0);
+    const oldPrice = Math.max(
+      0,
+      Number(editItem.price) || 0
+    );
+
     const oldPieces = Math.max(
       1,
       Math.floor(Number(editItem.piecesPerUnit) || 1)
     );
-    const pieces = Math.max(1, Math.floor(Number(editPieces) || 1));
+
+    const pieces = Math.max(
+      1,
+      Math.floor(Number(editPieces) || 1)
+    );
 
     if (!Number.isFinite(price) || price < 0) {
       setMessage("أدخل سعرًا صحيحًا.");
@@ -626,23 +885,25 @@ export default function POS() {
         ? (oldPrice / oldPieces) * pieces
         : price;
 
-    const nextItems = cart.map((item) =>
-      item.id === editItem.id
-        ? {
-            ...item,
-            price: Number(newPrice.toFixed(2)),
-            piecesPerUnit: pieces,
-          }
-        : item
+    updateItems(
+      cart.map((item) =>
+        item.id === editItem.id
+          ? {
+              ...item,
+              price: Number(newPrice.toFixed(2)),
+              piecesPerUnit: pieces,
+            }
+          : item
+      )
     );
 
-    updateItems(nextItems);
     setEditItem(null);
-    setMessage("تم تحديث عدد القطع والسعر والإجمالي.");
+    setMessage(
+      "تم تحديث عدد القطع والسعر والإجمالي."
+    );
   }
 
   function finalizeSale() {
-    // منع النقر المتكرر قبل انتهاء عملية البيع السابقة.
     if (processingRef.current) return;
 
     if (!activeBill || !cart.length) {
@@ -658,7 +919,10 @@ export default function POS() {
       return;
     }
 
-    if (isEditingClosed && !reason.trim()) {
+    if (
+      isEditingClosed &&
+      !reason.trim()
+    ) {
       setMessage("أدخل سبب تعديل الفاتورة.");
       return;
     }
@@ -678,83 +942,94 @@ export default function POS() {
         return;
       }
 
-      originalProducts = latest.map((p) => ({ ...p }));
+      originalProducts = latest.map(
+        (product) => ({ ...product })
+      );
 
-      // عند تعديل فاتورة مغلقة، أعد الكمية القديمة حسابيًا أولًا.
       const originalItems = isEditingClosed
         ? activeBill.originalItems || []
         : [];
 
-      const stockAfterRestore = latest.map((p) => {
-        const id = p.id ?? p.productId;
+      const stockAfterRestore = latest.map((product) => {
+        const id = product.id ?? product.productId;
 
         const oldQty = originalItems
-          .filter((i) => i.productId === id)
+          .filter((item) => item.productId === id)
           .reduce(
-            (sum, i) =>
+            (sum, item) =>
               sum +
-              (Number(i.quantity) || 0) *
-                (Number(i.piecesPerUnit) || 1),
+              (Number(item.quantity) || 0) *
+                (Number(item.piecesPerUnit) || 1),
             0
           );
 
         return oldQty
-          ? { ...p, stock: getStock(p) + oldQty }
-          : { ...p };
+          ? {
+              ...product,
+              stock: getStock(product) + oldQty,
+            }
+          : { ...product };
       });
 
       const requiredByProduct = new Map();
 
       for (const item of cart) {
-        const qty =
+        const quantity =
           (Number(item.quantity) || 0) *
           (Number(item.piecesPerUnit) || 1);
 
         requiredByProduct.set(
           item.productId,
-          (requiredByProduct.get(item.productId) || 0) + qty
+          (requiredByProduct.get(item.productId) || 0) +
+            quantity
         );
       }
 
-      for (const [productId, qty] of requiredByProduct) {
-        const p = stockAfterRestore.find(
-          (x) => (x.id ?? x.productId) === productId
+      for (const [productId, quantity] of requiredByProduct) {
+        const product = stockAfterRestore.find(
+          (current) =>
+            (current.id ?? current.productId) === productId
         );
 
-        if (!p) {
+        if (!product) {
           setMessage(
             `المنتج غير موجود: ${
-              cart.find((i) => i.productId === productId)?.name || ""
+              cart.find(
+                (item) => item.productId === productId
+              )?.name || ""
             }`
           );
           return;
         }
 
-        if (getStock(p) < qty) {
+        if (getStock(product) < quantity) {
           setMessage(
             `المخزون غير كافٍ للمنتج: ${
-              cart.find((i) => i.productId === productId)?.name || ""
+              cart.find(
+                (item) => item.productId === productId
+              )?.name || ""
             }`
           );
           return;
         }
       }
 
-      const nextProducts = stockAfterRestore.map((p) => {
-        const id = p.id ?? p.productId;
-        const qty = requiredByProduct.get(id) || 0;
+      const nextProducts = stockAfterRestore.map((product) => {
+        const id = product.id ?? product.productId;
+        const quantity = requiredByProduct.get(id) || 0;
 
         return {
-          ...p,
-          stock: getStock(p) - qty,
+          ...product,
+          stock: getStock(product) - quantity,
         };
       });
 
-      // احفظ المخزون ثم تحقق من القيم الفعلية المخزنة.
       const saved = saveProducts(nextProducts);
 
       if (saved === false) {
-        setMessage("فشل حفظ المخزون. لم يتم إغلاق البون.");
+        setMessage(
+          "فشل حفظ المخزون. لم يتم إغلاق البون."
+        );
         return;
       }
 
@@ -763,31 +1038,41 @@ export default function POS() {
       const verified = getProducts();
 
       if (!Array.isArray(verified)) {
-        throw new Error("تعذر التحقق من المخزون بعد الحفظ.");
+        throw new Error(
+          "تعذر التحقق من المخزون بعد الحفظ."
+        );
       }
 
-      const stockSaved = nextProducts.every((p) => {
-        const id = p.id ?? p.productId;
+      const stockSaved = nextProducts.every((product) => {
+        const id = product.id ?? product.productId;
+
         const check = verified.find(
-          (x) => (x.id ?? x.productId) === id
+          (current) =>
+            (current.id ?? current.productId) === id
         );
 
-        return check && getStock(check) === getStock(p);
+        return (
+          check &&
+          getStock(check) === getStock(product)
+        );
       });
 
       if (!stockSaved) {
-        throw new Error("المخزون المحفوظ لا يطابق الكميات المطلوبة.");
+        throw new Error(
+          "المخزون المحفوظ لا يطابق الكميات المطلوبة."
+        );
       }
 
       const now = new Date().toISOString();
 
       const closed = {
         ...activeBill,
-        items: cart.map((i) => ({ ...i })),
+        items: cart.map((item) => ({ ...item })),
         subtotal,
         discount,
         total,
-        paymentMethod: activeBill.paymentMethod || "Cash",
+        paymentMethod:
+          activeBill.paymentMethod || "Cash",
         received: paid,
         change,
         status: "closed",
@@ -805,16 +1090,14 @@ export default function POS() {
         ],
       };
 
-      const nextBills = bills.map((b) =>
-        b.id === closed.id ? closed : b
+      const nextBills = bills.map((bill) =>
+        bill.id === closed.id ? closed : bill
       );
 
-      // احفظ الفاتورة قبل إغلاق النافذة.
       if (!writeBills(nextBills)) {
         throw new Error("تعذر حفظ الفاتورة.");
       }
 
-      // حدّث الحالة بعد نجاح حفظ المخزون والفاتورة.
       setBills(nextBills);
       setActiveId("");
 
@@ -825,12 +1108,15 @@ export default function POS() {
       setProducts(verified);
       setShowPayment(false);
       setReason("");
-      setMessage("تم حفظ البيع وتحديث المخزون بنجاح.");
+      setMessage(
+        "تم حفظ البيع وتحديث المخزون بنجاح."
+      );
     } catch (error) {
-      console.error("VELTRO POS finalizeSale error:", error);
+      console.error(
+        "VELTRO POS finalizeSale error:",
+        error
+      );
 
-      // إذا تغير المخزون ثم تعذّر إكمال العملية،
-      // حاول استعادة المخزون الذي كان موجودًا قبل البيع.
       if (inventoryWasChanged && originalProducts) {
         try {
           const rollback = saveProducts(originalProducts);
@@ -838,28 +1124,35 @@ export default function POS() {
           if (rollback === false) {
             setProducts(getProducts());
             setMessage(
-              "خطأ في إتمام البيع وتعذرت استعادة المخزون تلقائيًا. تحقق من المخزون قبل إعادة البيع."
+              "تعذر استعادة المخزون تلقائيًا. تحقق منه قبل إعادة البيع."
             );
           } else {
             setProducts(originalProducts);
             setMessage(
-              `لم يكتمل البيع: ${error?.message || "خطأ غير معروف"}. تمت محاولة استعادة المخزون السابق. تحقق من المخزون قبل إعادة المحاولة.`
+              `لم يكتمل البيع: ${
+                error?.message || "خطأ غير معروف"
+              }. تمت محاولة استعادة المخزون السابق.`
             );
           }
         } catch (rollbackError) {
-          console.error("VELTRO stock rollback error:", rollbackError);
+          console.error(
+            "VELTRO stock rollback error:",
+            rollbackError
+          );
 
           try {
             setProducts(getProducts());
           } catch {}
 
           setMessage(
-            "حدث خطأ أثناء إتمام البيع واستعادة المخزون. تحقق من المخزون والفاتورة يدويًا قبل إعادة البيع."
+            "حدث خطأ أثناء استعادة المخزون. تحقق من المخزون والفاتورة يدويًا."
           );
         }
       } else {
         setMessage(
-          `تعذر إتمام البيع: ${error?.message || "خطأ غير معروف"}.`
+          `تعذر إتمام البيع: ${
+            error?.message || "خطأ غير معروف"
+          }.`
         );
       }
     } finally {
@@ -877,62 +1170,259 @@ export default function POS() {
     if (activeBill.status !== "open") return;
 
     setMessage(
-      "لإتمام البيع وخصم المخزون، استخدم زر تأكيد البيع. لا تغلق البون من هنا."
+      "لإتمام البيع وخصم المخزون، استخدم زر تأكيد البيع."
     );
   }
 
   function printReceipt(bill) {
     setPrintBill(bill);
-    setTimeout(() => window.print(), 150);
-  }
 
-  function billTotals(bill) {
-    const sub = (bill.items || []).reduce(
-      (sum, i) =>
-        sum +
-        (Number(i.price) || 0) *
-          (Number(i.quantity) || 0),
-      0
-    );
-
-    const disc = Math.min(
-      sub,
-      Math.max(0, Number(bill.discount) || 0)
-    );
-
-    return {
-      subtotal: sub,
-      discount: disc,
-      total: Math.max(0, sub - disc),
-    };
+    // ننتظر ظهور محتوى الفاتورة قبل فتح نافذة الطباعة.
+    window.setTimeout(() => window.print(), 250);
   }
 
   function browseBill(direction) {
-    const closed = bills.filter((b) => b.status === "closed");
-
-    if (!closed.length) {
-      setMessage("لا توجد بونات مغلقة للتنقل بينها.");
+    if (!closedBills.length) {
+      setMessage(
+        "لا توجد بونات مغلقة للتنقل بينها."
+      );
       return;
     }
 
-    const currentIndex = closed.findIndex((b) => b.id === activeId);
+    const currentIndex = closedBills.findIndex(
+      (bill) => bill.id === printBill?.id
+    );
 
     const start =
       currentIndex >= 0
         ? currentIndex
         : direction > 0
           ? -1
-          : closed.length;
+          : closedBills.length;
 
     const nextIndex = Math.max(
       0,
-      Math.min(closed.length - 1, start + direction)
+      Math.min(
+        closedBills.length - 1,
+        start + direction
+      )
     );
 
-    const bill = closed[nextIndex];
     setBillBrowseIndex(nextIndex);
-    setPrintBill(bill);
+    setPrintBill(closedBills[nextIndex]);
   }
+
+  // حذف بون لا يعيد تعديل المخزون.
+  // البيع المغلق سبق أن خصم المخزون عند إتمامه.
+  function confirmDeleteBill() {
+    if (!deleteTarget) return;
+
+    const target = bills.find(
+      (bill) => bill.id === deleteTarget.id
+    );
+
+    if (!target) {
+      setDeleteTarget(null);
+      return;
+    }
+
+    if (target.status === "editing") {
+      setMessage(
+        "احفظ تعديل البون أو ألغِ وضع التعديل قبل حذفه."
+      );
+      setDeleteTarget(null);
+      return;
+    }
+
+    const nextBills = bills.filter(
+      (bill) => bill.id !== target.id
+    );
+
+    let nextActive = activeId;
+
+    if (target.id === activeId) {
+      const otherOpen = nextBills.find(
+        (bill) =>
+          ["open", "editing"].includes(bill.status)
+      );
+
+      nextActive = otherOpen?.id || "";
+    }
+
+    if (!persist(nextBills, nextActive)) {
+      setDeleteTarget(null);
+      return;
+    }
+
+    setDeleteTarget(null);
+
+    if (printBill?.id === target.id) {
+      setPrintBill(null);
+    }
+
+    setMessage(
+      `تم حذف البون رقم ${target.number}. لم تتم إعادة تعديل المخزون.`
+    );
+  }
+
+  // تشغيل الكاميرا عبر getUserMedia.
+  async function startCamera() {
+    setCameraError("");
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError(
+        "المتصفح لا يدعم تشغيل الكاميرا هنا. افتح الموقع عبر HTTPS أو استخدم الإدخال اليدوي."
+      );
+      setShowCamera(true);
+      return;
+    }
+
+    if (!("BarcodeDetector" in window)) {
+      setCameraError(
+        "قارئ الباركود غير مدعوم في هذا المتصفح. جرّب Chrome على الهاتف أو أدخل الباركود يدويًا."
+      );
+      setShowCamera(true);
+      return;
+    }
+
+    setShowCamera(true);
+  }
+
+  function stopCamera() {
+    if (scanTimerRef.current) {
+      window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current
+        .getTracks()
+        .forEach((track) => track.stop());
+
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+
+    scanBusyRef.current = false;
+    setShowCamera(false);
+  }
+
+  useEffect(() => {
+    if (!showCamera || cameraError) return;
+
+    let cancelled = false;
+
+    async function initializeCamera() {
+      try {
+        const detector = new window.BarcodeDetector({
+          formats: [
+            "ean_13",
+            "ean_8",
+            "upc_a",
+            "upc_e",
+            "code_128",
+            "code_39",
+            "itf",
+            "qr_code",
+          ],
+        });
+
+        const stream =
+          await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: "environment" },
+            },
+          });
+
+        if (cancelled) {
+          stream.getTracks().forEach((track) =>
+            track.stop()
+          );
+          return;
+        }
+
+        streamRef.current = stream;
+
+        if (!videoRef.current) return;
+
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+
+        const scanFrame = async () => {
+          if (
+            cancelled ||
+            !videoRef.current ||
+            !streamRef.current
+          ) return;
+
+          if (!scanBusyRef.current) {
+            scanBusyRef.current = true;
+
+            try {
+              const results = await detector.detect(
+                videoRef.current
+              );
+
+              if (results?.length && !cancelled) {
+                const value = results[0].rawValue;
+
+                if (value) {
+                  scanBusyRef.current = false;
+                  stopCamera();
+                  scanBarcode(value);
+                  return;
+                }
+              }
+            } catch {
+              // قد يفشل اكتشاف إطار واحد؛ نتابع المسح.
+            }
+
+            scanBusyRef.current = false;
+          }
+
+          if (!cancelled) {
+            scanTimerRef.current =
+              window.setTimeout(scanFrame, 220);
+          }
+        };
+
+        scanFrame();
+      } catch (error) {
+        if (!cancelled) {
+          setCameraError(
+            error?.name === "NotAllowedError"
+              ? "لم يتم السماح بالوصول إلى الكاميرا. فعّل الإذن من إعدادات المتصفح."
+              : "تعذر تشغيل الكاميرا. تحقق من اتصال HTTPS وإذن الكاميرا."
+          );
+        }
+      }
+    }
+
+    initializeCamera();
+
+    return () => {
+      cancelled = true;
+
+      if (scanTimerRef.current) {
+        window.clearTimeout(scanTimerRef.current);
+        scanTimerRef.current = null;
+      }
+
+      if (streamRef.current) {
+        streamRef.current
+          .getTracks()
+          .forEach((track) => track.stop());
+
+        streamRef.current = null;
+      }
+
+      scanBusyRef.current = false;
+    };
+  }, [showCamera, cameraError]);
 
   return (
     <div style={styles.page}>
@@ -974,6 +1464,7 @@ export default function POS() {
           color:#36d9c3;
           background:#12302e;
         }
+        .pos-chip:disabled {opacity:.4;cursor:not-allowed}
         .pos-row {
           display:flex;
           gap:8px;
@@ -1029,6 +1520,21 @@ export default function POS() {
           cursor:pointer;
         }
         .pos-primary:disabled {opacity:.4;cursor:not-allowed}
+        .pos-danger {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border:1px solid #713342;
+          border-radius:9px;
+          background:#3a1923;
+          color:#fda4af;
+          padding:11px;
+          width:100%;
+          font-weight:700;
+          font-size:12px;
+          cursor:pointer;
+        }
         .pos-modal {
           position:fixed;
           inset:0;
@@ -1049,6 +1555,24 @@ export default function POS() {
           max-height:90vh;
           overflow:auto;
         }
+        .pos-list {
+          display:flex;
+          flex-direction:column;
+          gap:9px;
+        }
+        .pos-bill-entry {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:10px;
+          padding:12px;
+          border:1px solid #293145;
+          border-radius:10px;
+          background:#151c2b;
+        }
+        .pos-bill-entry button {flex-shrink:0}
+        .pos-muted {font-size:11px;color:#8996ad}
+        .pos-table-wrap {overflow-x:auto}
         @media(max-width:1000px) {
           .pos-layout {grid-template-columns:minmax(0,1fr)}
           .pos-cart {position:static}
@@ -1061,6 +1585,7 @@ export default function POS() {
             flex-direction:column;
           }
           .pos-grid-art {height:65px!important}
+          .pos-modal-card {padding:15px}
         }
         @media(max-width:360px) {
           .pos-grid {grid-template-columns:minmax(0,1fr)}
@@ -1111,16 +1636,38 @@ export default function POS() {
           >
             COMMERCE / CHECKOUT
           </div>
-          <h2 style={{ fontSize: 25, margin: 0 }}>Point of Sale</h2>
-          <p style={{ color: "#8996ad", fontSize: 12, margin: "6px 0 0" }}>
+
+          <h2 style={{ fontSize: 25, margin: 0 }}>
+            Point of Sale
+          </h2>
+
+          <p
+            style={{
+              color: "#8996ad",
+              fontSize: 12,
+              margin: "6px 0 0",
+            }}
+          >
             Multi-bill checkout · Inventory connected
           </p>
         </div>
 
         <div className="pos-row">
-          <button style={styles.button} onClick={createBill}>
+          <button
+            style={styles.button}
+            onClick={createBill}
+          >
             <Plus size={15} /> New Bill
           </button>
+
+          <button
+            style={styles.button}
+            onClick={() => setShowPendingBills(true)}
+          >
+            <ClipboardList size={15} />
+            Pending ({pendingBills.length})
+          </button>
+
           <button
             style={styles.button}
             onClick={() => requestManager("change-role")}
@@ -1147,6 +1694,7 @@ export default function POS() {
           }}
         >
           {message}
+
           <button
             onClick={() => setMessage("")}
             style={{
@@ -1162,26 +1710,22 @@ export default function POS() {
         </div>
       )}
 
-      <section style={{ ...styles.card, padding: 10, marginBottom: 15 }}>
+      {/* البونات الحالية */}
+      <section
+        style={{
+          ...styles.card,
+          padding: 10,
+          marginBottom: 15,
+        }}
+      >
         <div className="pos-row">
-          {bills.map((b) => (
+          {bills.map((bill) => (
             <button
-              key={b.id}
-              className={`pos-chip ${b.id === activeId ? "active" : ""}`}
-              onClick={() => {
-                if (b.status === "closed") {
-                  setPrintBill(b);
-                  return;
-                }
-
-                setActiveId(b.id);
-
-                try {
-                  localStorage.setItem(ACTIVE_KEY, b.id);
-                } catch {}
-
-                setMessage("");
-              }}
+              key={bill.id}
+              className={`pos-chip ${
+                bill.id === activeId ? "active" : ""
+              }`}
+              onClick={() => activateBill(bill)}
             >
               <Receipt
                 size={13}
@@ -1191,10 +1735,10 @@ export default function POS() {
                   marginRight: 4,
                 }}
               />
-              Bill {b.number} ·{" "}
-              {b.status === "closed"
+              Bill {bill.number} ·{" "}
+              {bill.status === "closed"
                 ? "Closed"
-                : b.status === "editing"
+                : bill.status === "editing"
                   ? "Editing"
                   : "Open"}
             </button>
@@ -1202,21 +1746,40 @@ export default function POS() {
         </div>
 
         <div className="pos-row" style={{ marginTop: 10 }}>
-          <button style={styles.button} onClick={() => browseBill(-1)}>
+          <button
+            style={styles.button}
+            onClick={() => browseBill(-1)}
+          >
             <ChevronLeft size={14} /> Previous receipt
           </button>
-          <button style={styles.button} onClick={() => browseBill(1)}>
+
+          <button
+            style={styles.button}
+            onClick={() => browseBill(1)}
+          >
             Next receipt <ChevronRight size={14} />
           </button>
 
+          <button
+            style={styles.button}
+            onClick={() => setShowPendingBills(true)}
+          >
+            <ClipboardList size={14} /> Pending bills
+          </button>
+
           {activeBill?.status === "open" && (
-            <button style={styles.button} onClick={closeBill}>
+            <button
+              style={styles.button}
+              onClick={closeBill}
+            >
               <Lock size={14} /> Close Bill
             </button>
           )}
 
           {activeBill?.status === "editing" && (
-            <span style={{ fontSize: 11, color: "#fbbf24" }}>
+            <span
+              style={{ fontSize: 11, color: "#fbbf24" }}
+            >
               Manager edit mode
             </span>
           )}
@@ -1225,10 +1788,13 @@ export default function POS() {
             <>
               <button
                 style={styles.button}
-                onClick={() => requestManager("edit-closed", activeBill)}
+                onClick={() =>
+                  requestManager("edit-closed", activeBill)
+                }
               >
                 <Pencil size={14} /> Edit Closed Bill
               </button>
+
               <button
                 style={styles.button}
                 onClick={() => printReceipt(activeBill)}
@@ -1241,15 +1807,32 @@ export default function POS() {
       </section>
 
       <div className="pos-layout">
-        <section style={styles.card} className="pos-panel">
+        {/* المنتجات */}
+        <section
+          style={styles.card}
+          className="pos-panel"
+        >
           <div
             className="pos-row"
-            style={{ justifyContent: "space-between", marginBottom: 13 }}
+            style={{
+              justifyContent: "space-between",
+              marginBottom: 13,
+            }}
           >
             <div>
-              <h3 style={{ margin: 0, fontSize: 16 }}>Products</h3>
-              <p style={{ margin: "5px 0 0", fontSize: 11, color: "#8996ad" }}>
-                {filteredProducts.length} products · Page {safePage} / {pageCount}
+              <h3 style={{ margin: 0, fontSize: 16 }}>
+                Products
+              </h3>
+
+              <p
+                style={{
+                  margin: "5px 0 0",
+                  fontSize: 11,
+                  color: "#8996ad",
+                }}
+              >
+                {filteredProducts.length} products · Page{" "}
+                {safePage} / {pageCount}
               </p>
             </div>
 
@@ -1266,10 +1849,16 @@ export default function POS() {
 
               <button
                 style={styles.button}
-                onClick={() => setShowProducts((v) => !v)}
+                onClick={() => setShowProducts((value) => !value)}
               >
-                {showProducts ? <EyeOff size={15} /> : <Eye size={15} />}
-                {showProducts ? "Hide products" : "Show products"}
+                {showProducts ? (
+                  <EyeOff size={15} />
+                ) : (
+                  <Eye size={15} />
+                )}
+                {showProducts
+                  ? "Hide products"
+                  : "Show products"}
               </button>
             </div>
           </div>
@@ -1277,34 +1866,62 @@ export default function POS() {
           <form
             className="pos-row"
             style={{ marginBottom: 10 }}
-            onSubmit={(e) => {
-              e.preventDefault();
+            onSubmit={(event) => {
+              event.preventDefault();
               scanBarcode(barcode);
             }}
           >
             <Barcode size={17} color="#36d9c3" />
+
             <input
               style={{ ...styles.input, flex: 1 }}
               value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+              onChange={(event) =>
+                setBarcode(event.target.value)
+              }
               placeholder="Scan or enter barcode / SKU"
             />
-            <button style={styles.button} type="submit">
+
+            <button
+              style={styles.button}
+              type="submit"
+            >
               <ScanBarcode size={15} /> Add
+            </button>
+
+            <button
+              style={styles.button}
+              type="button"
+              onClick={startCamera}
+            >
+              <Camera size={15} /> Camera
             </button>
           </form>
 
-          <div style={{ position: "relative", marginBottom: 12 }}>
+          <div
+            style={{
+              position: "relative",
+              marginBottom: 12,
+            }}
+          >
             <Search
               size={16}
               color="#8290a8"
-              style={{ position: "absolute", left: 12, top: 12 }}
+              style={{
+                position: "absolute",
+                left: 12,
+                top: 12,
+              }}
             />
+
             <input
-              style={{ ...styles.input, paddingLeft: 37 }}
+              style={{
+                ...styles.input,
+                paddingLeft: 37,
+              }}
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
+              onChange={(event) => {
+                setSearch(event.target.value);
                 setPage(1);
               }}
               placeholder="Search name, barcode or reference..."
@@ -1321,32 +1938,39 @@ export default function POS() {
                   overflowX: "auto",
                 }}
               >
-                {categories.map((c) => (
+                {categories.map((currentCategory) => (
                   <button
-                    key={c}
+                    key={currentCategory}
                     type="button"
-                    className={`pos-chip ${category === c ? "active" : ""}`}
+                    className={`pos-chip ${
+                      category === currentCategory
+                        ? "active"
+                        : ""
+                    }`}
                     onClick={() => {
-                      setCategory(c);
+                      setCategory(currentCategory);
                       setPage(1);
                     }}
                   >
-                    {c}
+                    {currentCategory}
                   </button>
                 ))}
               </div>
 
               <div className="pos-grid">
-                {visibleProducts.map((p) => {
-                  const stock = getStock(p);
-                  const color = getColor(p.category);
-                  const productId = p.id ?? p.productId;
+                {visibleProducts.map((product) => {
+                  const stock = getStock(product);
+                  const color = getColor(product.category);
+                  const productId =
+                    product.id ?? product.productId;
 
                   return (
                     <div
                       key={productId}
                       className="pos-product"
-                      style={{ opacity: stock <= 0 ? 0.5 : 1 }}
+                      style={{
+                        opacity: stock <= 0 ? 0.5 : 1,
+                      }}
                     >
                       <button
                         disabled={
@@ -1354,7 +1978,7 @@ export default function POS() {
                           !activeBill ||
                           activeBill.status === "closed"
                         }
-                        onClick={() => addProduct(p)}
+                        onClick={() => addProduct(product)}
                         style={{
                           border: 0,
                           background: "transparent",
@@ -1370,7 +1994,8 @@ export default function POS() {
                           style={{
                             height: 75,
                             borderRadius: 9,
-                            background: `linear-gradient(145deg,${color}25,${color}08)`,
+                            background:
+                              `linear-gradient(145deg,${color}25,${color}08)`,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -1389,7 +2014,8 @@ export default function POS() {
                             lineHeight: 1.4,
                           }}
                         >
-                          {getName(p) || "Unnamed product"}
+                          {getName(product) ||
+                            "Unnamed product"}
                         </div>
 
                         <div
@@ -1400,16 +2026,26 @@ export default function POS() {
                             overflowWrap: "anywhere",
                           }}
                         >
-                          {getSKU(p) || getBarcode(p) || "No reference"} · Stock{" "}
-                          {stock}
+                          {getSKU(product) ||
+                            getBarcode(product) ||
+                            "No reference"}{" "}
+                          · Stock {stock}
                         </div>
 
-                        <strong style={{ color: "#36d9c3", fontSize: 12 }}>
-                          {money(getPrice(p))}
+                        <strong
+                          style={{
+                            color: "#36d9c3",
+                            fontSize: 12,
+                          }}
+                        >
+                          {money(getPrice(product))}
                         </strong>
                       </button>
 
-                      <div className="pos-row" style={{ marginTop: 8 }}>
+                      <div
+                        className="pos-row"
+                        style={{ marginTop: 8 }}
+                      >
                         <button
                           className="pos-chip"
                           disabled={
@@ -1417,7 +2053,9 @@ export default function POS() {
                             !activeBill ||
                             activeBill.status === "closed"
                           }
-                          onClick={() => addProduct(p, "piece")}
+                          onClick={() =>
+                            addProduct(product, "piece")
+                          }
                         >
                           + Unit
                         </button>
@@ -1425,11 +2063,13 @@ export default function POS() {
                         <button
                           className="pos-chip"
                           disabled={
-                            stock < getPieces(p) ||
+                            stock < getPieces(product) ||
                             !activeBill ||
                             activeBill.status === "closed"
                           }
-                          onClick={() => addProduct(p, "carton")}
+                          onClick={() =>
+                            addProduct(product, "carton")
+                          }
                         >
                           + Carton
                         </button>
@@ -1447,39 +2087,54 @@ export default function POS() {
                       padding: 20,
                     }}
                   >
-                    No products found. Clear the search or change category.
+                    No products found. Clear the search or
+                    change category.
                   </p>
                 )}
               </div>
 
               <div
                 className="pos-row"
-                style={{ justifyContent: "center", marginTop: 14 }}
+                style={{
+                  justifyContent: "center",
+                  marginTop: 14,
+                }}
               >
                 <button
                   style={styles.button}
                   disabled={safePage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() =>
+                    setPage((value) =>
+                      Math.max(1, value - 1)
+                    )
+                  }
                 >
                   <ChevronLeft size={15} /> Previous
                 </button>
 
-                {Array.from({ length: pageCount }, (_, i) => i + 1).map(
-                  (n) => (
-                    <button
-                      key={n}
-                      className={`pos-chip ${safePage === n ? "active" : ""}`}
-                      onClick={() => setPage(n)}
-                    >
-                      {n}
-                    </button>
-                  )
-                )}
+                {Array.from(
+                  { length: pageCount },
+                  (_, index) => index + 1
+                ).map((number) => (
+                  <button
+                    key={number}
+                    className={`pos-chip ${
+                      safePage === number ? "active" : ""
+                    }`}
+                    onClick={() => setPage(number)}
+                  >
+                    {number}
+                  </button>
+                ))}
 
                 <button
                   style={styles.button}
                   disabled={safePage >= pageCount}
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  onClick={() =>
+                    setPage((value) =>
+                      Math.min(pageCount, value + 1)
+                    )
+                  }
                 >
                   Next <ChevronRight size={15} />
                 </button>
@@ -1488,36 +2143,69 @@ export default function POS() {
           )}
         </section>
 
-        <section style={styles.card} className="pos-panel pos-cart">
+        {/* سلة البيع */}
+        <section
+          style={styles.card}
+          className="pos-panel pos-cart"
+        >
           <div
             className="pos-row"
-            style={{ justifyContent: "space-between", marginBottom: 15 }}
+            style={{
+              justifyContent: "space-between",
+              marginBottom: 15,
+            }}
           >
             <div className="pos-row">
               <ShoppingCart color="#36d9c3" />
+
               <div>
                 <h3 style={{ margin: 0, fontSize: 16 }}>
                   Bill {activeBill?.number || "—"}
                 </h3>
-                <p style={{ margin: "4px 0 0", fontSize: 11, color: "#8996ad" }}>
-                  {cart.reduce((s, i) => s + i.quantity, 0)} sale units
+
+                <p
+                  style={{
+                    margin: "4px 0 0",
+                    fontSize: 11,
+                    color: "#8996ad",
+                  }}
+                >
+                  {cart.reduce(
+                    (sum, item) =>
+                      sum + (Number(item.quantity) || 0),
+                    0
+                  )}{" "}
+                  sale units
                 </p>
               </div>
             </div>
 
             <button
               style={styles.button}
-              disabled={!cart.length || isClosed || processing}
+              disabled={
+                !cart.length ||
+                isClosed ||
+                processing
+              }
               onClick={() => updateItems([])}
+              title="Clear bill items"
             >
               <Trash2 size={15} />
             </button>
           </div>
 
           {!activeBill ? (
-            <p style={{ color: "#8996ad" }}>Open a new bill to start.</p>
+            <p style={{ color: "#8996ad" }}>
+              Open a new bill to start.
+            </p>
           ) : cart.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 25, color: "#8996ad" }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: 25,
+                color: "#8996ad",
+              }}
+            >
               <ShoppingCart size={30} />
               <p>Bill is empty</p>
             </div>
@@ -1526,7 +2214,12 @@ export default function POS() {
               {cart.map((item) => (
                 <div className="pos-line" key={item.id}>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700 }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                      }}
+                    >
                       {item.name}
                     </div>
 
@@ -1537,8 +2230,11 @@ export default function POS() {
                         marginTop: 4,
                       }}
                     >
-                      {item.mode === "carton" ? "Carton" : "Unit"} ·{" "}
-                      {item.piecesPerUnit} piece(s) per sale unit
+                      {item.mode === "carton"
+                        ? "Carton"
+                        : "Unit"}{" "}
+                      · {item.piecesPerUnit} piece(s) per
+                      sale unit
                     </div>
 
                     <div
@@ -1549,13 +2245,17 @@ export default function POS() {
                       }}
                     >
                       {money(item.price)} /{" "}
-                      {item.mode === "carton" ? "carton" : "unit"}
+                      {item.mode === "carton"
+                        ? "carton"
+                        : "unit"}
                     </div>
 
                     <div className="pos-qty">
                       <button
                         disabled={isClosed || processing}
-                        onClick={() => changeQuantity(item.id, -1)}
+                        onClick={() =>
+                          changeQuantity(item.id, -1)
+                        }
                       >
                         <Minus size={12} />
                       </button>
@@ -1564,7 +2264,9 @@ export default function POS() {
 
                       <button
                         disabled={isClosed || processing}
-                        onClick={() => changeQuantity(item.id, 1)}
+                        onClick={() =>
+                          changeQuantity(item.id, 1)
+                        }
                       >
                         <Plus size={12} />
                       </button>
@@ -1580,7 +2282,11 @@ export default function POS() {
                       <button
                         disabled={isClosed || processing}
                         onClick={() =>
-                          requestManager("edit-price", activeBill, item)
+                          requestManager(
+                            "edit-price",
+                            activeBill,
+                            item
+                          )
                         }
                         title="Manager: edit price"
                       >
@@ -1589,7 +2295,12 @@ export default function POS() {
                     </div>
                   </div>
 
-                  <strong style={{ fontSize: 12, whiteSpace: "nowrap" }}>
+                  <strong
+                    style={{
+                      fontSize: 12,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {money(item.price * item.quantity)}
                   </strong>
                 </div>
@@ -1612,43 +2323,74 @@ export default function POS() {
                 marginBottom: 12,
               }}
             >
-              <span style={{ color: "#9ba7bd" }}>Subtotal</span>
+              <span style={{ color: "#9ba7bd" }}>
+                Subtotal
+              </span>
               <strong>{money(subtotal)}</strong>
             </div>
 
-            <label style={{ fontSize: 11, color: "#9ba7bd" }}>
+            <label
+              style={{ fontSize: 11, color: "#9ba7bd" }}
+            >
               Discount (DA)
             </label>
 
             <input
-              style={{ ...styles.input, margin: "6px 0 13px" }}
+              style={{
+                ...styles.input,
+                margin: "6px 0 13px",
+              }}
               type="number"
               min="0"
-              disabled={!activeBill || isClosed || processing}
+              disabled={
+                !activeBill ||
+                isClosed ||
+                processing
+              }
               value={activeBill?.discount ?? 0}
-              onChange={(e) =>
+              onChange={(event) =>
                 activeBill &&
-                updateBill(activeBill.id, { discount: e.target.value })
+                updateBill(activeBill.id, {
+                  discount: event.target.value,
+                })
               }
             />
 
             <div
               className="pos-row"
-              style={{ justifyContent: "space-between", marginBottom: 15 }}
+              style={{
+                justifyContent: "space-between",
+                marginBottom: 15,
+              }}
             >
               <strong>Total due</strong>
-              <strong style={{ fontSize: 22, color: "#36d9c3" }}>
+
+              <strong
+                style={{
+                  fontSize: 22,
+                  color: "#36d9c3",
+                }}
+              >
                 {money(total)}
               </strong>
             </div>
 
-            <div style={{ fontSize: 11, color: "#9ba7bd", marginBottom: 8 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#9ba7bd",
+                marginBottom: 8,
+              }}
+            >
               Payment method
             </div>
 
             <div
               className="pos-row"
-              style={{ marginBottom: 12, flexWrap: "nowrap" }}
+              style={{
+                marginBottom: 12,
+                flexWrap: "nowrap",
+              }}
             >
               {[
                 ["Cash", Banknote],
@@ -1657,14 +2399,22 @@ export default function POS() {
               ].map(([method, Icon]) => (
                 <button
                   key={method}
-                  disabled={!activeBill || isClosed || processing}
+                  disabled={
+                    !activeBill ||
+                    isClosed ||
+                    processing
+                  }
                   className={`pos-chip ${
-                    activeBill?.paymentMethod === method ? "active" : ""
+                    activeBill?.paymentMethod === method
+                      ? "active"
+                      : ""
                   }`}
                   style={{ flex: 1 }}
                   onClick={() =>
                     activeBill &&
-                    updateBill(activeBill.id, { paymentMethod: method })
+                    updateBill(activeBill.id, {
+                      paymentMethod: method,
+                    })
                   }
                 >
                   <Icon size={15} /> {method}
@@ -1674,18 +2424,28 @@ export default function POS() {
 
             {activeBill?.paymentMethod === "Cash" && (
               <>
-                <label style={{ fontSize: 11, color: "#9ba7bd" }}>
+                <label
+                  style={{
+                    fontSize: 11,
+                    color: "#9ba7bd",
+                  }}
+                >
                   Amount received (DA)
                 </label>
 
                 <input
-                  style={{ ...styles.input, margin: "6px 0 10px" }}
+                  style={{
+                    ...styles.input,
+                    margin: "6px 0 10px",
+                  }}
                   type="number"
                   min="0"
                   disabled={isClosed || processing}
                   value={activeBill.received || ""}
-                  onChange={(e) =>
-                    updateBill(activeBill.id, { received: e.target.value })
+                  onChange={(event) =>
+                    updateBill(activeBill.id, {
+                      received: event.target.value,
+                    })
                   }
                   placeholder={String(total)}
                 />
@@ -1698,7 +2458,10 @@ export default function POS() {
                     marginBottom: 14,
                   }}
                 >
-                  <span style={{ color: "#9ba7bd" }}>Change</span>
+                  <span style={{ color: "#9ba7bd" }}>
+                    Change
+                  </span>
+
                   <strong style={{ color: "#36d9c3" }}>
                     {money(change)}
                   </strong>
@@ -1708,15 +2471,24 @@ export default function POS() {
 
             <button
               className="pos-primary"
-              disabled={!cart.length || isClosed || processing}
+              disabled={
+                !cart.length ||
+                isClosed ||
+                processing
+              }
               onClick={() => setShowPayment(true)}
             >
-              <CreditCard size={17} /> Review and Complete Sale
+              <CreditCard size={17} />
+              Review and Complete Sale
             </button>
 
             {isEditingClosed && (
               <button
-                style={{ ...styles.button, width: "100%", marginTop: 9 }}
+                style={{
+                  ...styles.button,
+                  width: "100%",
+                  marginTop: 9,
+                }}
                 disabled={processing}
                 onClick={() => setShowPayment(true)}
               >
@@ -1727,22 +2499,388 @@ export default function POS() {
         </section>
       </div>
 
-      {showPayment && (
+      {/* نافذة البونات المعلقة */}
+      {showPendingBills && (
         <div
           className="pos-modal"
-          onClick={() => !processing && setShowPayment(false)}
+          onClick={() => setShowPendingBills(false)}
+        >
+          <section
+            className="pos-modal-card"
+            style={{ maxWidth: 620 }}
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div
+              className="pos-row"
+              style={{
+                justifyContent: "space-between",
+                marginBottom: 16,
+              }}
+            >
+              <div className="pos-row">
+                <ClipboardList
+                  size={21}
+                  color="#36d9c3"
+                />
+
+                <div>
+                  <h3 style={{ margin: 0 }}>
+                    Pending bills
+                  </h3>
+
+                  <p className="pos-muted">
+                    {pendingBills.length} open or suspended
+                    bills
+                  </p>
+                </div>
+              </div>
+
+              <button
+                style={styles.button}
+                onClick={() => setShowPendingBills(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {pendingBills.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: 28,
+                  color: "#8996ad",
+                }}
+              >
+                <ClipboardList size={32} />
+                <p>No pending bills.</p>
+
+                <button
+                  className="pos-primary"
+                  onClick={createBill}
+                >
+                  <Plus size={16} /> Create a bill
+                </button>
+              </div>
+            ) : (
+              <div className="pos-list">
+                {pendingBills.map((bill) => {
+                  const totals = getBillTotals(bill);
+                  const selected = bill.id === activeId;
+
+                  return (
+                    <div
+                      key={bill.id}
+                      className="pos-bill-entry"
+                      style={{
+                        borderColor: selected
+                          ? "#36d9c3"
+                          : "#293145",
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <strong>
+                          Bill {bill.number}
+                        </strong>
+
+                        <div className="pos-muted">
+                          {bill.status === "editing"
+                            ? "Manager editing"
+                            : "Pending"}{" "}
+                          · {(bill.items || []).length} lines
+                        </div>
+
+                        <div
+                          style={{
+                            color: "#36d9c3",
+                            fontSize: 12,
+                            marginTop: 5,
+                          }}
+                        >
+                          {money(totals.total)}
+                        </div>
+
+                        <div className="pos-muted">
+                          {new Date(
+                            bill.createdAt
+                          ).toLocaleString("fr-DZ")}
+                        </div>
+                      </div>
+
+                      <div
+                        className="pos-row"
+                        style={{ justifyContent: "flex-end" }}
+                      >
+                        <button
+                          style={styles.button}
+                          title="Preview"
+                          onClick={() => setPrintBill(bill)}
+                        >
+                          <Eye size={14} />
+                        </button>
+
+                        <button
+                          style={{
+                            ...styles.button,
+                            borderColor: "#267d70",
+                          }}
+                          onClick={() => activateBill(bill)}
+                        >
+                          <Play size={14} /> Resume
+                        </button>
+
+                        <button
+                          style={{
+                            ...styles.button,
+                            color: "#fb7185",
+                          }}
+                          title="Delete bill"
+                          onClick={() => setDeleteTarget(bill)}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              style={{
+                ...styles.button,
+                width: "100%",
+                marginTop: 14,
+              }}
+              onClick={() => setShowPendingBills(false)}
+            >
+              Close
+            </button>
+          </section>
+        </div>
+      )}
+
+      {/* نافذة تأكيد حذف البون */}
+      {deleteTarget && (
+        <div
+          className="pos-modal"
+          onClick={() => setDeleteTarget(null)}
         >
           <section
             className="pos-modal-card"
             role="dialog"
             aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div
+              className="pos-row"
+              style={{ marginBottom: 12 }}
+            >
+              <AlertTriangle
+                size={23}
+                color="#fb7185"
+              />
+
+              <h3 style={{ margin: 0 }}>
+                Confirm bill deletion
+              </h3>
+            </div>
+
+            <p
+              style={{
+                fontSize: 13,
+                lineHeight: 1.7,
+                color: "#cbd5e1",
+              }}
+            >
+              هل تريد حذف البون رقم{" "}
+              <strong>{deleteTarget.number}</strong>؟
+              لا يمكن التراجع عن هذا الإجراء.
+            </p>
+
+            {deleteTarget.status === "closed" && (
+              <p
+                style={{
+                  color: "#fbbf24",
+                  fontSize: 11,
+                  lineHeight: 1.7,
+                }}
+              >
+                هذا بون مغلق. حذفه من سجل البونات لن يعيد
+                المخزون ولن يغيّر المخزون الحالي.
+              </p>
+            )}
+
+            {deleteTarget.id === activeId &&
+              deleteTarget.status !== "closed" && (
+                <p
+                  style={{
+                    color: "#fbbf24",
+                    fontSize: 11,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  سيتم حذف محتويات البون المعلق أيضًا.
+                </p>
+              )}
+
+            <div className="pos-row" style={{ marginTop: 18 }}>
+              <button
+                className="pos-danger"
+                onClick={confirmDeleteBill}
+              >
+                <Trash2 size={15} /> Delete permanently
+              </button>
+
+              <button
+                style={styles.button}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {/* نافذة مسح الباركود بالكاميرا */}
+      {showCamera && (
+        <div
+          className="pos-modal"
+          onClick={stopCamera}
+        >
+          <section
+            className="pos-modal-card"
+            style={{ maxWidth: 540 }}
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div
+              className="pos-row"
+              style={{
+                justifyContent: "space-between",
+                marginBottom: 12,
+              }}
+            >
+              <div className="pos-row">
+                <Camera size={20} color="#36d9c3" />
+
+                <h3 style={{ margin: 0 }}>
+                  Scan barcode
+                </h3>
+              </div>
+
+              <button
+                style={styles.button}
+                onClick={stopCamera}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {cameraError ? (
+              <div
+                style={{
+                  padding: 14,
+                  background: "#342a18",
+                  borderRadius: 10,
+                  color: "#fbbf24",
+                  fontSize: 12,
+                  lineHeight: 1.7,
+                }}
+              >
+                {cameraError}
+              </div>
+            ) : (
+              <>
+                <div
+                  style={{
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: 12,
+                    background: "#05070c",
+                    border: "1px solid #30394b",
+                  }}
+                >
+                  <video
+                    ref={videoRef}
+                    muted
+                    playsInline
+                    autoPlay
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      maxHeight: 390,
+                      objectFit: "cover",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: "10%",
+                      right: "10%",
+                      top: "45%",
+                      borderTop: "2px solid #36d9c3",
+                      boxShadow:
+                        "0 0 10px #36d9c388",
+                      pointerEvents: "none",
+                    }}
+                  />
+                </div>
+
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "#9ba7bd",
+                    textAlign: "center",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  وجّه الكاميرا الخلفية إلى الباركود وانتظر
+                  حتى تتم قراءته تلقائيًا.
+                </p>
+              </>
+            )}
+
+            <button
+              style={{
+                ...styles.button,
+                width: "100%",
+                marginTop: 10,
+              }}
+              onClick={stopCamera}
+            >
+              Close camera
+            </button>
+          </section>
+        </div>
+      )}
+
+      {/* تأكيد البيع */}
+      {showPayment && (
+        <div
+          className="pos-modal"
+          onClick={() =>
+            !processing && setShowPayment(false)
+          }
+        >
+          <section
+            className="pos-modal-card"
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
           >
             <div
               className="pos-row"
               style={{ justifyContent: "space-between" }}
             >
-              <h3 style={{ margin: 0 }}>Confirm Bill {activeBill?.number}</h3>
+              <h3 style={{ margin: 0 }}>
+                Confirm Bill {activeBill?.number}
+              </h3>
+
               <button
                 style={styles.button}
                 disabled={processing}
@@ -1752,13 +2890,30 @@ export default function POS() {
               </button>
             </div>
 
-            <div style={{ textAlign: "center", padding: "22px 0" }}>
+            <div
+              style={{
+                textAlign: "center",
+                padding: "22px 0",
+              }}
+            >
               <Receipt size={34} color="#36d9c3" />
-              <div style={{ fontSize: 11, color: "#9ba7bd", marginTop: 8 }}>
+
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#9ba7bd",
+                  marginTop: 8,
+                }}
+              >
                 Total due
               </div>
+
               <div
-                style={{ fontSize: 30, fontWeight: 800, color: "#36d9c3" }}
+                style={{
+                  fontSize: 30,
+                  fontWeight: 800,
+                  color: "#36d9c3",
+                }}
               >
                 {money(total)}
               </div>
@@ -1766,34 +2921,50 @@ export default function POS() {
 
             {isEditingClosed && (
               <>
-                <label style={{ fontSize: 12 }}>Reason for editing</label>
+                <label style={{ fontSize: 12 }}>
+                  Reason for editing
+                </label>
+
                 <input
-                  style={{ ...styles.input, margin: "6px 0 12px" }}
+                  style={{
+                    ...styles.input,
+                    margin: "6px 0 12px",
+                  }}
                   disabled={processing}
                   value={reason}
-                  onChange={(e) => setReason(e.target.value)}
+                  onChange={(event) =>
+                    setReason(event.target.value)
+                  }
                   placeholder="Explain the correction"
                 />
               </>
             )}
 
-            {activeBill?.paymentMethod === "Cash" && paid < total && (
-              <p style={{ color: "#fbbf24", fontSize: 12 }}>
-                Received amount is less than the total.
-              </p>
-            )}
+            {activeBill?.paymentMethod === "Cash" &&
+              paid < total && (
+                <p
+                  style={{
+                    color: "#fbbf24",
+                    fontSize: 12,
+                  }}
+                >
+                  Received amount is less than the total.
+                </p>
+              )}
 
             <button
               className="pos-primary"
               disabled={
                 processing ||
                 !cart.length ||
-                (activeBill?.paymentMethod === "Cash" && paid < total) ||
+                (activeBill?.paymentMethod === "Cash" &&
+                  paid < total) ||
                 (isEditingClosed && !reason.trim())
               }
               onClick={finalizeSale}
             >
               <CheckCircle2 size={17} />
+
               {processing
                 ? "Processing sale..."
                 : isEditingClosed
@@ -1802,7 +2973,11 @@ export default function POS() {
             </button>
 
             <button
-              style={{ ...styles.button, width: "100%", marginTop: 9 }}
+              style={{
+                ...styles.button,
+                width: "100%",
+                marginTop: 9,
+              }}
               disabled={processing}
               onClick={() => setShowPayment(false)}
             >
@@ -1812,19 +2987,26 @@ export default function POS() {
         </div>
       )}
 
+      {/* صلاحيات المدير */}
       {managerDialog && (
-        <div className="pos-modal" onClick={() => setManagerDialog(null)}>
+        <div
+          className="pos-modal"
+          onClick={() => setManagerDialog(null)}
+        >
           <section
             className="pos-modal-card"
             role="dialog"
             aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <div
               className="pos-row"
               style={{ justifyContent: "space-between" }}
             >
-              <h3 style={{ margin: 0 }}>Manager authorization</h3>
+              <h3 style={{ margin: 0 }}>
+                Manager authorization
+              </h3>
+
               <button
                 style={styles.button}
                 onClick={() => setManagerDialog(null)}
@@ -1833,7 +3015,12 @@ export default function POS() {
               </button>
             </div>
 
-            <p style={{ fontSize: 12, color: "#9ba7bd" }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: "#9ba7bd",
+              }}
+            >
               Enter the manager PIN to continue.
             </p>
 
@@ -1841,7 +3028,9 @@ export default function POS() {
               style={styles.input}
               type="password"
               value={pin}
-              onChange={(e) => setPin(e.target.value)}
+              onChange={(event) =>
+                setPin(event.target.value)
+              }
               placeholder="Manager PIN"
             />
 
@@ -1860,27 +3049,34 @@ export default function POS() {
                 lineHeight: 1.5,
               }}
             >
-              Initial demo PIN: 1234. Change it before real use. This
-              browser-only PIN is not secure authentication for a multi-user
-              system.
+              Initial demo PIN: 1234. Change it before real
+              use. This browser-only PIN is not secure
+              authentication for a multi-user system.
             </p>
           </section>
         </div>
       )}
 
+      {/* تعديل سعر سطر البيع */}
       {editItem && (
-        <div className="pos-modal" onClick={() => setEditItem(null)}>
+        <div
+          className="pos-modal"
+          onClick={() => setEditItem(null)}
+        >
           <section
             className="pos-modal-card"
             role="dialog"
             aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <div
               className="pos-row"
               style={{ justifyContent: "space-between" }}
             >
-              <h3 style={{ margin: 0 }}>Edit sale line</h3>
+              <h3 style={{ margin: 0 }}>
+                Edit sale line
+              </h3>
+
               <button
                 style={styles.button}
                 onClick={() => setEditItem(null)}
@@ -1889,35 +3085,60 @@ export default function POS() {
               </button>
             </div>
 
-            <p style={{ fontSize: 12, color: "#9ba7bd" }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: "#9ba7bd",
+              }}
+            >
               {editItem.name} · current bill only
             </p>
 
-            <label style={{ fontSize: 12 }}>Sale price (DA)</label>
+            <label style={{ fontSize: 12 }}>
+              Sale price (DA)
+            </label>
+
             <input
-              style={{ ...styles.input, margin: "6px 0 12px" }}
+              style={{
+                ...styles.input,
+                margin: "6px 0 12px",
+              }}
               type="number"
               min="0"
               value={editPrice}
-              onChange={(e) => setEditPrice(e.target.value)}
+              onChange={(event) =>
+                setEditPrice(event.target.value)
+              }
             />
 
-            <label style={{ fontSize: 12 }}>Pieces per sale unit</label>
+            <label style={{ fontSize: 12 }}>
+              Pieces per sale unit
+            </label>
+
             <input
-              style={{ ...styles.input, margin: "6px 0 12px" }}
+              style={{
+                ...styles.input,
+                margin: "6px 0 12px",
+              }}
               type="number"
               min="1"
               value={editPieces}
-              onChange={(e) => setEditPieces(e.target.value)}
+              onChange={(event) =>
+                setEditPieces(event.target.value)
+              }
             />
 
-            <button className="pos-primary" onClick={saveEditedPrice}>
+            <button
+              className="pos-primary"
+              onClick={saveEditedPrice}
+            >
               <Save size={16} /> Save line
             </button>
           </section>
         </div>
       )}
 
+      {/* معاينة البون والطباعة */}
       {printBill && (
         <div
           className="pos-modal no-print"
@@ -1925,22 +3146,62 @@ export default function POS() {
         >
           <section
             className="pos-modal-card"
-            style={{ maxWidth: 560 }}
-            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 600 }}
+            role="dialog"
+            aria-modal="true"
+            onClick={(event) => event.stopPropagation()}
           >
             <div
               className="pos-row"
-              style={{ justifyContent: "space-between" }}
+              style={{
+                justifyContent: "space-between",
+              }}
             >
-              <h3 style={{ margin: 0 }}>
-                Bill {printBill.number} · {printBill.id}
-              </h3>
+              <div>
+                <h3 style={{ margin: 0 }}>
+                  Bill {printBill.number}
+                </h3>
+
+                <p
+                  className="pos-muted"
+                  style={{ overflowWrap: "anywhere" }}
+                >
+                  {printBill.id}
+                </p>
+              </div>
+
               <button
                 style={styles.button}
                 onClick={() => setPrintBill(null)}
               >
                 <X size={16} />
               </button>
+            </div>
+
+            <div
+              className="pos-row"
+              style={{
+                marginTop: 10,
+                marginBottom: 10,
+              }}
+            >
+              <span
+                className="pos-chip active"
+                style={{ cursor: "default" }}
+              >
+                {printBill.status === "closed"
+                  ? "Closed"
+                  : printBill.status === "editing"
+                    ? "Editing"
+                    : "Pending"}
+              </span>
+
+              <span className="pos-muted">
+                {new Date(
+                  printBill.closedAt ||
+                  printBill.createdAt
+                ).toLocaleString("fr-DZ")}
+              </span>
             </div>
 
             <div
@@ -1953,12 +3214,24 @@ export default function POS() {
                 borderRadius: 8,
               }}
             >
-              <h2 style={{ textAlign: "center", margin: "0 0 5px" }}>
+              <h2
+                style={{
+                  textAlign: "center",
+                  margin: "0 0 5px",
+                }}
+              >
                 VELTRO-PRO
               </h2>
-              <p style={{ textAlign: "center", fontSize: 12 }}>
+
+              <p
+                style={{
+                  textAlign: "center",
+                  fontSize: 12,
+                }}
+              >
                 Receipt / Bon de vente
               </p>
+
               <p style={{ fontSize: 12 }}>
                 Bill: {printBill.number}
                 <br />
@@ -1966,37 +3239,74 @@ export default function POS() {
                 <br />
                 Date:{" "}
                 {new Date(
-                  printBill.closedAt || printBill.createdAt
+                  printBill.closedAt ||
+                  printBill.createdAt
                 ).toLocaleString("fr-DZ")}
               </p>
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(printBill.items || []).map((i) => (
-                    <tr key={i.id}>
-                      <td>
-                        {i.name} ({i.mode})
-                      </td>
-                      <td>{i.quantity}</td>
-                      <td>{money(i.price)}</td>
-                      <td>{money(i.price * i.quantity)}</td>
+              <div className="pos-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Price</th>
+                      <th>Total</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
 
-              <p>Subtotal: {money(billTotals(printBill).subtotal)}</p>
-              <p>Discount: {money(billTotals(printBill).discount)}</p>
-              <h3>Total: {money(billTotals(printBill).total)}</h3>
-              <p>Payment: {printBill.paymentMethod || "Cash"}</p>
+                  <tbody>
+                    {(printBill.items || []).map((item) => (
+                      <tr key={item.id}>
+                        <td>
+                          {item.name} ({item.mode})
+                        </td>
+                        <td>{item.quantity}</td>
+                        <td>{money(item.price)}</td>
+                        <td>
+                          {money(
+                            item.price * item.quantity
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <p>
+                Subtotal:{" "}
+                {money(getBillTotals(printBill).subtotal)}
+              </p>
+
+              <p>
+                Discount:{" "}
+                {money(getBillTotals(printBill).discount)}
+              </p>
+
+              <h3>
+                Total: {money(getBillTotals(printBill).total)}
+              </h3>
+
+              <p>
+                Payment:{" "}
+                {printBill.paymentMethod || "Cash"}
+              </p>
+
+              {printBill.status === "closed" && (
+                <>
+                  <p>
+                    Received:{" "}
+                    {money(printBill.received)}
+                  </p>
+
+                  <p>
+                    Change:{" "}
+                    {money(printBill.change)}
+                  </p>
+                </>
+              )}
+
               <p>Thank you / Merci</p>
             </div>
 
@@ -2010,7 +3320,11 @@ export default function POS() {
 
             {printBill.status === "closed" && (
               <button
-                style={{ ...styles.button, width: "100%", marginTop: 8 }}
+                style={{
+                  ...styles.button,
+                  width: "100%",
+                  marginTop: 8,
+                }}
                 onClick={() => {
                   const bill = printBill;
                   setPrintBill(null);
@@ -2019,6 +3333,111 @@ export default function POS() {
               >
                 <Pencil size={15} /> Edit closed bill
               </button>
+            )}
+
+            {printBill.status !== "editing" && (
+              <button
+                style={{
+                  ...styles.button,
+                  width: "100%",
+                  marginTop: 8,
+                  color: "#fb7185",
+                }}
+                onClick={() => setDeleteTarget(printBill)}
+              >
+                <Trash2 size={15} /> Delete bill
+              </button>
+            )}
+
+            <div
+              className="pos-row"
+              style={{ marginTop: 10 }}
+            >
+              <button
+                style={styles.button}
+                disabled={!closedBills.length}
+                onClick={() => browseBill(-1)}
+              >
+                <ChevronLeft size={14} /> Previous
+              </button>
+
+              <button
+                style={styles.button}
+                disabled={!closedBills.length}
+                onClick={() => browseBill(1)}
+              >
+                Next <ChevronRight size={14} />
+              </button>
+
+              {["open", "editing"].includes(
+                printBill.status
+              ) && (
+                <button
+                  style={styles.button}
+                  onClick={() => activateBill(printBill)}
+                >
+                  <Play size={14} /> Resume bill
+                </button>
+              )}
+            </div>
+
+            {printBill.history?.length > 0 && (
+              <details style={{ marginTop: 15 }}>
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontSize: 12,
+                    color: "#9ba7bd",
+                  }}
+                >
+                  <History
+                    size={13}
+                    style={{
+                      display: "inline",
+                      verticalAlign: "middle",
+                      marginRight: 5,
+                    }}
+                  />
+                  Bill history
+                </summary>
+
+                <div
+                  style={{
+                    marginTop: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 8,
+                  }}
+                >
+                  {printBill.history.map((entry, index) => (
+                    <div
+                      key={`${entry.date}-${index}`}
+                      style={{
+                        fontSize: 11,
+                        color: "#9ba7bd",
+                        borderLeft: "2px solid #36d9c3",
+                        paddingLeft: 9,
+                      }}
+                    >
+                      <div>
+                        {entry.action}
+                      </div>
+
+                      <div>
+                        {new Date(
+                          entry.date
+                        ).toLocaleString("fr-DZ")}
+                      </div>
+
+                      {entry.reason && (
+                        <div>
+                          Reason: {entry.reason}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
             )}
           </section>
         </div>
