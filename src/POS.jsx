@@ -87,6 +87,8 @@ const blankBill = (number = 1) => ({
   status: "open",
   items: [],
   discount: 0,
+  extraCharge: 0,
+  extraChargeDescription: "",
   paymentMethod: "Cash",
   received: "",
   createdAt: new Date().toISOString(),
@@ -203,10 +205,24 @@ const getBillTotals = (bill) => {
     Math.max(0, Number(bill?.discount) || 0)
   );
 
+  const extraCharge = Math.max(
+    0,
+    Number(bill?.extraCharge) || 0
+  );
+
+  const extraChargeDescription = String(
+    bill?.extraChargeDescription || ""
+  );
+
   return {
     subtotal,
     discount,
-    total: Math.max(0, subtotal - discount),
+    extraCharge,
+    extraChargeDescription,
+    total: Math.max(
+      0,
+      subtotal - discount + extraCharge
+    ),
   };
 };
 
@@ -316,7 +332,6 @@ export default function POS() {
   const [printBill, setPrintBill] = useState(null);
   const [billBrowseIndex, setBillBrowseIndex] = useState(-1);
 
-  // النوافذ الجديدة
   const [showPendingBills, setShowPendingBills] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
@@ -514,7 +529,20 @@ export default function POS() {
     Math.max(0, Number(activeBill?.discount) || 0)
   );
 
-  const total = Math.max(0, subtotal - discount);
+  // الرسوم الإضافية تخص الفاتورة الحالية فقط ولا تغيّر المخزون.
+  const extraCharge = Math.max(
+    0,
+    Number(activeBill?.extraCharge) || 0
+  );
+
+  const extraChargeDescription = String(
+    activeBill?.extraChargeDescription || ""
+  );
+
+  const total = Math.max(
+    0,
+    subtotal - discount + extraCharge
+  );
 
   const paid =
     activeBill?.paymentMethod === "Cash"
@@ -1070,6 +1098,8 @@ export default function POS() {
         items: cart.map((item) => ({ ...item })),
         subtotal,
         discount,
+        extraCharge,
+        extraChargeDescription,
         total,
         paymentMethod:
           activeBill.paymentMethod || "Cash",
@@ -1177,7 +1207,6 @@ export default function POS() {
   function printReceipt(bill) {
     setPrintBill(bill);
 
-    // ننتظر ظهور محتوى الفاتورة قبل فتح نافذة الطباعة.
     window.setTimeout(() => window.print(), 250);
   }
 
@@ -1212,8 +1241,6 @@ export default function POS() {
     setPrintBill(closedBills[nextIndex]);
   }
 
-  // حذف بون لا يعيد تعديل المخزون.
-  // البيع المغلق سبق أن خصم المخزون عند إتمامه.
   function confirmDeleteBill() {
     if (!deleteTarget) return;
 
@@ -1265,7 +1292,6 @@ export default function POS() {
     );
   }
 
-  // تشغيل الكاميرا عبر getUserMedia.
   async function startCamera() {
     setCameraError("");
 
@@ -1378,7 +1404,7 @@ export default function POS() {
                 }
               }
             } catch {
-              // قد يفشل اكتشاف إطار واحد؛ نتابع المسح.
+              // نتابع المسح إذا تعذر اكتشاف إطار.
             }
 
             scanBusyRef.current = false;
@@ -1710,7 +1736,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* البونات الحالية */}
       <section
         style={{
           ...styles.card,
@@ -1807,7 +1832,6 @@ export default function POS() {
       </section>
 
       <div className="pos-layout">
-        {/* المنتجات */}
         <section
           style={styles.card}
           className="pos-panel"
@@ -2143,7 +2167,6 @@ export default function POS() {
           )}
         </section>
 
-        {/* سلة البيع */}
         <section
           style={styles.card}
           className="pos-panel pos-cart"
@@ -2356,6 +2379,108 @@ export default function POS() {
               }
             />
 
+            {/* Extra Charge: رسوم إضافية اختيارية */}
+            <div
+              style={{
+                border: "1px solid #293145",
+                background: "#0e1421",
+                borderRadius: 10,
+                padding: 12,
+                marginBottom: 14,
+              }}
+            >
+              <div
+                className="pos-row"
+                style={{
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <label
+                  htmlFor="pos-extra-charge"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#36d9c3",
+                  }}
+                >
+                  Extra Charge (DA)
+                </label>
+
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "#8996ad",
+                  }}
+                >
+                  Optional
+                </span>
+              </div>
+
+              <input
+                id="pos-extra-charge"
+                style={styles.input}
+                type="number"
+                min="0"
+                step="0.01"
+                disabled={
+                  !activeBill ||
+                  isClosed ||
+                  processing
+                }
+                value={activeBill?.extraCharge ?? 0}
+                onChange={(event) => {
+                  if (!activeBill) return;
+
+                  const rawValue = event.target.value;
+                  const value =
+                    rawValue === ""
+                      ? 0
+                      : Math.max(0, Number(rawValue) || 0);
+
+                  updateBill(activeBill.id, {
+                    extraCharge: value,
+                  });
+                }}
+                placeholder="0"
+              />
+
+              <label
+                htmlFor="pos-extra-charge-description"
+                style={{
+                  display: "block",
+                  fontSize: 11,
+                  color: "#9ba7bd",
+                  margin: "10px 0 6px",
+                }}
+              >
+                Charge Description (Optional)
+              </label>
+
+              <input
+                id="pos-extra-charge-description"
+                style={styles.input}
+                type="text"
+                maxLength={100}
+                disabled={
+                  !activeBill ||
+                  isClosed ||
+                  processing
+                }
+                value={
+                  activeBill?.extraChargeDescription || ""
+                }
+                onChange={(event) =>
+                  activeBill &&
+                  updateBill(activeBill.id, {
+                    extraChargeDescription:
+                      event.target.value,
+                  })
+                }
+                placeholder="e.g. Delivery fee"
+              />
+            </div>
+
             <div
               className="pos-row"
               style={{
@@ -2499,7 +2624,6 @@ export default function POS() {
         </section>
       </div>
 
-      {/* نافذة البونات المعلقة */}
       {showPendingBills && (
         <div
           className="pos-modal"
@@ -2601,6 +2725,13 @@ export default function POS() {
                           {money(totals.total)}
                         </div>
 
+                        {totals.extraCharge > 0 && (
+                          <div className="pos-muted">
+                            Extra charge:{" "}
+                            {money(totals.extraCharge)}
+                          </div>
+                        )}
+
                         <div className="pos-muted">
                           {new Date(
                             bill.createdAt
@@ -2661,7 +2792,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* نافذة تأكيد حذف البون */}
       {deleteTarget && (
         <div
           className="pos-modal"
@@ -2744,7 +2874,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* نافذة مسح الباركود بالكاميرا */}
       {showCamera && (
         <div
           className="pos-modal"
@@ -2859,7 +2988,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* تأكيد البيع */}
       {showPayment && (
         <div
           className="pos-modal"
@@ -2892,30 +3020,84 @@ export default function POS() {
 
             <div
               style={{
-                textAlign: "center",
-                padding: "22px 0",
+                padding: "18px 0",
+                borderBottom: "1px solid #252c3d",
               }}
             >
-              <Receipt size={34} color="#36d9c3" />
-
               <div
+                className="pos-row"
                 style={{
-                  fontSize: 11,
-                  color: "#9ba7bd",
-                  marginTop: 8,
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  marginBottom: 9,
                 }}
               >
-                Total due
+                <span style={{ color: "#9ba7bd" }}>
+                  Subtotal
+                </span>
+                <span>{money(subtotal)}</span>
               </div>
 
               <div
+                className="pos-row"
                 style={{
-                  fontSize: 30,
-                  fontWeight: 800,
-                  color: "#36d9c3",
+                  justifyContent: "space-between",
+                  fontSize: 12,
+                  marginBottom: 9,
                 }}
               >
-                {money(total)}
+                <span style={{ color: "#9ba7bd" }}>
+                  Discount
+                </span>
+                <span>- {money(discount)}</span>
+              </div>
+
+              {extraCharge > 0 && (
+                <div
+                  className="pos-row"
+                  style={{
+                    justifyContent: "space-between",
+                    fontSize: 12,
+                    marginBottom: 9,
+                  }}
+                >
+                  <span style={{ color: "#36d9c3" }}>
+                    Extra Charge
+                    {extraChargeDescription
+                      ? ` · ${extraChargeDescription}`
+                      : ""}
+                  </span>
+                  <span>{money(extraCharge)}</span>
+                </div>
+              )}
+
+              <div
+                style={{
+                  textAlign: "center",
+                  paddingTop: 14,
+                }}
+              >
+                <Receipt size={30} color="#36d9c3" />
+
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#9ba7bd",
+                    marginTop: 8,
+                  }}
+                >
+                  Total due
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 30,
+                    fontWeight: 800,
+                    color: "#36d9c3",
+                  }}
+                >
+                  {money(total)}
+                </div>
               </div>
             </div>
 
@@ -2987,7 +3169,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* صلاحيات المدير */}
       {managerDialog && (
         <div
           className="pos-modal"
@@ -3057,7 +3238,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* تعديل سعر سطر البيع */}
       {editItem && (
         <div
           className="pos-modal"
@@ -3138,7 +3318,6 @@ export default function POS() {
         </div>
       )}
 
-      {/* معاينة البون والطباعة */}
       {printBill && (
         <div
           className="pos-modal no-print"
@@ -3274,19 +3453,35 @@ export default function POS() {
                 </table>
               </div>
 
-              <p>
-                Subtotal:{" "}
-                {money(getBillTotals(printBill).subtotal)}
-              </p>
+              {(() => {
+                const totals = getBillTotals(printBill);
 
-              <p>
-                Discount:{" "}
-                {money(getBillTotals(printBill).discount)}
-              </p>
+                return (
+                  <>
+                    <p>
+                      Subtotal: {money(totals.subtotal)}
+                    </p>
 
-              <h3>
-                Total: {money(getBillTotals(printBill).total)}
-              </h3>
+                    <p>
+                      Discount: {money(totals.discount)}
+                    </p>
+
+                    {totals.extraCharge > 0 && (
+                      <p>
+                        Extra Charge
+                        {totals.extraChargeDescription
+                          ? ` (${totals.extraChargeDescription})`
+                          : ""}
+                        : {money(totals.extraCharge)}
+                      </p>
+                    )}
+
+                    <h3>
+                      Total: {money(totals.total)}
+                    </h3>
+                  </>
+                );
+              })()}
 
               <p>
                 Payment:{" "}
