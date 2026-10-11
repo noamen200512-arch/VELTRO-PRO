@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useRef } from "react";
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, CreditCard,
@@ -826,7 +825,6 @@ export default function POS() {
       setProducts(verified);
       setShowPayment(false);
       setReason("");
-      setPrintBill(closed);
       setMessage("تم حفظ البيع وتحديث المخزون بنجاح.");
     } catch (error) {
       console.error("VELTRO POS finalizeSale error:", error);
