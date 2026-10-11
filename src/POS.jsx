@@ -18,25 +18,21 @@ import {
   ShoppingBag,
 } from "lucide-react";
 
-const INITIAL_PRODUCTS = [
-  { id: 1, name: "Premium Coffee", category: "Beverages", price: 450, stock: 24, sku: "PRD-001", color: "#8b6a4f" },
-  { id: 2, name: "Mineral Water", category: "Drinks", price: 80, stock: 120, sku: "PRD-002", color: "#4285f4" },
-  { id: 3, name: "Chocolate Biscuits", category: "Snacks", price: 120, stock: 45, sku: "PRD-003", color: "#b78353" },
-  { id: 4, name: "Orange Juice", category: "Beverages", price: 180, stock: 32, sku: "PRD-004", color: "#f59e0b" },
-  { id: 5, name: "Potato Chips", category: "Snacks", price: 100, stock: 38, sku: "PRD-005", color: "#e5b94d" },
-  { id: 6, name: "Fresh Milk", category: "Dairy", price: 140, stock: 20, sku: "PRD-006", color: "#a7c9ed" },
-  { id: 7, name: "Dark Chocolate", category: "Snacks", price: 250, stock: 17, sku: "PRD-007", color: "#795548" },
-  { id: 8, name: "Apple Juice", category: "Beverages", price: 160, stock: 28, sku: "PRD-008", color: "#e46b72" },
-  { id: 9, name: "Energy Drink", category: "Drinks", price: 220, stock: 36, sku: "PRD-009", color: "#39bda7" },
-  { id: 10, name: "Biscuits Mini", category: "Snacks", price: 50, stock: 80, sku: "PRD-010", color: "#d4a373" },
-  { id: 11, name: "Yogurt", category: "Dairy", price: 90, stock: 26, sku: "PRD-011", color: "#c084fc" },
-  { id: 12, name: "Sparkling Water", category: "Drinks", price: 110, stock: 42, sku: "PRD-012", color: "#60a5fa" },
-];
-
-const CATEGORIES = ["All Products", "Beverages", "Drinks", "Snacks", "Dairy"];
+import { getProducts, saveProducts } from "./productStore.js";
 
 const formatMoney = (value) =>
-  `${Number(value).toLocaleString("fr-DZ")} DA`;
+  `${Number(value || 0).toLocaleString("fr-DZ")} DA`;
+
+const getProductColor = (category = "") => {
+  const value = category.toLowerCase();
+
+  if (value.includes("drink") || value.includes("beverage")) return "#60a5fa";
+  if (value.includes("snack") || value.includes("biscuit")) return "#d4a373";
+  if (value.includes("dairy") || value.includes("milk")) return "#a7c9ed";
+  if (value.includes("coffee")) return "#8b6a4f";
+
+  return "#36d9c3";
+};
 
 const styles = {
   page: {
@@ -71,7 +67,7 @@ const styles = {
     background: "#0c111d",
     border: "1px solid #2a3244",
     borderRadius: 9,
-    padding: "12px",
+    padding: 12,
     color: "#e9edf6",
     outline: "none",
     width: "100%",
@@ -82,7 +78,7 @@ const styles = {
 };
 
 export default function POS() {
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState(() => getProducts());
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Products");
@@ -93,24 +89,36 @@ export default function POS() {
   const [lastSale, setLastSale] = useState(null);
   const [message, setMessage] = useState("");
 
+  const categories = useMemo(
+    () => [
+      "All Products",
+      ...new Set(
+        products.map((product) => product.category || "General")
+      ),
+    ],
+    [products]
+  );
+
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return products.filter((product) => {
       const matchesCategory =
-        category === "All Products" || product.category === category;
+        category === "All Products" ||
+        (product.category || "General") === category;
 
       const matchesSearch =
         !query ||
-        product.name.toLowerCase().includes(query) ||
-        product.sku.toLowerCase().includes(query);
+        String(product.name || "").toLowerCase().includes(query) ||
+        String(product.sku || "").toLowerCase().includes(query) ||
+        String(product.barcode || "").toLowerCase().includes(query);
 
       return matchesCategory && matchesSearch;
     });
   }, [products, search, category]);
 
   const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + Number(item.price || 0) * item.quantity,
     0
   );
 
@@ -126,29 +134,61 @@ export default function POS() {
 
   const change = Math.max(0, paidAmount - total);
 
+  function refreshProducts() {
+    const latest = getProducts();
+    setProducts(latest);
+    return latest;
+  }
+
   function addToCart(product) {
-    if (product.stock <= 0) {
-      setMessage("This product is out of stock.");
+    const latestProducts = refreshProducts();
+    const currentProduct = latestProducts.find(
+      (item) => item.id === product.id
+    );
+
+    if (!currentProduct) {
+      setMessage("المنتج غير موجود في المخزون. حدّث الصفحة وحاول مجددًا.");
+      return;
+    }
+
+    const stock = Number(currentProduct.stock || 0);
+
+    if (stock <= 0) {
+      setMessage("هذا المنتج غير متوفر في المخزون.");
       return;
     }
 
     setCart((current) => {
-      const existing = current.find((item) => item.id === product.id);
+      const existing = current.find(
+        (item) => item.id === currentProduct.id
+      );
 
       if (existing) {
-        if (existing.quantity >= product.stock) {
-          setMessage("Not enough stock for this quantity.");
+        if (existing.quantity >= stock) {
+          setMessage("الكمية المطلوبة أكبر من المخزون المتوفر.");
           return current;
         }
 
         return current.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+          item.id === currentProduct.id
+            ? {
+                ...item,
+                price: Number(currentProduct.price || 0),
+                quantity: item.quantity + 1,
+              }
             : item
         );
       }
 
-      return [...current, { ...product, quantity: 1 }];
+      return [
+        ...current,
+        {
+          ...currentProduct,
+          price: Number(currentProduct.price || 0),
+          stock,
+          quantity: 1,
+        },
+      ];
     });
 
     setMessage("");
@@ -156,16 +196,25 @@ export default function POS() {
   }
 
   function updateQuantity(id, amount) {
+    const latestProducts = getProducts();
+    const product = latestProducts.find((item) => item.id === id);
+
+    if (!product) {
+      setMessage("لم يتم العثور على المنتج في المخزون.");
+      return;
+    }
+
+    const availableStock = Number(product.stock || 0);
+
     setCart((current) =>
       current
         .map((item) => {
           if (item.id !== id) return item;
 
-          const product = products.find((p) => p.id === id);
           const quantity = item.quantity + amount;
 
-          if (quantity > (product?.stock ?? 0)) {
-            setMessage("Not enough stock for this quantity.");
+          if (quantity > availableStock) {
+            setMessage("لا توجد كمية كافية في المخزون.");
             return item;
           }
 
@@ -174,11 +223,12 @@ export default function POS() {
         .filter((item) => item.quantity > 0)
     );
 
-    setMessage("");
+    if (amount < 0) setMessage("");
   }
 
   function removeItem(id) {
     setCart((current) => current.filter((item) => item.id !== id));
+    setMessage("");
   }
 
   function clearCart() {
@@ -191,12 +241,52 @@ export default function POS() {
 
   function completeSale() {
     if (!cart.length) {
-      setMessage("Add at least one product to the cart.");
+      setMessage("أضف منتجًا واحدًا على الأقل إلى السلة.");
       return;
     }
 
     if (paymentMethod === "Cash" && paidAmount < total) {
-      setMessage("The amount received is less than the total.");
+      setMessage("المبلغ المستلم أقل من إجمالي الفاتورة.");
+      return;
+    }
+
+    // Read the latest inventory before completing the sale.
+    const latestProducts = getProducts();
+
+    for (const item of cart) {
+      const currentProduct = latestProducts.find(
+        (product) => product.id === item.id
+      );
+
+      if (!currentProduct) {
+        setMessage(`المنتج "${item.name}" لم يعد موجودًا في المخزون.`);
+        setProducts(latestProducts);
+        return;
+      }
+
+      if (Number(currentProduct.stock || 0) < item.quantity) {
+        setMessage(
+          `الكمية المتوفرة من "${item.name}" غير كافية. حدّث السلة وحاول مجددًا.`
+        );
+        setProducts(latestProducts);
+        return;
+      }
+    }
+
+    const nextProducts = latestProducts.map((product) => {
+      const soldItem = cart.find((item) => item.id === product.id);
+
+      if (!soldItem) return product;
+
+      return {
+        ...product,
+        stock: Number(product.stock || 0) - soldItem.quantity,
+      };
+    });
+
+    // Do not complete the sale if saving the shared stock fails.
+    if (!saveProducts(nextProducts)) {
+      setMessage("تعذر حفظ المخزون. لم يتم تأكيد البيع.");
       return;
     }
 
@@ -212,47 +302,156 @@ export default function POS() {
       change,
     };
 
-    setProducts((current) =>
-      current.map((product) => {
-        const soldItem = cart.find((item) => item.id === product.id);
-
-        return soldItem
-          ? { ...product, stock: product.stock - soldItem.quantity }
-          : product;
-      })
-    );
-
+    setProducts(nextProducts);
     setLastSale(sale);
     setCart([]);
     setDiscount("0");
     setReceived("");
     setShowPayment(false);
-    setMessage("Sale completed successfully.");
+    setMessage("تم إتمام البيع وتحديث المخزون بنجاح.");
   }
 
   return (
     <div style={styles.page}>
       <style>{`
-        .pos-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,360px); gap:18px; align-items:start; }
+        .pos-layout {
+          display:grid;
+          grid-template-columns:minmax(0,1fr) minmax(300px,360px);
+          gap:18px;
+          align-items:start;
+        }
         .pos-products { padding:20px; }
         .pos-cart { padding:20px; position:sticky; top:16px; }
-        .pos-product-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-        .pos-product { border:1px solid #293145; border-radius:12px; background:#151c2b; padding:14px; text-align:left; color:#e9edf6; cursor:pointer; min-width:0; transition:border-color .15s, transform .15s; }
-        .pos-product:hover { border-color:#36d9c3; transform:translateY(-2px); }
-        .pos-category { border:1px solid #2a3244; border-radius:8px; background:#151b29; color:#9ba7bd; padding:9px 12px; cursor:pointer; white-space:nowrap; font-size:12px; }
-        .pos-category.active { background:rgba(54,217,195,.12); border-color:#36d9c3; color:#36d9c3; }
-        .pos-cart-items { display:flex; flex-direction:column; gap:12px; max-height:340px; overflow-y:auto; }
-        .pos-cart-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; padding-bottom:12px; border-bottom:1px solid #252c3d; }
-        .pos-qty { display:flex; align-items:center; gap:10px; }
-        .pos-qty button { display:flex; align-items:center; justify-content:center; width:27px; height:27px; border:1px solid #30394b; border-radius:7px; background:#1a2232; color:#e9edf6; cursor:pointer; }
-        .pos-primary { display:flex; align-items:center; justify-content:center; gap:8px; border:0; border-radius:9px; background:#36d9c3; color:#071411; padding:13px; width:100%; font-weight:800; font-size:14px; cursor:pointer; }
-        .pos-primary:disabled { opacity:.45; cursor:not-allowed; }
-        .pos-pay-option { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:13px 8px; background:#151b29; color:#aab5c9; border:1px solid #30394b; border-radius:10px; cursor:pointer; }
-        .pos-pay-option.active { border-color:#36d9c3; background:rgba(54,217,195,.1); color:#36d9c3; }
-        .pos-scroll { overflow-x:auto; display:flex; gap:8px; padding-bottom:4px; }
-        @media(max-width:1100px) { .pos-layout { grid-template-columns:minmax(0,1fr); } .pos-cart { position:static; } .pos-product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media(max-width:680px) { .pos-products,.pos-cart { padding:13px; } .pos-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; } .pos-product { padding:11px; } .pos-heading { align-items:flex-start !important; flex-direction:column; } .pos-heading-actions { width:100%; } .pos-heading-actions button { flex:1; } .pos-product-art { height:76px !important; } }
-        @media(max-width:380px) { .pos-product-grid { grid-template-columns:minmax(0,1fr); } }
+        .pos-product-grid {
+          display:grid;
+          grid-template-columns:repeat(3,minmax(0,1fr));
+          gap:12px;
+        }
+        .pos-product {
+          border:1px solid #293145;
+          border-radius:12px;
+          background:#151c2b;
+          padding:14px;
+          text-align:left;
+          color:#e9edf6;
+          cursor:pointer;
+          min-width:0;
+          transition:border-color .15s, transform .15s;
+        }
+        .pos-product:hover {
+          border-color:#36d9c3;
+          transform:translateY(-2px);
+        }
+        .pos-product:disabled {
+          cursor:not-allowed;
+          transform:none;
+        }
+        .pos-category {
+          border:1px solid #2a3244;
+          border-radius:8px;
+          background:#151b29;
+          color:#9ba7bd;
+          padding:9px 12px;
+          cursor:pointer;
+          white-space:nowrap;
+          font-size:12px;
+        }
+        .pos-category.active {
+          background:rgba(54,217,195,.12);
+          border-color:#36d9c3;
+          color:#36d9c3;
+        }
+        .pos-cart-items {
+          display:flex;
+          flex-direction:column;
+          gap:12px;
+          max-height:340px;
+          overflow-y:auto;
+        }
+        .pos-cart-item {
+          display:grid;
+          grid-template-columns:minmax(0,1fr) auto;
+          gap:8px;
+          padding-bottom:12px;
+          border-bottom:1px solid #252c3d;
+        }
+        .pos-qty {
+          display:flex;
+          align-items:center;
+          gap:10px;
+        }
+        .pos-qty button {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          width:27px;
+          height:27px;
+          border:1px solid #30394b;
+          border-radius:7px;
+          background:#1a2232;
+          color:#e9edf6;
+          cursor:pointer;
+        }
+        .pos-primary {
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          border:0;
+          border-radius:9px;
+          background:#36d9c3;
+          color:#071411;
+          padding:13px;
+          width:100%;
+          font-weight:800;
+          font-size:14px;
+          cursor:pointer;
+        }
+        .pos-primary:disabled {
+          opacity:.45;
+          cursor:not-allowed;
+        }
+        .pos-pay-option {
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          gap:8px;
+          padding:13px 8px;
+          background:#151b29;
+          color:#aab5c9;
+          border:1px solid #30394b;
+          border-radius:10px;
+          cursor:pointer;
+        }
+        .pos-pay-option.active {
+          border-color:#36d9c3;
+          background:rgba(54,217,195,.1);
+          color:#36d9c3;
+        }
+        .pos-scroll {
+          overflow-x:auto;
+          display:flex;
+          gap:8px;
+          padding-bottom:4px;
+        }
+        @media(max-width:1100px) {
+          .pos-layout { grid-template-columns:minmax(0,1fr); }
+          .pos-cart { position:static; }
+          .pos-product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        }
+        @media(max-width:680px) {
+          .pos-products,.pos-cart { padding:13px; }
+          .pos-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+          .pos-product { padding:11px; }
+          .pos-heading { align-items:flex-start !important; flex-direction:column; }
+          .pos-heading-actions { width:100%; }
+          .pos-heading-actions button { flex:1; }
+          .pos-product-art { height:76px !important; }
+        }
+        @media(max-width:380px) {
+          .pos-product-grid { grid-template-columns:minmax(0,1fr); }
+        }
       `}</style>
 
       <div
@@ -296,10 +495,10 @@ export default function POS() {
             padding: "11px 14px",
             marginBottom: 15,
             borderRadius: 9,
-            background: message.includes("successfully")
+            background: message.includes("بنجاح")
               ? "rgba(54,217,195,.1)"
               : "rgba(245,158,11,.1)",
-            color: message.includes("successfully") ? "#36d9c3" : "#fbbf24",
+            color: message.includes("بنجاح") ? "#36d9c3" : "#fbbf24",
             border: "1px solid #30394b",
             fontSize: 13,
           }}
@@ -322,7 +521,9 @@ export default function POS() {
           </div>
           <p style={{ fontSize: 12, color: "#9ba7bd", marginBottom: 0 }}>
             Payment: {lastSale.paymentMethod}
-            {lastSale.paymentMethod === "Cash" ? ` · Change: ${formatMoney(lastSale.change)}` : ""}
+            {lastSale.paymentMethod === "Cash"
+              ? ` · Change: ${formatMoney(lastSale.change)}`
+              : ""}
           </p>
         </div>
       )}
@@ -345,14 +546,14 @@ export default function POS() {
             <Search size={17} color="#8290a8" style={{ position: "absolute", left: 13, top: 13 }} />
             <input
               style={{ ...styles.input, paddingLeft: 39 }}
-              placeholder="Search product name or SKU..."
+              placeholder="Search product name, SKU or barcode..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
 
           <div className="pos-scroll" style={{ marginBottom: 17 }}>
-            {CATEGORIES.map((item) => (
+            {categories.map((item) => (
               <button
                 key={item}
                 className={`pos-category ${category === item ? "active" : ""}`}
@@ -364,52 +565,57 @@ export default function POS() {
           </div>
 
           <div className="pos-product-grid">
-            {filteredProducts.map((product) => (
-              <button
-                key={product.id}
-                className="pos-product"
-                onClick={() => addToCart(product)}
-                disabled={product.stock <= 0}
-                style={{ opacity: product.stock <= 0 ? 0.5 : 1 }}
-              >
-                <div
-                  className="pos-product-art"
-                  style={{
-                    height: 95,
-                    borderRadius: 9,
-                    background: `linear-gradient(145deg, ${product.color}25, ${product.color}08)`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 12,
-                    color: product.color,
-                  }}
+            {filteredProducts.map((product) => {
+              const stock = Number(product.stock || 0);
+              const color = getProductColor(product.category);
+
+              return (
+                <button
+                  key={product.id}
+                  className="pos-product"
+                  onClick={() => addToCart(product)}
+                  disabled={stock <= 0}
+                  style={{ opacity: stock <= 0 ? 0.5 : 1 }}
                 >
-                  <ShoppingBag size={34} strokeWidth={1.4} />
-                </div>
+                  <div
+                    className="pos-product-art"
+                    style={{
+                      height: 95,
+                      borderRadius: 9,
+                      background: `linear-gradient(145deg, ${color}25, ${color}08)`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 12,
+                      color,
+                    }}
+                  >
+                    <ShoppingBag size={34} strokeWidth={1.4} />
+                  </div>
 
-                <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.4, minHeight: 36 }}>
-                  {product.name}
-                </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.4, minHeight: 36 }}>
+                    {product.name}
+                  </div>
 
-                <div style={{ color: "#8996ad", fontSize: 10, margin: "6px 0 10px" }}>
-                  {product.sku} · Stock: {product.stock}
-                </div>
+                  <div style={{ color: "#8996ad", fontSize: 10, margin: "6px 0 10px" }}>
+                    {product.sku || product.barcode || "No reference"} · Stock: {stock}
+                  </div>
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                  <strong style={{ color: "#36d9c3", fontSize: 13 }}>
-                    {formatMoney(product.price)}
-                  </strong>
-                  <span style={{ background: "#243c3a", color: "#36d9c3", padding: 4, borderRadius: 6, display: "flex" }}>
-                    <Plus size={14} />
-                  </span>
-                </div>
-              </button>
-            ))}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                    <strong style={{ color: "#36d9c3", fontSize: 13 }}>
+                      {formatMoney(product.price)}
+                    </strong>
+                    <span style={{ background: "#243c3a", color: "#36d9c3", padding: 4, borderRadius: 6, display: "flex" }}>
+                      <Plus size={14} />
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
 
             {filteredProducts.length === 0 && (
               <div style={{ gridColumn: "1/-1", textAlign: "center", padding: 35, color: "#8996ad" }}>
-                No products found.
+                No products found. Add products from the Products section first.
               </div>
             )}
           </div>
@@ -552,7 +758,10 @@ export default function POS() {
 
             <button
               className="pos-primary"
-              onClick={() => setShowPayment(true)}
+              onClick={() => {
+                setMessage("");
+                setShowPayment(true);
+              }}
               disabled={cart.length === 0}
             >
               <CreditCard size={18} />
@@ -639,7 +848,7 @@ export default function POS() {
             </button>
 
             <p style={{ fontSize: 10, lineHeight: 1.5, color: "#77849a", textAlign: "center", marginBottom: 0, marginTop: 14 }}>
-              Demo mode: this sale updates the sample stock in this page only.
+              Inventory is saved in the shared product storage.
             </p>
           </section>
         </div>
