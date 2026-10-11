@@ -332,8 +332,6 @@ export default function POS() {
 
   const total = Math.max(0, subtotal - discount);
 
-  // FIX: إذا ترك المستخدم خانة المبلغ المستلم فارغة،
-  // يُعتبر المبلغ المستلم مساويًا للإجمالي.
   const paid =
     activeBill?.paymentMethod === "Cash"
       ? (
@@ -595,8 +593,6 @@ export default function POS() {
     }
   }
 
-  // FIX: تغيير عدد القطع يحدّث السعر تلقائيًا إذا لم يُعدّل
-  // المستخدم السعر يدويًا. أما السعر المعدّل يدويًا فيُحفظ كما أدخله.
   function saveEditedPrice() {
     if (!editItem || !activeBill) return;
 
@@ -671,8 +667,8 @@ export default function POS() {
       return;
     }
 
-    // أثناء تعديل فاتورة مغلقة، أعد الكمية الأصلية حسابيًا
-    // مرة واحدة فقط قبل خصم الكمية الجديدة.
+    // أثناء تعديل فاتورة مغلقة، استعد الكمية الأصلية
+    // حسابيًا مرة واحدة قبل خصم الكمية الجديدة.
     const originalItems = isEditingClosed
       ? activeBill.originalItems || []
       : [];
@@ -736,14 +732,20 @@ export default function POS() {
         : p;
     });
 
+    // التعديل الأساسي: لا نتابع إتمام البيع إذا فشل حفظ المخزون.
     try {
-      saveProducts(nextProducts);
+      const saved = saveProducts(nextProducts);
+
+      if (!saved) {
+        setMessage("فشل حفظ المخزون. لم يتم إغلاق البون.");
+        return;
+      }
     } catch {
-      setMessage("فشل حفظ المخزون.");
+      setMessage("فشل حفظ المخزون. لم يتم إغلاق البون.");
       return;
     }
 
-    // تحقق من أن المخزون المحفوظ يعكس الخصم المطلوب.
+    // التحقق من أن المخزون المحفوظ يطابق الكميات المطلوبة.
     let verified;
 
     try {
@@ -763,6 +765,7 @@ export default function POS() {
       const check = verified.find(
         (x) => (x.id ?? x.productId) === id
       );
+
       return check && getStock(check) === getStock(p);
     });
 
