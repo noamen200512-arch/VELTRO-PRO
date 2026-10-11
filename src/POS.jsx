@@ -151,7 +151,8 @@ export default function POS() {
     if (saved.length) {
       const stored = localStorage.getItem(ACTIVE_KEY);
       const storedBill = saved.find(
-        (b) => b.id === stored &&
+        (b) =>
+          b.id === stored &&
           (b.status === "open" || b.status === "editing")
       );
 
@@ -331,9 +332,16 @@ export default function POS() {
 
   const total = Math.max(0, subtotal - discount);
 
+  // FIX: إذا ترك المستخدم خانة المبلغ المستلم فارغة،
+  // يُعتبر المبلغ المستلم مساويًا للإجمالي.
   const paid =
     activeBill?.paymentMethod === "Cash"
-      ? Number(activeBill?.received) || 0
+      ? (
+          activeBill?.received === "" ||
+          activeBill?.received == null
+        )
+        ? total
+        : Math.max(0, Number(activeBill?.received) || 0)
       : total;
 
   const change = Math.max(0, paid - total);
@@ -364,8 +372,7 @@ export default function POS() {
       ? (activeBill.originalItems || [])
           .filter((i) => i.productId === productId)
           .reduce(
-            (sum, i) =>
-              sum + i.quantity * i.piecesPerUnit,
+            (sum, i) => sum + i.quantity * i.piecesPerUnit,
             0
           )
       : 0;
@@ -373,8 +380,7 @@ export default function POS() {
     const alreadyInCart = cart
       .filter((i) => i.productId === productId)
       .reduce(
-        (sum, i) =>
-          sum + i.quantity * i.piecesPerUnit,
+        (sum, i) => sum + i.quantity * i.piecesPerUnit,
         0
       );
 
@@ -589,10 +595,17 @@ export default function POS() {
     }
   }
 
+  // FIX: تغيير عدد القطع يحدّث السعر تلقائيًا إذا لم يُعدّل
+  // المستخدم السعر يدويًا. أما السعر المعدّل يدويًا فيُحفظ كما أدخله.
   function saveEditedPrice() {
     if (!editItem || !activeBill) return;
 
     const price = Number(editPrice);
+    const oldPrice = Math.max(0, Number(editItem.price) || 0);
+    const oldPieces = Math.max(
+      1,
+      Math.floor(Number(editItem.piecesPerUnit) || 1)
+    );
     const pieces = Math.max(
       1,
       Math.floor(Number(editPieces) || 1)
@@ -603,16 +616,31 @@ export default function POS() {
       return;
     }
 
-    updateItems(
-      cart.map((i) =>
-        i.id === editItem.id
-          ? { ...i, price, piecesPerUnit: pieces }
-          : i
-      )
+    if (!Number.isFinite(pieces) || pieces < 1) {
+      setMessage("أدخل عدد قطع صحيحًا.");
+      return;
+    }
+
+    const priceWasChanged = price !== oldPrice;
+
+    const newPrice =
+      pieces !== oldPieces && !priceWasChanged
+        ? (oldPrice / oldPieces) * pieces
+        : price;
+
+    const nextItems = cart.map((item) =>
+      item.id === editItem.id
+        ? {
+            ...item,
+            price: Number(newPrice.toFixed(2)),
+            piecesPerUnit: pieces,
+          }
+        : item
     );
 
+    updateItems(nextItems);
     setEditItem(null);
-    setMessage("تم تحديث سعر السطر.");
+    setMessage("تم تحديث عدد القطع والسعر والإجمالي.");
   }
 
   function finalizeSale() {
@@ -681,9 +709,11 @@ export default function POS() {
       );
 
       if (!p) {
-        setMessage(`المنتج غير موجود: ${
-          cart.find((i) => i.productId === productId)?.name || ""
-        }`);
+        setMessage(
+          `المنتج غير موجود: ${
+            cart.find((i) => i.productId === productId)?.name || ""
+          }`
+        );
         return;
       }
 
