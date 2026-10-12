@@ -2529,3 +2529,72 @@ svg {
     display: none !important;
   }
 }
+/* =========================================
+   VELTRO-PRO — Dark form controls
+   ========================================= */
+
+:root {
+  color-scheme: dark;
+}
+
+.history-page input,
+.history-page select,
+.history-page textarea,
+.modal-backdrop input,
+.modal-backdrop select,
+.modal-backdrop textarea {
+  color-scheme: dark;
+  background-color: #0b1220 !important;
+  color: #edf2fa !important;
+  border: 1px solid #2a3548;
+  border-radius: 10px;
+}
+
+.history-page input::placeholder,
+.modal-backdrop input::placeholder,
+.modal-backdrop textarea::placeholder {
+  color: #8491a7 !important;
+  opacity: 1;
+}
+
+.history-page input:focus,
+.history-page select:focus,
+.history-page textarea:focus,
+.modal-backdrop input:focus,
+.modal-backdrop select:focus,
+.modal-backdrop textarea:focus {
+  outline: none;
+  border-color: #35d6c2;
+  box-shadow: 0 0 0 3px rgb(53 214 194 / 12%);
+}
+
+.history-page select option,
+.modal-backdrop select option {
+  background-color: #101722;
+  color: #edf2fa;
+}
+
+.history-page input[type="date"],
+.history-page input[type="time"],
+.modal-backdrop input[type="date"],
+.modal-backdrop input[type="time"] {
+  color-scheme: dark;
+}
+
+.modal-backdrop input:-webkit-autofill,
+.modal-backdrop input:-webkit-autofill:hover,
+.modal-backdrop input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #edf2fa;
+  box-shadow: 0 0 0 1000px #0b1220 inset;
+  transition: background-color 9999s ease-out;
+}
+
+.history-page .search-box input {
+  background: transparent !important;
+  border: none;
+  box-shadow: none;
+}
+
+.history-page .search-box input:focus {
+  box-shadow: none;
+}
