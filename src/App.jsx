@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -10,64 +10,98 @@ import {
   Settings,
   Bell,
   Search,
-  ArrowUpRight,
-  ArrowDownRight,
-  MoreHorizontal,
-  Boxes,
+  History,
+  ReceiptText,
   CreditCard,
-  CircleHelp,
+  Boxes,
   ChevronDown,
-  Zap,
-  CalendarDays,
-  Plus,
-  Download,
-  Filter,
-  Clock,
-  CheckCircle2,
+  ChevronRight,
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
   X,
-  History,
-  ReceiptText,
+  Calendar,
+  Clock,
   RefreshCw,
   FileText,
-  Calendar,
-  ChevronRight,
+  Printer,
+  Pencil,
+  Eye,
+  LockKeyhole,
+  Plus,
+  Trash2,
+  Save,
+  Download,
 } from "lucide-react";
-
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  BarChart,
-  Bar,
-} from "recharts";
 
 import POS from "./POS";
 import Products from "./Products.jsx";
+import { getProducts } from "./productStore.js";
+import {
+  getCompletedSales,
+  editCompletedSale,
+} from "./sales/salesStore.js";
 
-const salesData = [
-  { day: "Mon", sales: 24000, orders: 120 },
-  { day: "Tue", sales: 32000, orders: 145 },
-  { day: "Wed", sales: 28000, orders: 132 },
-  { day: "Thu", sales: 45000, orders: 190 },
-  { day: "Fri", sales: 38000, orders: 165 },
-  { day: "Sat", sales: 52000, orders: 220 },
-  { day: "Sun", sales: 61000, orders: 245 },
-];
+function money(value) {
+  return `${(Number(value) || 0).toLocaleString("fr-DZ", {
+    maximumFractionDigits: 2,
+  })} DA`;
+}
 
-const products = [
-  { id: 1, name: "Premium Coffee", category: "Beverages", sku: "PRD-001", stock: 245, price: 450, status: "In Stock" },
-  { id: 2, name: "Mineral Water", category: "Drinks", sku: "PRD-002", stock: 18, price: 80, status: "Low Stock" },
-  { id: 3, name: "Chocolate Biscuits", category: "Snacks", sku: "PRD-003", stock: 156, price: 120, status: "In Stock" },
-  { id: 4, name: "Orange Juice", category: "Beverages", sku: "PRD-004", stock: 0, price: 180, status: "Out of Stock" },
-  { id: 5, name: "Potato Chips", category: "Snacks", sku: "PRD-005", stock: 82, price: 100, status: "In Stock" },
-];
+function quantity(item) {
+  return Math.max(0, Number(item.qty ?? item.quantity) || 0);
+}
+
+function productId(item) {
+  return String(item.productId ?? item.id ?? "");
+}
+
+function invoiceSubtotal(items = []) {
+  return items.reduce((sum, item) => {
+    const line = quantity(item) * Math.max(0, Number(item.price) || 0);
+    return sum + Math.max(0, line - (Number(item.discount) || 0));
+  }, 0);
+}
+
+function invoiceTotal(invoice) {
+  return Math.max(
+    0,
+    invoiceSubtotal(invoice.items || []) - (Number(invoice.discount) || 0)
+  );
+}
+
+function invoiceDate(invoice) {
+  return invoice.completedAt || invoice.createdAt || invoice.updatedAt || "";
+}
+
+function employeeName(invoice) {
+  return (
+    invoice.employeeName ||
+    invoice.userName ||
+    invoice.cashierName ||
+    invoice.createdBy ||
+    invoice.currentUser ||
+    invoice.employee ||
+    ""
+  );
+}
+
+function customerName(invoice) {
+  return invoice.customerName || "Walk-in customer";
+}
+
+function StatCard({ title, value, icon: Icon, subtitle }) {
+  return (
+    <article className="stat-card accent-cyan">
+      <div className="stat-card-top">
+        <div className="stat-icon"><Icon size={21} /></div>
+      </div>
+      <p className="stat-title">{title}</p>
+      <div className="stat-value-row"><h2>{value}</h2></div>
+      <p className="stat-subtitle">{subtitle}</p>
+    </article>
+  );
+}
 
 const navGroups = [
   {
@@ -83,20 +117,14 @@ const navGroups = [
       {
         label: "Point of Sale",
         icon: ShoppingCart,
-        expandable: true,
-        children: [
-          { label: "Sales History", icon: History },
-        ],
+        children: [{ label: "Sales History", icon: History }],
       },
       { label: "Products", icon: Package },
       { label: "Categories", icon: Boxes },
       {
         label: "Purchases",
         icon: CreditCard,
-        expandable: true,
-        children: [
-          { label: "Purchase History", icon: ReceiptText },
-        ],
+        children: [{ label: "Purchase History", icon: ReceiptText }],
       },
       { label: "Orders", icon: ShoppingCart },
       { label: "Suppliers", icon: Truck },
@@ -112,95 +140,31 @@ const navGroups = [
   },
 ];
 
-const activities = [
-  { title: "New order received", detail: "Order #ORD-1048", time: "5 minutes ago", icon: ShoppingCart, color: "purple" },
-  { title: "Stock updated", detail: "Premium Coffee", time: "18 minutes ago", icon: Package, color: "cyan" },
-  { title: "Payment completed", detail: "Order #ORD-1047", time: "32 minutes ago", icon: CreditCard, color: "green" },
-  { title: "New customer added", detail: "Customer registration", time: "1 hour ago", icon: Users, color: "orange" },
-];
-
-function formatMoney(value) {
-  return `${Number(value).toLocaleString("fr-DZ")} DA`;
-}
-
-function StatCard({
-  title,
-  value,
-  change,
-  positive = true,
-  icon: Icon,
-  accent = "cyan",
-  subtitle,
-}) {
-  return (
-    <article className={`stat-card accent-${accent}`}>
-      <div className="stat-card-top">
-        <div className="stat-icon">
-          <Icon size={21} strokeWidth={1.8} />
-        </div>
-        <button className="icon-button" type="button" aria-label="More options">
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
-
-      <p className="stat-title">{title}</p>
-
-      <div className="stat-value-row">
-        <h2>{value}</h2>
-        <span className={`change-badge ${positive ? "positive" : "negative"}`}>
-          {positive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-          {change}
-        </span>
-      </div>
-
-      <p className="stat-subtitle">
-        {subtitle || "Compared to last month"}
-      </p>
-    </article>
-  );
-}
-
 function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
-  const [expandedMenus, setExpandedMenus] = useState({
+  const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchase History",
   });
-
-  const toggleSubmenu = (label) => {
-    setExpandedMenus((previous) => ({
-      ...previous,
-      [label]: !previous[label],
-    }));
-  };
 
   return (
     <>
       {mobileOpen && (
         <button
-          className="sidebar-overlay"
           type="button"
-          aria-label="Close navigation"
+          className="sidebar-overlay"
           onClick={onClose}
+          aria-label="Close navigation"
         />
       )}
 
       <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
         <div className="sidebar-brand">
-          <div className="brand-symbol">
-            <Zap size={23} fill="currentColor" />
-          </div>
-
+          <div className="brand-symbol">V</div>
           <div className="brand-text">
             <h2>VELTRO</h2>
             <span>BUSINESS SUITE</span>
           </div>
-
-          <button
-            className="mobile-close icon-button"
-            type="button"
-            onClick={onClose}
-            aria-label="Close menu"
-          >
+          <button className="mobile-close icon-button" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
@@ -218,95 +182,71 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
           {navGroups.map((group) => (
             <div className="nav-group" key={group.title}>
               <p className="nav-group-title">{group.title}</p>
-
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isExpandable = Boolean(item.expandable);
-                const isExpanded = Boolean(expandedMenus[item.label]);
-
-                const isChildActive = item.children?.some(
+                const hasChildren = Boolean(item.children);
+                const open = Boolean(expanded[item.label]);
+                const childActive = item.children?.some(
                   (child) => child.label === activePage
                 );
-
-                const active =
-                  activePage === item.label || Boolean(isChildActive);
-
-                if (isExpandable) {
-                  return (
-                    <div className="nav-parent-container" key={item.label}>
-                      <button
-                        type="button"
-                        className={`nav-item nav-parent ${
-                          active ? "active" : ""
-                        }`}
-                        onClick={() => {
-                          toggleSubmenu(item.label);
-
-                          // Point of Sale remains directly accessible.
-                          // Clicking its parent opens POS and toggles its submenu.
-                          if (item.label === "Point of Sale") {
-                            onNavigate("Point of Sale");
-                          }
-                        }}
-                        aria-expanded={isExpanded}
-                        aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
-                      >
-                        <Icon size={19} strokeWidth={1.8} />
-                        <span>{item.label}</span>
-                        <ChevronDown
-                          className={`nav-chevron ${
-                            isExpanded ? "nav-chevron-open" : ""
-                          }`}
-                          size={16}
-                        />
-                      </button>
-
-                      {isExpanded && (
-                        <div className="nav-submenu">
-                          {item.children.map((child) => {
-                            const ChildIcon = child.icon;
-                            const childActive = activePage === child.label;
-
-                            return (
-                              <button
-                                key={child.label}
-                                type="button"
-                                className={`nav-item nav-sub-item ${
-                                  childActive ? "active" : ""
-                                }`}
-                                onClick={() => {
-                                  onNavigate(child.label);
-                                  onClose();
-                                }}
-                              >
-                                <ChevronRight
-                                  className="nav-sub-arrow"
-                                  size={15}
-                                />
-                                <ChildIcon size={17} strokeWidth={1.8} />
-                                <span>{child.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
+                const active = activePage === item.label || childActive;
 
                 return (
-                  <button
-                    key={item.label}
-                    type="button"
-                    className={`nav-item ${active ? "active" : ""}`}
-                    onClick={() => {
-                      onNavigate(item.label);
-                      onClose();
-                    }}
-                  >
-                    <Icon size={19} strokeWidth={1.8} />
-                    <span>{item.label}</span>
-                  </button>
+                  <div key={item.label}>
+                    <button
+                      type="button"
+                      className={`nav-item ${active ? "active" : ""}`}
+                      onClick={() => {
+                        if (hasChildren) {
+                          setExpanded((old) => ({
+                            ...old,
+                            [item.label]: !old[item.label],
+                          }));
+                        }
+                        if (
+                          item.label === "Point of Sale" ||
+                          !hasChildren
+                        ) {
+                          onNavigate(item.label);
+                          onClose();
+                        }
+                      }}
+                    >
+                      <Icon size={19} />
+                      <span>{item.label}</span>
+                      {hasChildren && (
+                        <ChevronDown
+                          className={`nav-chevron ${open ? "nav-chevron-open" : ""}`}
+                          size={16}
+                        />
+                      )}
+                    </button>
+
+                    {hasChildren && open && (
+                      <div className="nav-submenu">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          return (
+                            <button
+                              key={child.label}
+                              type="button"
+                              className={`nav-item nav-sub-item ${
+                                activePage === child.label ? "active" : ""
+                              }`}
+                              onClick={() => {
+                                onNavigate(child.label);
+                                onClose();
+                              }}
+                            >
+                              <ChevronRight size={15} />
+                              <ChildIcon size={17} />
+                              <span>{child.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -314,21 +254,6 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
         </nav>
 
         <div className="sidebar-bottom">
-          <div className="help-card">
-            <div className="help-icon">
-              <CircleHelp size={20} />
-            </div>
-            <strong>Need help?</strong>
-            <p>Find answers and learn how to use VELTRO.</p>
-            <button
-              type="button"
-              onClick={() => alert("Help center coming soon.")}
-            >
-              Help Center
-              <ArrowUpRight size={15} />
-            </button>
-          </div>
-
           <div className="sidebar-footer">
             <span className="online-dot" />
             <span>System operational</span>
@@ -340,21 +265,20 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
   );
 }
 
-function DashboardHeader({
+function Header({
   activePage,
-  search,
-  onSearchChange,
-  onMenuClick,
   sidebarVisible,
   onSidebarToggle,
+  onMenuClick,
+  search,
+  onSearchChange,
 }) {
   const descriptions = {
-    Dashboard: "Here's what's happening with your business today.",
-    "Sales History": "Review your previous sales and invoices.",
-    "Purchase History": "Review your purchase invoices and supplier transactions.",
-    "Point of Sale": "Create and manage your sales invoices.",
+    Dashboard: "Your business performance overview.",
+    "Point of Sale": "Create and manage sales invoices.",
     Products: "Manage your products and inventory.",
-    Purchases: "Manage your incoming stock and purchases.",
+    "Sales History": "Review, print and edit completed sales.",
+    "Purchase History": "Review purchase invoices.",
   };
 
   return (
@@ -364,8 +288,8 @@ function DashboardHeader({
           className="sidebar-toggle icon-button"
           type="button"
           onClick={onSidebarToggle}
-          aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
           title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+          aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
         >
           {sidebarVisible ? (
             <PanelLeftClose size={21} />
@@ -379,7 +303,6 @@ function DashboardHeader({
           type="button"
           onClick={onMenuClick}
           aria-label="Open navigation"
-          title="Open navigation"
         >
           <Menu size={22} />
         </button>
@@ -387,7 +310,7 @@ function DashboardHeader({
         <div>
           <div className="breadcrumb">
             <span>Workspace</span>
-            <span className="breadcrumb-separator">/</span>
+            <span>/</span>
             <span className="breadcrumb-current">{activePage}</span>
           </div>
           <h1>{activePage}</h1>
@@ -402,13 +325,11 @@ function DashboardHeader({
           <Search size={18} />
           <input
             type="search"
-            placeholder="Search anything..."
+            placeholder="Search..."
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
           />
-          <kbd>/</kbd>
         </label>
-
         <button
           className="header-icon-button"
           type="button"
@@ -416,443 +337,872 @@ function DashboardHeader({
           onClick={() => alert("Notifications coming soon.")}
         >
           <Bell size={20} />
-          <span className="notification-dot" />
         </button>
-
-        <div className="header-profile">
-          <div className="profile-avatar">AD</div>
-          <div className="profile-info">
-            <strong>Administrator</strong>
-            <span>Business Owner</span>
-          </div>
-          <ChevronDown size={16} />
-        </div>
       </div>
     </header>
   );
 }
 
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload || !payload.length) return null;
+function InvoicePrint({ invoice, onClose }) {
+  const items = invoice.items || [];
+  const subtotal = invoiceSubtotal(items);
+  const discount = Number(invoice.discount) || 0;
+  const total = invoiceTotal(invoice);
+  const paid = Number(invoice.paid) || 0;
+
+  const print = () => window.print();
 
   return (
-    <div className="chart-tooltip">
-      <p>{label}</p>
-      {payload.map((entry) => (
-        <div className="tooltip-row" key={entry.dataKey}>
-          <span className="tooltip-dot" style={{ background: entry.color }} />
-          <span>{entry.dataKey === "sales" ? "Sales" : "Orders"}</span>
-          <strong>
-            {entry.dataKey === "sales" ? formatMoney(entry.value) : entry.value}
-          </strong>
+    <div className="modal-backdrop invoice-modal-backdrop">
+      <section className="panel invoice-detail-modal">
+        <div className="panel-header no-print">
+          <div>
+            <h3>Invoice {invoice.invoiceNumber || invoice.id}</h3>
+            <p className="panel-description">Completed sale details</p>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Close">
+            <X size={20} />
+          </button>
         </div>
-      ))}
+
+        <div id="invoice-print-area" className="invoice-print-area">
+          <div className="invoice-paper-heading">
+            <div>
+              <h2>VELTRO-PRO</h2>
+              <p>Sales Invoice</p>
+            </div>
+            <div className="invoice-paper-number">
+              <strong>{invoice.invoiceNumber || invoice.id}</strong>
+              <span>{new Date(invoiceDate(invoice)).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="invoice-paper-meta">
+            <div>
+              <span>Customer</span>
+              <strong>{customerName(invoice)}</strong>
+            </div>
+            <div>
+              <span>Employee</span>
+              <strong>{employeeName(invoice) || "Not recorded"}</strong>
+            </div>
+          </div>
+
+          <div className="table-wrapper">
+            <table className="products-table">
+              <thead>
+                <tr>
+                  <th>PRODUCT</th>
+                  <th>QTY</th>
+                  <th>PRICE</th>
+                  <th>DISCOUNT</th>
+                  <th>TOTAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => {
+                  const line = quantity(item) * (Number(item.price) || 0);
+                  const lineDiscount = Number(item.discount) || 0;
+                  return (
+                    <tr key={`${productId(item)}-${index}`}>
+                      <td>{item.name || "Product"}</td>
+                      <td>{quantity(item)}</td>
+                      <td>{money(item.price)}</td>
+                      <td>{money(lineDiscount)}</td>
+                      <td>{money(Math.max(0, line - lineDiscount))}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="invoice-paper-totals">
+            <div><span>Subtotal</span><strong>{money(subtotal)}</strong></div>
+            <div><span>Invoice discount</span><strong>{money(discount)}</strong></div>
+            <div className="invoice-grand-total"><span>Total</span><strong>{money(total)}</strong></div>
+            <div><span>Paid</span><strong>{money(paid)}</strong></div>
+            <div><span>Remaining</span><strong>{money(Math.max(0, total - paid))}</strong></div>
+          </div>
+
+          {invoice.note && <p className="invoice-note">Note: {invoice.note}</p>}
+        </div>
+
+        <div className="panel-actions no-print">
+          <button className="secondary-button" onClick={onClose}>Close</button>
+          <button className="primary-button" onClick={print}>
+            <Printer size={16} /> Print / Reprint Invoice
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
 
-function SalesChart() {
-  const [period, setPeriod] = useState("7 days");
+function PasswordModal({ onCancel, onConfirm }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   return (
-    <section className="panel sales-panel">
-      <div className="panel-header">
-        <div>
-          <div className="panel-title-row">
-            <h3>Sales Overview</h3>
-            <span className="live-indicator"><span />Live overview</span>
-          </div>
-          <p className="panel-description">Monitor your sales performance over time.</p>
-        </div>
-
-        <div className="panel-actions">
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => alert("Export feature coming soon.")}
-          >
-            <Download size={16} />
-            Export
-          </button>
-          <select
-            className="select-control"
-            value={period}
-            onChange={(event) => setPeriod(event.target.value)}
-            aria-label="Sales chart period"
-          >
-            <option>7 days</option>
-            <option>30 days</option>
-            <option>90 days</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="chart-summary">
-        <div>
-          <span className="chart-summary-label">Total revenue</span>
-          <div className="chart-summary-value">{formatMoney(280000)}</div>
-        </div>
-        <div className="chart-summary-change">
-          <ArrowUpRight size={17} />
-          <span>12.8%</span>
-          <small>vs previous period</small>
-        </div>
-      </div>
-
-      <div className="sales-chart">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={salesData} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#36d9c3" stopOpacity={0.28} />
-                <stop offset="100%" stopColor="#36d9c3" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid stroke="#252c3d" strokeDasharray="4 5" vertical={false} />
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#8993a8", fontSize: 12 }} dy={12} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: "#8993a8", fontSize: 11 }} tickFormatter={(value) => `${value / 1000}k`} width={42} />
-            <Tooltip content={<ChartTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="sales"
-              stroke="#36d9c3"
-              strokeWidth={2.5}
-              fill="url(#salesGradient)"
-              activeDot={{ r: 5, stroke: "#080b14", strokeWidth: 2, fill: "#36d9c3" }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="chart-footer">
-        <span><span className="legend-dot" />Sales revenue</span>
-        <span>Sample dashboard data</span>
-      </div>
-    </section>
-  );
-}
-
-function OrdersChart() {
-  return (
-    <section className="panel orders-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Orders Analytics</h3>
-          <p className="panel-description">Orders processed this week.</p>
-        </div>
-        <button className="icon-button" type="button" aria-label="More order chart options">
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
-
-      <div className="orders-total">
-        <strong>1,217</strong>
-        <span className="change-badge positive"><ArrowUpRight size={14} />8.4%</span>
-      </div>
-
-      <div className="orders-chart">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={salesData} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#252c3d" strokeDasharray="4 5" vertical={false} />
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: "#8993a8", fontSize: 11 }} />
-            <Tooltip cursor={{ fill: "rgba(255,255,255,0.035)" }} formatter={(value) => [value, "Orders"]} />
-            <Bar dataKey="orders" fill="#8a79ff" radius={[5, 5, 0, 0]} maxBarSize={28} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="orders-footer">
-        <span><span className="legend-dot violet" />Completed orders</span>
-        <span>Last 7 days</span>
-      </div>
-    </section>
-  );
-}
-
-function ProductsTable({ search, onNavigate }) {
-  const filteredProducts = products.filter((product) => {
-    const query = search.trim().toLowerCase();
-    if (!query) return true;
-    return (
-      product.name.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query) ||
-      product.sku.toLowerCase().includes(query)
-    );
-  });
-
-  return (
-    <section className="panel products-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Top Products</h3>
-          <p className="panel-description">Overview of your current product inventory.</p>
-        </div>
-        <div className="panel-actions">
-          <button className="secondary-button" type="button" onClick={() => alert("Product filters coming soon.")}>
-            <Filter size={16} />Filter
-          </button>
-          <button className="primary-button" type="button" onClick={() => onNavigate("Products")}>
-            <Plus size={17} />Add Product
-          </button>
-        </div>
-      </div>
-
-      <div className="table-wrapper">
-        <table className="products-table">
-          <thead>
-            <tr><th>PRODUCT</th><th>SKU</th><th>CATEGORY</th><th>STOCK</th><th>PRICE</th><th>STATUS</th><th /></tr>
-          </thead>
-          <tbody>
-            {filteredProducts.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  <div className="product-name-cell">
-                    <div className="product-thumbnail"><Package size={19} /></div>
-                    <strong>{product.name}</strong>
-                  </div>
-                </td>
-                <td className="muted-cell">{product.sku}</td>
-                <td>{product.category}</td>
-                <td><span className={product.stock <= 20 ? "stock-warning" : "stock-normal"}>{product.stock}</span></td>
-                <td className="price-cell">{formatMoney(product.price)}</td>
-                <td>
-                  <span className={`status-badge ${product.status === "In Stock" ? "status-success" : product.status === "Low Stock" ? "status-warning" : "status-danger"}`}>
-                    <span />{product.status}
-                  </span>
-                </td>
-                <td>
-                  <button className="icon-button" type="button" aria-label={`Options for ${product.name}`} onClick={() => onNavigate("Products")}>
-                    <MoreHorizontal size={19} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filteredProducts.length === 0 && (
-              <tr><td colSpan={7} className="empty-state">No products match your search.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="table-footer">
-        <span>Showing {filteredProducts.length} of {products.length} products</span>
-        <button className="view-all-button" type="button" onClick={() => onNavigate("Products")}>
-          View all products <ArrowUpRight size={15} />
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function ActivityPanel() {
-  return (
-    <section className="panel activity-panel">
-      <div className="panel-header">
-        <div>
-          <h3>Recent Activity</h3>
-          <p className="panel-description">Latest updates from your business.</p>
-        </div>
-        <button className="icon-button" type="button" aria-label="More activity options">
-          <MoreHorizontal size={20} />
-        </button>
-      </div>
-
-      <div className="activity-list">
-        {activities.map((activity, index) => {
-          const Icon = activity.icon;
-          return (
-            <div className="activity-item" key={activity.title}>
-              <div className={`activity-icon ${activity.color}`}><Icon size={18} /></div>
-              <div className="activity-content">
-                <strong>{activity.title}</strong>
-                <span>{activity.detail}</span>
-              </div>
-              <div className="activity-time"><Clock size={12} /><span>{activity.time}</span></div>
-              {index !== activities.length - 1 && <span className="activity-connector" />}
-            </div>
-          );
-        })}
-      </div>
-
-      <button className="activity-view-all" type="button" onClick={() => alert("Activity history coming soon.")}>
-        View activity history <ArrowUpRight size={15} />
-      </button>
-    </section>
-  );
-}
-
-function Dashboard({ onNavigate }) {
-  const [search, setSearch] = useState("");
-
-  return (
-    <>
-      <div className="welcome-banner">
-        <div className="welcome-content">
-          <div className="welcome-eyebrow"><Zap size={15} />YOUR BUSINESS AT A GLANCE</div>
-          <h2>Welcome back, Administrator 👋</h2>
-          <p>Here's your business performance overview for today.</p>
-          <div className="welcome-date">
-            <CalendarDays size={15} />
-            {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-          </div>
-        </div>
-        <div className="welcome-decoration">
-          <div className="decoration-ring ring-one" />
-          <div className="decoration-ring ring-two" />
-          <div className="decoration-center"><BarChart3 size={42} /></div>
-        </div>
-      </div>
-
-      <div className="section-heading">
-        <div><h2>Business Overview</h2><p>Your key business metrics at a glance.</p></div>
-        <button className="secondary-button" type="button" onClick={() => alert("Date range selection coming soon.")}>
-          <CalendarDays size={16} />Today<ChevronDown size={15} />
-        </button>
-      </div>
-
-      <div className="stats-grid">
-        <StatCard title="Total Revenue" value={formatMoney(284500)} change="12.8%" positive icon={Wallet} accent="cyan" />
-        <StatCard title="Total Orders" value="1,284" change="8.4%" positive icon={ShoppingCart} accent="violet" />
-        <StatCard title="Total Products" value="856" change="4.2%" positive icon={Package} accent="blue" />
-        <StatCard title="Net Profit" value={formatMoney(82400)} change="2.1%" positive={false} icon={BarChart3} accent="orange" />
-      </div>
-
-      <div className="charts-grid"><SalesChart /><OrdersChart /></div>
-
-      <div className="bottom-grid">
-        <ProductsTable search={search} onNavigate={onNavigate} />
-        <ActivityPanel />
-      </div>
-
-      <div className="dashboard-search-footer">
-        <Search size={16} />
-        <input
-          type="search"
-          placeholder="Search products by name, category or SKU..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </div>
-    </>
-  );
-}
-
-function HistoryPage({ type }) {
-  const isPurchase = type === "purchase";
-  const title = isPurchase ? "Purchase History" : "Sales History";
-  const description = isPurchase
-    ? "Track purchase invoices and supplier transactions."
-    : "Review completed sales and customer invoices.";
-
-  const [search, setSearch] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-
-  // Invoice records will be connected to the actual invoice store in a later stage.
-  const invoices = [];
-
-  const filteredInvoices = invoices.filter((invoice) => {
-    const query = search.trim().toLowerCase();
-    const matchesSearch =
-      !query ||
-      String(invoice.number || "").toLowerCase().includes(query) ||
-      String(invoice.name || "").toLowerCase().includes(query);
-
-    const matchesDate =
-      dateFilter === "all" ||
-      (dateFilter === "today" &&
-        invoice.date &&
-        new Date(invoice.date).toDateString() === new Date().toDateString());
-
-    return matchesSearch && matchesDate;
-  });
-
-  return (
-    <div className="history-page">
-      <div className="section-heading">
-        <div><h2>{title}</h2><p>{description}</p></div>
-        <button className="secondary-button" type="button" onClick={() => { setSearch(""); setDateFilter("all"); }}>
-          <RefreshCw size={16} />Reset filters
-        </button>
-      </div>
-
-      <div className="stats-grid">
-        <StatCard title={isPurchase ? "Total Purchases" : "Total Sales"} value="0 DA" change="0%" positive icon={Wallet} accent="cyan" subtitle="No connected invoice records yet" />
-        <StatCard title="Invoices" value="0" change="0%" positive icon={FileText} accent="violet" subtitle="Saved invoices" />
-        <StatCard title={isPurchase ? "Suppliers" : "Customers"} value="0" change="0%" positive icon={isPurchase ? Truck : Users} accent="blue" subtitle="Based on invoice records" />
-        <StatCard title="Pending" value="0" change="0%" positive icon={Clock} accent="orange" subtitle="Invoices requiring attention" />
-      </div>
-
-      <section className="panel products-panel">
+    <div className="modal-backdrop">
+      <section className="panel small-modal">
         <div className="panel-header">
           <div>
-            <h3>{isPurchase ? "Purchase Invoices" : "Sales Invoices"}</h3>
-            <p className="panel-description">Search and review your invoice records.</p>
+            <h3>Manager authorization</h3>
+            <p className="panel-description">
+              Enter the manager password to edit this completed invoice.
+            </p>
           </div>
-          <div className="panel-actions">
-            <button className="secondary-button" type="button" onClick={() => alert("Export will be available after invoice data is connected.")}>
-              <Download size={16} />Export
-            </button>
-          </div>
+          <LockKeyhole size={22} />
         </div>
 
-        <div className="history-filters">
-          <label className="search-box">
-            <Search size={17} />
-            <input type="search" placeholder="Search invoice or name..." value={search} onChange={(event) => setSearch(event.target.value)} />
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (password !== "1234") {
+              setError("Incorrect password.");
+              return;
+            }
+            onConfirm();
+          }}
+        >
+          <label className="modal-field">
+            <span>Manager password</span>
+            <input
+              type="password"
+              autoFocus
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError("");
+              }}
+              placeholder="Enter password"
+            />
           </label>
-          <label className="history-date-filter">
-            <Calendar size={17} />
-            <select className="select-control" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} aria-label="Filter invoices by date">
-              <option value="all">All dates</option>
-              <option value="today">Today</option>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <div className="panel-actions">
+            <button className="secondary-button" type="button" onClick={onCancel}>
+              Cancel
+            </button>
+            <button className="primary-button" type="submit">
+              <LockKeyhole size={16} /> Authorize
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function EditInvoiceModal({ invoice, onCancel, onSave }) {
+  const [draft, setDraft] = useState(() => ({
+    ...invoice,
+    items: (invoice.items || []).map((item) => ({ ...item })),
+  }));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const inventory = getProducts();
+  const subtotal = invoiceSubtotal(draft.items);
+  const total = invoiceTotal(draft);
+  const paid = Number(draft.paid) || 0;
+
+  const updateField = (field, value) => {
+    setDraft((old) => ({ ...old, [field]: value }));
+  };
+
+  const updateItem = (index, field, value) => {
+    setDraft((old) => ({
+      ...old,
+      items: old.items.map((item, itemIndex) => {
+        if (index !== itemIndex) return item;
+        const numeric = Number(value);
+        return {
+          ...item,
+          [field]: field === "qty" || field === "quantity"
+            ? Math.max(1, Math.floor(numeric || 1))
+            : Math.max(0, numeric || 0),
+          ...(field === "qty" ? { quantity: Math.max(1, Math.floor(numeric || 1)) } : {}),
+          ...(field === "quantity" ? { qty: Math.max(1, Math.floor(numeric || 1)) } : {}),
+        };
+      }),
+    }));
+  };
+
+  const removeItem = (index) => {
+    setDraft((old) => ({
+      ...old,
+      items: old.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  };
+
+  const addProduct = (id) => {
+    if (!id) return;
+    const product = inventory.find((item) => String(item.id) === String(id));
+    if (!product) return;
+
+    const existing = draft.items.find(
+      (item) => productId(item) === String(product.id) && !item.isCartonLine
+    );
+
+    if (existing) {
+      setDraft((old) => ({
+        ...old,
+        items: old.items.map((item) =>
+          item === existing
+            ? { ...item, qty: quantity(item) + 1, quantity: quantity(item) + 1 }
+            : item
+        ),
+      }));
+    } else {
+      setDraft((old) => ({
+        ...old,
+        items: [
+          ...old.items,
+          {
+            ...product,
+            id: String(product.id),
+            productId: String(product.id),
+            qty: 1,
+            quantity: 1,
+            price: Math.max(0, Number(product.price) || 0),
+            discount: 0,
+          },
+        ],
+      }));
+    }
+  };
+
+  const save = () => {
+    if (!draft.items.length) {
+      setError("An invoice must contain at least one product.");
+      return;
+    }
+
+    if (paid > total) {
+      setError("The paid amount cannot exceed the invoice total.");
+      return;
+    }
+
+    setSaving(true);
+    setError("");
+
+    const result = onSave({
+      ...draft,
+      subtotal,
+      total,
+      paid,
+      remaining: Math.max(0, total - paid),
+    });
+
+    setSaving(false);
+
+    if (!result?.ok) {
+      const messages = {
+        EMPTY_INVOICE: "An invoice must contain products.",
+        PRODUCT_NOT_FOUND: "A product in this invoice no longer exists.",
+        INSUFFICIENT_STOCK: `${result.productName || "Product"}: requested ${result.requested}, available ${result.available}.`,
+        STOCK_SAVE_FAILED: "Could not update inventory. No edit was saved.",
+        SALE_SAVE_FAILED: "Could not save the edited invoice. Inventory rollback was attempted.",
+        INVOICE_NOT_FOUND: "This invoice could not be found.",
+      };
+      setError(messages[result?.error] || "The invoice could not be saved.");
+    }
+  };
+
+  return (
+    <div className="modal-backdrop">
+      <section className="panel edit-invoice-modal">
+        <div className="panel-header">
+          <div>
+            <h3>Edit {invoice.invoiceNumber}</h3>
+            <p className="panel-description">
+              Inventory will be adjusted when the edit is saved.
+            </p>
+          </div>
+          <button className="icon-button" onClick={onCancel} aria-label="Close">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="edit-invoice-fields">
+          <label className="modal-field">
+            <span>Customer name</span>
+            <input
+              value={draft.customerName || ""}
+              onChange={(event) => updateField("customerName", event.target.value)}
+            />
+          </label>
+
+          <label className="modal-field">
+            <span>Amount paid (DA)</span>
+            <input
+              type="number"
+              min="0"
+              value={draft.paid ?? 0}
+              onChange={(event) => updateField("paid", Number(event.target.value))}
+            />
+          </label>
+
+          <label className="modal-field">
+            <span>Invoice discount (DA)</span>
+            <input
+              type="number"
+              min="0"
+              value={draft.discount ?? 0}
+              onChange={(event) => updateField("discount", Number(event.target.value))}
+            />
+          </label>
+        </div>
+
+        <div className="edit-products-heading">
+          <h4>Invoice items</h4>
+          <label className="add-product-select">
+            <Plus size={16} />
+            <select defaultValue="" onChange={(event) => {
+              addProduct(event.target.value);
+              event.target.value = "";
+            }}>
+              <option value="">Add product...</option>
+              {inventory.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
             </select>
           </label>
         </div>
 
         <div className="table-wrapper">
           <table className="products-table">
-            <thead><tr><th>INVOICE</th><th>{isPurchase ? "SUPPLIER" : "CUSTOMER"}</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th><th /></tr></thead>
+            <thead>
+              <tr>
+                <th>PRODUCT</th>
+                <th>QTY</th>
+                <th>PRICE</th>
+                <th>LINE DISCOUNT</th>
+                <th />
+              </tr>
+            </thead>
             <tbody>
-              {filteredInvoices.length === 0 ? (
+              {draft.items.map((item, index) => (
+                <tr key={`${productId(item)}-${index}`}>
+                  <td>{item.name || "Product"}</td>
+                  <td>
+                    <input
+                      className="edit-number-input"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={quantity(item)}
+                      onChange={(event) => updateItem(index, "qty", event.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="edit-number-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={Number(item.price) || 0}
+                      onChange={(event) => updateItem(index, "price", event.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      className="edit-number-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={Number(item.discount) || 0}
+                      onChange={(event) => updateItem(index, "discount", event.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="icon-button danger-icon"
+                      type="button"
+                      onClick={() => removeItem(index)}
+                      aria-label={`Remove ${item.name}`}
+                    >
+                      <Trash2 size={17} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {draft.items.length === 0 && (
+                <tr><td colSpan={5} className="empty-state">No products in this invoice.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="edit-totals">
+          <div><span>Subtotal</span><strong>{money(subtotal)}</strong></div>
+          <div><span>Invoice discount</span><strong>{money(draft.discount)}</strong></div>
+          <div><span>Total</span><strong>{money(total)}</strong></div>
+          <div><span>Remaining</span><strong>{money(Math.max(0, total - paid))}</strong></div>
+        </div>
+
+        {error && <p className="form-error">{error}</p>}
+
+        <div className="panel-actions">
+          <button className="secondary-button" type="button" onClick={onCancel}>
+            Cancel
+          </button>
+          <button className="primary-button" type="button" disabled={saving} onClick={save}>
+            <Save size={16} /> {saving ? "Saving..." : "Save invoice changes"}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function HistoryPage() {
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [customerFilter, setCustomerFilter] = useState("");
+  const [employeeFilter, setEmployeeFilter] = useState("");
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [passwordInvoice, setPasswordInvoice] = useState(null);
+  const [editingInvoice, setEditingInvoice] = useState(null);
+  const [notice, setNotice] = useState("");
+
+  const invoices = useMemo(
+    () => getCompletedSales().slice().sort(
+      (a, b) => new Date(invoiceDate(b)).getTime() - new Date(invoiceDate(a)).getTime()
+    ),
+    [refreshKey]
+  );
+
+  const customers = useMemo(
+    () => [...new Set(invoices.map((invoice) => invoice.customerName).filter(Boolean))].sort(),
+    [invoices]
+  );
+
+  const employees = useMemo(
+    () => [...new Set(invoices.map(employeeName).filter(Boolean))].sort(),
+    [invoices]
+  );
+
+  const filteredInvoices = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return invoices.filter((invoice) => {
+      const dateValue = invoiceDate(invoice);
+      const date = dateValue ? new Date(dateValue) : null;
+
+      const matchesSearch =
+        !query ||
+        String(invoice.invoiceNumber || "").toLowerCase().includes(query) ||
+        String(invoice.id || "").toLowerCase().includes(query) ||
+        String(invoice.customerName || "").toLowerCase().includes(query) ||
+        String(employeeName(invoice)).toLowerCase().includes(query);
+
+      const validDate = date && !Number.isNaN(date.getTime());
+      const dateOnly = validDate
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+        : "";
+
+      const timeOnly = validDate
+        ? `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+        : "";
+
+      const matchesStartDate = !startDate || (dateOnly && dateOnly >= startDate);
+      const matchesEndDate = !endDate || (dateOnly && dateOnly <= endDate);
+      const matchesStartTime = !startTime || (timeOnly && timeOnly >= startTime);
+      const matchesEndTime = !endTime || (timeOnly && timeOnly <= endTime);
+      const matchesCustomer =
+        !customerFilter || (invoice.customerName || "") === customerFilter;
+      const matchesEmployee =
+        !employeeFilter || employeeName(invoice) === employeeFilter;
+
+      return (
+        matchesSearch &&
+        matchesStartDate &&
+        matchesEndDate &&
+        matchesStartTime &&
+        matchesEndTime &&
+        matchesCustomer &&
+        matchesEmployee
+      );
+    });
+  }, [
+    invoices,
+    search,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    customerFilter,
+    employeeFilter,
+  ]);
+
+  const totalSales = filteredInvoices.reduce(
+    (sum, invoice) => sum + Number(invoice.total ?? invoiceTotal(invoice)),
+    0
+  );
+
+  const resetFilters = () => {
+    setSearch("");
+    setStartDate("");
+    setEndDate("");
+    setStartTime("");
+    setEndTime("");
+    setCustomerFilter("");
+    setEmployeeFilter("");
+  };
+
+  const exportCsv = () => {
+    const rows = [
+      ["Invoice", "Customer", "Employee", "Date", "Time", "Total DA", "Paid DA", "Remaining DA"],
+      ...filteredInvoices.map((invoice) => {
+        const date = new Date(invoiceDate(invoice));
+        const total = Number(invoice.total ?? invoiceTotal(invoice));
+        const paid = Number(invoice.paid) || 0;
+        return [
+          invoice.invoiceNumber || invoice.id,
+          customerName(invoice),
+          employeeName(invoice) || "Not recorded",
+          Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString(),
+          Number.isNaN(date.getTime()) ? "" : date.toLocaleTimeString(),
+          total,
+          paid,
+          Math.max(0, total - paid),
+        ];
+      }),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\r\n");
+
+    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "veltro-sales-history.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const saveEdit = (draft) => {
+    const result = editCompletedSale(
+      editingInvoice.id || editingInvoice.invoiceId || editingInvoice.invoiceNumber,
+      draft
+    );
+
+    if (result?.ok) {
+      setEditingInvoice(null);
+      setPasswordInvoice(null);
+      setSelectedInvoice(result.sale);
+      setRefreshKey((key) => key + 1);
+      setNotice("Invoice updated and inventory adjusted successfully.");
+    }
+
+    return result;
+  };
+
+  return (
+    <div className="history-page">
+      <div className="section-heading">
+        <div>
+          <h2>Sales History</h2>
+          <p>Search completed invoices, inspect details, print or edit a sale.</p>
+        </div>
+        <div className="panel-actions">
+          <button className="secondary-button" type="button" onClick={exportCsv}>
+            <Download size={16} /> Export CSV
+          </button>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => setRefreshKey((key) => key + 1)}
+          >
+            <RefreshCw size={16} /> Refresh
+          </button>
+        </div>
+      </div>
+
+      {notice && (
+        <div className="pos-message pos-message-success" role="status">
+          <span>{notice}</span>
+          <button type="button" onClick={() => setNotice("")} aria-label="Dismiss">×</button>
+        </div>
+      )}
+
+      <div className="stats-grid">
+        <StatCard
+          title="Total Sales"
+          value={money(totalSales)}
+          icon={Wallet}
+          subtitle="Based on filtered invoices"
+        />
+        <StatCard
+          title="Invoices"
+          value={String(filteredInvoices.length)}
+          icon={FileText}
+          subtitle="Completed sales"
+        />
+        <StatCard
+          title="Customers"
+          value={String(new Set(filteredInvoices.map((invoice) => invoice.customerName || "")).size)}
+          icon={Users}
+          subtitle="In the current results"
+        />
+        <StatCard
+          title="Unpaid Balance"
+          value={money(filteredInvoices.reduce(
+            (sum, invoice) => sum + Math.max(
+              0,
+              Number(invoice.total ?? invoiceTotal(invoice)) - (Number(invoice.paid) || 0)
+            ),
+            0
+          ))}
+          icon={Clock}
+          subtitle="Remaining invoice balances"
+        />
+      </div>
+
+      <section className="panel products-panel">
+        <div className="panel-header">
+          <div>
+            <h3>Filter invoices</h3>
+            <p className="panel-description">
+              Select a date range, time range, customer or employee.
+            </p>
+          </div>
+          <button className="secondary-button" type="button" onClick={resetFilters}>
+            <RefreshCw size={16} /> Reset filters
+          </button>
+        </div>
+
+        <div className="history-filters history-filters-extended">
+          <label className="search-box history-search">
+            <Search size={17} />
+            <input
+              type="search"
+              placeholder="Invoice number, customer or employee..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+
+          <label className="history-filter-field">
+            <span><Calendar size={15} /> Start date</span>
+            <input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} />
+          </label>
+
+          <label className="history-filter-field">
+            <span><Calendar size={15} /> End date</span>
+            <input type="date" value={endDate} onChange={(event) => setEndDate(event.target.value)} />
+          </label>
+
+          <label className="history-filter-field">
+            <span><Clock size={15} /> Start time</span>
+            <input type="time" value={startTime} onChange={(event) => setStartTime(event.target.value)} />
+          </label>
+
+          <label className="history-filter-field">
+            <span><Clock size={15} /> End time</span>
+            <input type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} />
+          </label>
+
+          <label className="history-filter-field">
+            <span><Users size={15} /> Customer</span>
+            <select value={customerFilter} onChange={(event) => setCustomerFilter(event.target.value)}>
+              <option value="">All customers</option>
+              {customers.map((customer) => (
+                <option key={customer} value={customer}>{customer}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="history-filter-field">
+            <span><Users size={15} /> Employee</span>
+            <select value={employeeFilter} onChange={(event) => setEmployeeFilter(event.target.value)}>
+              <option value="">All employees</option>
+              {employees.map((employee) => (
+                <option key={employee} value={employee}>{employee}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="products-table">
+            <thead>
+              <tr>
+                <th>INVOICE</th>
+                <th>CUSTOMER</th>
+                <th>EMPLOYEE</th>
+                <th>DATE & TIME</th>
+                <th>TOTAL</th>
+                <th>PAID</th>
+                <th>REMAINING</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInvoices.map((invoice, index) => {
+                const date = new Date(invoiceDate(invoice));
+                const total = Number(invoice.total ?? invoiceTotal(invoice));
+                const paid = Number(invoice.paid) || 0;
+
+                return (
+                  <tr key={invoice.id || invoice.invoiceId || invoice.invoiceNumber || index}>
+                    <td>
+                      <strong>{invoice.invoiceNumber || invoice.id || "Invoice"}</strong>
+                    </td>
+                    <td>{customerName(invoice)}</td>
+                    <td>{employeeName(invoice) || "Not recorded"}</td>
+                    <td>
+                      {Number.isNaN(date.getTime())
+                        ? "—"
+                        : <>
+                            <div>{date.toLocaleDateString()}</div>
+                            <small>{date.toLocaleTimeString()}</small>
+                          </>}
+                    </td>
+                    <td className="price-cell">{money(total)}</td>
+                    <td>{money(paid)}</td>
+                    <td>{money(Math.max(0, total - paid))}</td>
+                    <td>
+                      <div className="history-row-actions">
+                        <button
+                          className="icon-button"
+                          type="button"
+                          title="View invoice"
+                          aria-label="View invoice"
+                          onClick={() => setSelectedInvoice(invoice)}
+                        >
+                          <Eye size={17} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          type="button"
+                          title="Print or reprint invoice"
+                          aria-label="Print invoice"
+                          onClick={() => {
+                            setSelectedInvoice(invoice);
+                            setTimeout(() => window.print(), 100);
+                          }}
+                        >
+                          <Printer size={17} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          type="button"
+                          title="Edit invoice"
+                          aria-label="Edit invoice"
+                          onClick={() => setPasswordInvoice(invoice)}
+                        >
+                          <Pencil size={17} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {filteredInvoices.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="empty-state">
+                  <td colSpan={8} className="empty-state">
                     <div className="history-empty">
-                      <div className="placeholder-icon">{isPurchase ? <ReceiptText size={30} /> : <History size={30} />}</div>
-                      <strong>{search ? "No matching invoices" : "No invoices available"}</strong>
+                      <div className="placeholder-icon"><History size={30} /></div>
+                      <strong>{invoices.length ? "No matching invoices" : "No completed sales yet"}</strong>
                       <p>
-                        {search
-                          ? "Try another search term or change the date filter."
-                          : "Invoice records will appear here once the invoice data source is connected."}
+                        {invoices.length
+                          ? "Try changing your filters."
+                          : "Completed invoices from Point of Sale will appear here."}
                       </p>
                     </div>
                   </td>
                 </tr>
-              ) : (
-                filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>{invoice.number}</td>
-                    <td>{invoice.name}</td>
-                    <td>{invoice.date}</td>
-                    <td className="price-cell">{formatMoney(invoice.total)}</td>
-                    <td><span className="status-badge status-success"><span />{invoice.status || "Completed"}</span></td>
-                    <td>
-                      <button className="icon-button" type="button" aria-label="Invoice options" onClick={() => alert("Invoice details will be available after data integration.")}>
-                        <MoreHorizontal size={19} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
               )}
             </tbody>
           </table>
         </div>
 
         <div className="table-footer">
-          <span>{filteredInvoices.length} invoices</span>
-          <span className="muted-cell">Invoice data connection pending</span>
+          <span>Showing {filteredInvoices.length} of {invoices.length} invoices</span>
+          <span className="muted-cell">Sales History</span>
         </div>
       </section>
+
+      {selectedInvoice && (
+        <InvoicePrint
+          invoice={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+        />
+      )}
+
+      {passwordInvoice && (
+        <PasswordModal
+          onCancel={() => setPasswordInvoice(null)}
+          onConfirm={() => {
+            setEditingInvoice(passwordInvoice);
+            setPasswordInvoice(null);
+          }}
+        />
+      )}
+
+      {editingInvoice && (
+        <EditInvoiceModal
+          invoice={editingInvoice}
+          onCancel={() => setEditingInvoice(null)}
+          onSave={saveEdit}
+        />
+      )}
     </div>
+  );
+}
+
+function PurchaseHistory() {
+  return (
+    <section className="panel placeholder-panel">
+      <div className="placeholder-icon"><ReceiptText size={34} /></div>
+      <h2>Purchase History</h2>
+      <p>Purchase invoice integration will be developed with the purchasing module.</p>
+    </section>
+  );
+}
+
+function Dashboard({ onNavigate }) {
+  return (
+    <>
+      <div className="welcome-banner">
+        <div className="welcome-content">
+          <div className="welcome-eyebrow">YOUR BUSINESS AT A GLANCE</div>
+          <h2>Welcome back, Administrator</h2>
+          <p>Manage your sales and inventory from one place.</p>
+          <div className="welcome-date">{new Date().toLocaleDateString()}</div>
+        </div>
+      </div>
+
+      <div className="section-heading">
+        <div><h2>Quick access</h2><p>Continue working in VELTRO-PRO.</p></div>
+      </div>
+
+      <div className="stats-grid">
+        <button className="panel quick-access-card" onClick={() => onNavigate("Point of Sale")}>
+          <ShoppingCart size={25} /><strong>Point of Sale</strong><span>Create a new sale</span>
+        </button>
+        <button className="panel quick-access-card" onClick={() => onNavigate("Sales History")}>
+          <History size={25} /><strong>Sales History</strong><span>Review completed invoices</span>
+        </button>
+        <button className="panel quick-access-card" onClick={() => onNavigate("Products")}>
+          <Package size={25} /><strong>Products</strong><span>Manage inventory</span>
+        </button>
+      </div>
+    </>
   );
 }
 
@@ -867,18 +1217,13 @@ function PlaceholderPage({ title }) {
     Reports: BarChart3,
     Settings,
   };
-
   const Icon = icons[title] || LayoutDashboard;
 
   return (
     <section className="panel placeholder-panel">
       <div className="placeholder-icon"><Icon size={34} /></div>
       <h2>{title}</h2>
-      <p>
-        This module is part of the VELTRO-PRO roadmap.
-        Its functionality will be developed in the next stages.
-      </p>
-      <div className="placeholder-status"><CheckCircle2 size={17} />Module planned</div>
+      <p>This module will be developed in a future VELTRO-PRO update.</p>
     </section>
   );
 }
@@ -889,12 +1234,12 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
-  const handleSidebarToggle = () => {
+  const toggleSidebar = () => {
     if (window.innerWidth <= 620) {
-      setMobileOpen((previous) => !previous);
-      return;
+      setMobileOpen((old) => !old);
+    } else {
+      setSidebarVisible((old) => !old);
     }
-    setSidebarVisible((previous) => !previous);
   };
 
   return (
@@ -912,13 +1257,13 @@ export default function App() {
         className="main-content"
         style={!sidebarVisible ? { marginLeft: 0, width: "100%" } : undefined}
       >
-        <DashboardHeader
+        <Header
           activePage={activePage}
+          sidebarVisible={sidebarVisible}
+          onSidebarToggle={toggleSidebar}
+          onMenuClick={() => setMobileOpen(true)}
           search={search}
           onSearchChange={setSearch}
-          onMenuClick={() => setMobileOpen(true)}
-          sidebarVisible={sidebarVisible}
-          onSidebarToggle={handleSidebarToggle}
         />
 
         <div className="page-content">
@@ -929,9 +1274,9 @@ export default function App() {
           ) : activePage === "Products" ? (
             <Products />
           ) : activePage === "Sales History" ? (
-            <HistoryPage type="sales" />
+            <HistoryPage />
           ) : activePage === "Purchase History" ? (
-            <HistoryPage type="purchase" />
+            <PurchaseHistory />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
