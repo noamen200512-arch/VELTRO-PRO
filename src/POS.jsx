@@ -222,7 +222,7 @@ export default function POS() {
         status: "Pending",
       });
 
-      if (!result.ok) {
+      if (!result?.ok) {
         notify(getErrorMessage(result), "error");
         return false;
       }
@@ -247,23 +247,23 @@ export default function POS() {
     ]
   );
 
+  // New Invoice:
+  // Save a non-empty invoice before starting a new one.
+  // An empty invoice can be replaced immediately.
   const createNewInvoice = () => {
     if (busy) return;
 
     setShowPending(false);
+    setShowEmptyWarning(false);
 
-    if (items.length === 0) {
-      setShowEmptyWarning(true);
-      return;
-    }
-
-    if (invoice.status !== "Pending") {
-      if (!saveCurrentAsPending(true)) return;
+    if (items.length > 0) {
+      if (!saveCurrentAsPending(true)) {
+        return;
+      }
     }
 
     setInvoice(createInvoice());
     setRemovedItem(null);
-    setShowEmptyWarning(false);
     notify("A new invoice is ready.", "success");
   };
 
@@ -616,19 +616,15 @@ export default function POS() {
       return;
     }
 
+    // Save the current non-empty invoice first, unless it is
+    // the same invoice we are reopening.
     if (items.length > 0 && invoice.id !== pending.id) {
-      if (invoice.status !== "Pending" && !saveCurrentAsPending(true)) {
+      if (!saveCurrentAsPending(true)) {
         return;
       }
-    } else if (items.length === 0 && invoice.id !== pending.id) {
-      setShowEmptyWarning(true);
-      notify(
-        "Close the empty invoice before opening another invoice.",
-        "error"
-      );
-      return;
     }
 
+    // Empty invoices no longer block opening a saved invoice.
     setInvoice({
       ...pending,
       status: "Draft",
@@ -638,6 +634,7 @@ export default function POS() {
     setRemovedItem(null);
     setShowPending(false);
     setShowEmptyWarning(false);
+    setMessage("");
     notify(`Opened ${pending.invoiceNumber}.`, "success");
   };
 
