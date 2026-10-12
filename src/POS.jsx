@@ -23,10 +23,10 @@ function money(value) {
 }
 
 function getQuantity(item) {
-  return money(item.qty ?? item.quantity);
+  return Math.max(0, Number(item.qty ?? item.quantity) || 0);
 }
 
-function calculateSubtotal(items) {
+function calculateSubtotal(items = []) {
   return items.reduce((sum, item) => {
     const lineTotal = getQuantity(item) * money(item.price);
     const itemDiscount = Math.min(lineTotal, money(item.discount));
@@ -55,8 +55,7 @@ function mergeItems(currentItems, product, quantity = 1) {
   const productId = normalized.productId;
 
   const index = currentItems.findIndex(
-    (item) =>
-      String(item.productId ?? item.id) === productId
+    (item) => String(item.productId ?? item.id) === productId
   );
 
   if (index === -1) {
@@ -130,6 +129,7 @@ export default function POS() {
     refreshPending();
 
     const refresh = () => refreshPending();
+
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", refresh);
 
@@ -155,7 +155,9 @@ export default function POS() {
   const saveCurrentAsPending = useCallback(
     (silent = false) => {
       if (items.length === 0) {
-        if (!silent) notify("An empty invoice cannot be saved as pending.", "error");
+        if (!silent) {
+          notify("An empty invoice cannot be saved as pending.", "error");
+        }
         return false;
       }
 
@@ -176,7 +178,9 @@ export default function POS() {
       setInvoice(result.invoice);
       refreshPending();
 
-      if (!silent) notify("Invoice saved to Pending Invoices.", "success");
+      if (!silent) {
+        notify("Invoice saved to Pending Invoices.", "success");
+      }
 
       return true;
     },
@@ -213,6 +217,7 @@ export default function POS() {
 
   const addProduct = (product) => {
     const productId = String(product.productId ?? product.id ?? "");
+
     const inventoryProduct = getProducts().find(
       (item) => String(item.id) === productId
     );
@@ -223,6 +228,7 @@ export default function POS() {
     }
 
     const quantityToAdd = Math.max(0.01, Number(product.quantity) || 1);
+
     const currentQuantity = items.reduce((sum, item) => {
       return String(item.productId ?? item.id) === productId
         ? sum + getQuantity(item)
@@ -231,7 +237,6 @@ export default function POS() {
 
     const stock = money(inventoryProduct.stock);
 
-    // Exclude the current invoice's own reservation while editing it.
     const othersReserved = pendingInvoices
       .filter((pending) => pending.id !== invoice.id)
       .reduce((sum, pending) => {
@@ -252,12 +257,11 @@ export default function POS() {
       return;
     }
 
-    const nextItems = mergeItems(items, inventoryProduct, quantityToAdd);
-
     updateInvoice({
-      items: nextItems,
+      items: mergeItems(items, inventoryProduct, quantityToAdd),
       status: "Draft",
     });
+
     setShowProducts(true);
     setShowEmptyWarning(false);
     setMessage("");
@@ -305,7 +309,9 @@ export default function POS() {
       updatedAt: new Date().toISOString(),
     }));
 
-    if (removed) notify(`${removed.name} removed from this invoice.`, "info");
+    if (removed) {
+      notify(`${removed.name} removed from this invoice.`, "info");
+    }
   };
 
   const chooseCustomer = () => {
@@ -337,7 +343,6 @@ export default function POS() {
       return;
     }
 
-    // Opening a pending invoice does not delete its saved record.
     setInvoice({
       ...pending,
       status: "Draft",
@@ -358,7 +363,10 @@ export default function POS() {
     }
 
     if (paid > total) {
-      notify("The amount paid cannot exceed the invoice total in this version.", "error");
+      notify(
+        "The amount paid cannot exceed the invoice total in this version.",
+        "error"
+      );
       return;
     }
 
@@ -418,13 +426,23 @@ export default function POS() {
         onPrint={printInvoice}
         onCustomer={chooseCustomer}
         onPending={() => setShowPending((current) => !current)}
+        pendingCount={pendingInvoices.length}
+        showPending={showPending}
+        disabled={busy}
       />
 
       {message && (
-        <div className={`pos-message pos-message-${messageType}`} role="status">
+        <div
+          className={`pos-message pos-message-${messageType}`}
+          role="status"
+        >
           <span>{message}</span>
-          <button type="button" onClick={() => setMessage("")} aria-label="Dismiss">
-            <XIcon />
+          <button
+            type="button"
+            onClick={() => setMessage("")}
+            aria-label="Dismiss"
+          >
+            ×
           </button>
         </div>
       )}
@@ -433,12 +451,19 @@ export default function POS() {
         <div className="pos-empty-warning" role="alert">
           <div>
             <strong>Current invoice is empty</strong>
-            <p>Close this empty invoice before opening a new or pending invoice.</p>
+            <p>
+              Close this empty invoice before opening a new or pending invoice.
+            </p>
           </div>
+
           <button type="button" onClick={closeEmptyAndCreate}>
             Close Empty Invoice
           </button>
-          <button type="button" onClick={() => setShowEmptyWarning(false)}>
+
+          <button
+            type="button"
+            onClick={() => setShowEmptyWarning(false)}
+          >
             Cancel
           </button>
         </div>
@@ -451,7 +476,11 @@ export default function POS() {
               <h2>Pending Invoices</h2>
               <p>{pendingInvoices.length} saved invoice(s)</p>
             </div>
-            <button type="button" onClick={() => setShowPending(false)}>
+
+            <button
+              type="button"
+              onClick={() => setShowPending(false)}
+            >
               Close
             </button>
           </div>
@@ -469,14 +498,22 @@ export default function POS() {
                 >
                   <span>
                     <strong>{pending.invoiceNumber}</strong>
-                    <small>{pending.customerName || "Walk-in customer"}</small>
+                    <small>
+                      {pending.customerName || "Walk-in customer"}
+                    </small>
                   </span>
+
                   <span>
                     <strong>
-                      {money(pending.total ?? calculateSubtotal(pending.items || [])).toLocaleString()} DA
+                      {money(
+                        pending.total ??
+                        calculateSubtotal(pending.items || [])
+                      ).toLocaleString()} DA
                     </strong>
                     <small>
-                      {new Date(pending.updatedAt || pending.createdAt).toLocaleString()}
+                      {new Date(
+                        pending.updatedAt || pending.createdAt
+                      ).toLocaleString()}
                     </small>
                   </span>
                 </button>
@@ -491,15 +528,21 @@ export default function POS() {
           invoiceNumber={invoice.invoiceNumber}
           customer={customer}
           onCustomerChange={(value) =>
-            updateInvoice({ customerName: value, customerId: value })
+            updateInvoice({
+              customerName: value,
+              customerId: value,
+            })
           }
           paid={paid}
-          onPaidChange={(value) => updateInvoice({ paid: money(value) })}
+          onPaidChange={(value) =>
+            updateInvoice({ paid: money(value) })
+          }
           remaining={remaining}
           newAmount={total}
           invoiceDate={invoice.createdAt}
           currentUser={
-            localStorage.getItem("veltro_current_user") || "Administrator"
+            localStorage.getItem("veltro_current_user") ||
+            "Administrator"
           }
           previousDebt={0}
         />
@@ -535,8 +578,4 @@ export default function POS() {
       </div>
     </div>
   );
-}
-
-function XIcon() {
-  return <span aria-hidden="true">×</span>;
 }
