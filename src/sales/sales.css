@@ -959,7 +959,7 @@
 }
 
 .invoice-table th {
-  padding: 13px 12px;
+  padding: 8px 6px;
   border-bottom: 1px solid var(--pos-border);
   color: var(--pos-muted);
   font-size: 10px;
@@ -968,7 +968,7 @@
 }
 
 .invoice-table td {
-  padding: 13px 12px;
+  padding: 8px 6px;
   border-bottom: 1px solid rgba(139, 154, 175, 0.1);
   color: var(--pos-text);
   font-size: 11px;
