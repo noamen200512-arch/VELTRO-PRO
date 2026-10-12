@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import {
   Package,
   Minus,
@@ -6,30 +7,78 @@ import {
   Trash2,
   ShoppingBag,
   Barcode,
+  Undo2,
+  Boxes,
+  AlertTriangle,
 } from "lucide-react";
 
 export function InvoiceTable({
   items = [],
   onUpdate,
   onRemove,
+  onUndoRemove,
+  onAddUnit,
+  onAddCarton,
 }) {
+  const [removedItem, setRemovedItem] = useState(null);
+
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })} DA`;
 
-  const updateQuantity = (item, change) => {
-    const currentQuantity = Number(item.quantity) || 1;
-    const nextQuantity = currentQuantity + change;
-
-    if (nextQuantity <= 0) return;
-
-    onUpdate?.(item.id, "quantity", nextQuantity);
-  };
-
   const updateField = (item, field, value) => {
     onUpdate?.(item.id, field, value);
+  };
+
+  const getCartonSize = (item) =>
+    Math.max(1, Number(item.piecesPerCarton) || 1);
+
+  const updateQuantity = (item, nextQuantity) => {
+    const quantity = Math.floor(Number(nextQuantity));
+
+    if (!Number.isFinite(quantity) || quantity < 1) return;
+
+    onUpdate?.(item.id, "quantity", quantity);
+  };
+
+  const addUnit = (item) => {
+    if (onAddUnit) {
+      onAddUnit(item);
+      return;
+    }
+
+    updateQuantity(item, (Number(item.quantity) || 0) + 1);
+  };
+
+  const addCarton = (item) => {
+    if (onAddCarton) {
+      onAddCarton(item);
+      return;
+    }
+
+    const cartonSize = getCartonSize(item);
+    updateQuantity(
+      item,
+      (Number(item.quantity) || 0) + cartonSize
+    );
+  };
+
+  const removeItem = (item) => {
+    setRemovedItem({
+      item,
+      removedAt: Date.now(),
+    });
+
+    onRemove?.(item.id, item);
+  };
+
+  const undoRemove = () => {
+    if (!removedItem || !onUndoRemove) return;
+
+    onUndoRemove(removedItem.item);
+    setRemovedItem(null);
   };
 
   return (
@@ -43,7 +92,8 @@ export function InvoiceTable({
           <div>
             <h2>Invoice Items</h2>
             <p>
-              {items.length} {items.length === 1 ? "product" : "products"} added
+              {items.length}{" "}
+              {items.length === 1 ? "product" : "products"} added
             </p>
           </div>
         </div>
@@ -52,6 +102,22 @@ export function InvoiceTable({
           {items.length} ITEMS
         </div>
       </div>
+
+      {removedItem && (
+        <div className="invoice-remove-notice" role="status">
+          <span>
+            <Trash2 size={15} />
+            {removedItem.item.name || "Product"} removed
+          </span>
+
+          {onUndoRemove && (
+            <button type="button" onClick={undoRemove}>
+              <Undo2 size={15} />
+              Undo
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="invoice-table-scroll">
         <table className="invoice-table">
@@ -70,7 +136,7 @@ export function InvoiceTable({
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan="7">
+                <td colSpan={7}>
                   <div className="invoice-empty-state">
                     <div className="invoice-empty-icon">
                       <Package size={30} />
@@ -79,7 +145,7 @@ export function InvoiceTable({
                     <h3>No products added yet</h3>
 
                     <p>
-                      Scan a barcode or enter a product above
+                      Scan a barcode or search for a product above
                       to start a new invoice.
                     </p>
                   </div>
@@ -87,24 +153,74 @@ export function InvoiceTable({
               </tr>
             ) : (
               items.map((item, index) => {
-                const quantity = Number(item.quantity) || 0;
-                const price = Number(item.price) || 0;
-                const discount = Number(item.discount) || 0;
-                const total = Math.max(
+                const quantity = Math.max(
                   0,
-                  quantity * price - discount
+                  Number(item.quantity) || 0
                 );
+                const price = Math.max(
+                  0,
+                  Number(item.price) || 0
+                );
+                const discount = Math.max(
+                  0,
+                  Number(item.discount) || 0
+                );
+
+                const subtotal = quantity * price;
+                const total = Math.max(0, subtotal - discount);
+                const cartonSize = getCartonSize(item);
+                const cartons = Math.floor(quantity / cartonSize);
+                const looseUnits = quantity % cartonSize;
 
                 return (
                   <tr key={item.id ?? index}>
                     <td className="invoice-product-cell">
                       <div className="invoice-product-icon">
-                        <Package size={18} />
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt=""
+                            className="invoice-product-image"
+                          />
+                        ) : (
+                          <Package size={18} />
+                        )}
                       </div>
 
                       <div className="invoice-product-details">
-                        <strong>{item.name || "Unnamed product"}</strong>
-                        <span>Product #{index + 1}</span>
+                        <strong>
+                          {item.name || "Unnamed product"}
+                        </strong>
+
+                        <span>
+                          {item.sku || item.id || `Product #${index + 1}`}
+                        </span>
+
+                        {cartonSize > 1 && (
+                          <small className="invoice-carton-details">
+                            {cartons > 0 && (
+                              <span>
+                                {cartons} carton
+                                {cartons !== 1 ? "s" : ""}
+                              </span>
+                            )}
+
+                            {cartons > 0 && looseUnits > 0 && (
+                              <span> + </span>
+                            )}
+
+                            {looseUnits > 0 && (
+                              <span>
+                                {looseUnits} loose{" "}
+                                {looseUnits === 1 ? "unit" : "units"}
+                              </span>
+                            )}
+
+                            <span>
+                              {" "}· {quantity} total units
+                            </span>
+                          </small>
+                        )}
                       </div>
                     </td>
 
@@ -116,25 +232,63 @@ export function InvoiceTable({
                     </td>
 
                     <td>
-                      <div className="invoice-quantity-control">
-                        <button
-                          type="button"
-                          aria-label="Decrease quantity"
-                          disabled={quantity <= 1}
-                          onClick={() => updateQuantity(item, -1)}
-                        >
-                          <Minus size={13} />
-                        </button>
+                      <div className="invoice-quantity-cell">
+                        <div className="invoice-quantity-control">
+                          <button
+                            type="button"
+                            aria-label={`Decrease quantity of ${item.name}`}
+                            disabled={quantity <= 1}
+                            onClick={() =>
+                              updateQuantity(item, quantity - 1)
+                            }
+                          >
+                            <Minus size={13} />
+                          </button>
 
-                        <span>{quantity}</span>
+                          <input
+                            type="number"
+                            min="1"
+                            step="1"
+                            aria-label={`Quantity of ${item.name}`}
+                            value={quantity}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              if (value === "") return;
 
-                        <button
-                          type="button"
-                          aria-label="Increase quantity"
-                          onClick={() => updateQuantity(item, 1)}
-                        >
-                          <Plus size={13} />
-                        </button>
+                              updateQuantity(item, value);
+                            }}
+                          />
+
+                          <button
+                            type="button"
+                            aria-label={`Increase quantity of ${item.name}`}
+                            onClick={() => addUnit(item)}
+                          >
+                            <Plus size={13} />
+                          </button>
+                        </div>
+
+                        <div className="invoice-pack-actions">
+                          <button
+                            type="button"
+                            onClick={() => addUnit(item)}
+                            title="Add one unit"
+                          >
+                            <Plus size={12} />
+                            Add Unit
+                          </button>
+
+                          {cartonSize > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => addCarton(item)}
+                              title={`Add ${cartonSize} units`}
+                            >
+                              <Boxes size={12} />
+                              Add Carton
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </td>
 
@@ -175,9 +329,17 @@ export function InvoiceTable({
                     </td>
 
                     <td>
-                      <strong className="invoice-line-total">
-                        {money(total)}
-                      </strong>
+                      <div className="invoice-line-total-cell">
+                        <strong className="invoice-line-total">
+                          {money(total)}
+                        </strong>
+
+                        {discount > 0 && (
+                          <small>
+                            Before discount: {money(subtotal)}
+                          </small>
+                        )}
+                      </div>
                     </td>
 
                     <td>
@@ -186,7 +348,7 @@ export function InvoiceTable({
                         className="invoice-remove-button"
                         aria-label={`Remove ${item.name}`}
                         title="Remove product"
-                        onClick={() => onRemove?.(item.id)}
+                        onClick={() => removeItem(item)}
                       >
                         <Trash2 size={17} />
                       </button>
