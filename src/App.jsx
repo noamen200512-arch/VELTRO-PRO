@@ -26,6 +26,9 @@ import {
   Clock,
   CheckCircle2,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
 } from "lucide-react";
 
 import {
@@ -216,7 +219,12 @@ function StatCard({
   );
 }
 
-function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
+function Sidebar({
+  activePage,
+  onNavigate,
+  mobileOpen,
+  onClose,
+}) {
   return (
     <>
       {mobileOpen && (
@@ -228,7 +236,11 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
         />
       )}
 
-      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
+      <aside
+        className={`sidebar ${
+          mobileOpen ? "sidebar-open" : ""
+        }`}
+      >
         <div className="sidebar-brand">
           <div className="brand-symbol">
             <Zap size={23} fill="currentColor" />
@@ -245,7 +257,7 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
             onClick={onClose}
             aria-label="Close menu"
           >
-            <Menu size={20} />
+            <X size={20} />
           </button>
         </div>
 
@@ -273,7 +285,9 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
                   <button
                     key={item.label}
                     type="button"
-                    className={`nav-item ${active ? "active" : ""}`}
+                    className={`nav-item ${
+                      active ? "active" : ""
+                    }`}
                     onClick={() => {
                       onNavigate(item.label);
                       onClose();
@@ -299,11 +313,15 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
             </div>
 
             <strong>Need help?</strong>
-            <p>Find answers and learn how to use VELTRO.</p>
+            <p>
+              Find answers and learn how to use VELTRO.
+            </p>
 
             <button
               type="button"
-              onClick={() => alert("Help center coming soon.")}
+              onClick={() =>
+                alert("Help center coming soon.")
+              }
             >
               Help Center
               <ArrowUpRight size={15} />
@@ -326,15 +344,40 @@ function DashboardHeader({
   search,
   onSearchChange,
   onMenuClick,
+  sidebarVisible,
+  onSidebarToggle,
 }) {
   return (
     <header className="dashboard-header">
       <div className="header-heading">
         <button
+          className="sidebar-toggle icon-button"
+          type="button"
+          onClick={onSidebarToggle}
+          aria-label={
+            sidebarVisible
+              ? "Hide sidebar"
+              : "Show sidebar"
+          }
+          title={
+            sidebarVisible
+              ? "Hide sidebar"
+              : "Show sidebar"
+          }
+        >
+          {sidebarVisible ? (
+            <PanelLeftClose size={21} />
+          ) : (
+            <PanelLeftOpen size={21} />
+          )}
+        </button>
+
+        <button
           className="mobile-menu icon-button"
           type="button"
           onClick={onMenuClick}
           aria-label="Open navigation"
+          title="Open navigation"
         >
           <Menu size={22} />
         </button>
@@ -343,13 +386,15 @@ function DashboardHeader({
           <div className="breadcrumb">
             <span>Workspace</span>
             <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{activePage}</span>
+            <span className="breadcrumb-current">
+              {activePage}
+            </span>
           </div>
 
           <h1>{activePage}</h1>
 
           <p className="header-description">
-            Here&apos;s what&apos;s happening with your business today.
+            Here's what's happening with your business today.
           </p>
         </div>
       </div>
@@ -362,7 +407,9 @@ function DashboardHeader({
             type="search"
             placeholder="Search anything..."
             value={search}
-            onChange={(event) => onSearchChange(event.target.value)}
+            onChange={(event) =>
+              onSearchChange(event.target.value)
+            }
           />
 
           <kbd>/</kbd>
@@ -372,7 +419,9 @@ function DashboardHeader({
           className="header-icon-button"
           type="button"
           aria-label="Notifications"
-          onClick={() => alert("Notifications coming soon.")}
+          onClick={() =>
+            alert("Notifications coming soon.")
+          }
         >
           <Bell size={20} />
           <span className="notification-dot" />
@@ -449,7 +498,9 @@ function SalesChart() {
           <button
             className="secondary-button"
             type="button"
-            onClick={() => alert("Export feature coming soon.")}
+            onClick={() =>
+              alert("Export feature coming soon.")
+            }
           >
             <Download size={16} />
             Export
@@ -458,7 +509,9 @@ function SalesChart() {
           <select
             className="select-control"
             value={period}
-            onChange={(event) => setPeriod(event.target.value)}
+            onChange={(event) =>
+              setPeriod(event.target.value)
+            }
             aria-label="Sales chart period"
           >
             <option>7 days</option>
@@ -470,8 +523,12 @@ function SalesChart() {
 
       <div className="chart-summary">
         <div>
-          <span className="chart-summary-label">Total revenue</span>
-          <div className="chart-summary-value">{formatMoney(280000)}</div>
+          <span className="chart-summary-label">
+            Total revenue
+          </span>
+          <div className="chart-summary-value">
+            {formatMoney(280000)}
+          </div>
         </div>
 
         <div className="chart-summary-change">
@@ -485,7 +542,12 @@ function SalesChart() {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={salesData}
-            margin={{ top: 12, right: 8, left: 0, bottom: 0 }}
+            margin={{
+              top: 12,
+              right: 8,
+              left: 0,
+              bottom: 0,
+            }}
           >
             <defs>
               <linearGradient
@@ -592,7 +654,12 @@ function OrdersChart() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={salesData}
-            margin={{ top: 8, right: 0, left: 0, bottom: 0 }}
+            margin={{
+              top: 8,
+              right: 0,
+              left: 0,
+              bottom: 0,
+            }}
           >
             <CartesianGrid
               stroke="#252c3d"
@@ -660,7 +727,9 @@ function ProductsTable({ search, onNavigate }) {
           <button
             className="secondary-button"
             type="button"
-            onClick={() => alert("Product filters coming soon.")}
+            onClick={() =>
+              alert("Product filters coming soon.")
+            }
           >
             <Filter size={16} />
             Filter
@@ -718,7 +787,9 @@ function ProductsTable({ search, onNavigate }) {
                   </span>
                 </td>
 
-                <td className="price-cell">{formatMoney(product.price)}</td>
+                <td className="price-cell">
+                  {formatMoney(product.price)}
+                </td>
 
                 <td>
                   <span
@@ -802,7 +873,10 @@ function ActivityPanel() {
           const Icon = activity.icon;
 
           return (
-            <div className="activity-item" key={activity.title}>
+            <div
+              className="activity-item"
+              key={activity.title}
+            >
               <div className={`activity-icon ${activity.color}`}>
                 <Icon size={18} />
               </div>
@@ -828,7 +902,9 @@ function ActivityPanel() {
       <button
         className="activity-view-all"
         type="button"
-        onClick={() => alert("Activity history coming soon.")}
+        onClick={() =>
+          alert("Activity history coming soon.")
+        }
       >
         View activity history
         <ArrowUpRight size={15} />
@@ -852,7 +928,7 @@ function Dashboard({ onNavigate }) {
           <h2>Welcome back, Administrator 👋</h2>
 
           <p>
-            Here&apos;s your business performance overview for today.
+            Here's your business performance overview for today.
           </p>
 
           <div className="welcome-date">
@@ -884,7 +960,9 @@ function Dashboard({ onNavigate }) {
         <button
           className="secondary-button"
           type="button"
-          onClick={() => alert("Date range selection coming soon.")}
+          onClick={() =>
+            alert("Date range selection coming soon.")
+          }
         >
           <CalendarDays size={16} />
           Today
@@ -936,7 +1014,10 @@ function Dashboard({ onNavigate }) {
       </div>
 
       <div className="bottom-grid">
-        <ProductsTable search={search} onNavigate={onNavigate} />
+        <ProductsTable
+          search={search}
+          onNavigate={onNavigate}
+        />
         <ActivityPanel />
       </div>
 
@@ -993,22 +1074,53 @@ export default function App() {
   const [activePage, setActivePage] = useState("Dashboard");
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+
+  const handleSidebarToggle = () => {
+    // On phones, open or close the navigation drawer.
+    if (window.innerWidth <= 620) {
+      setMobileOpen((previous) => !previous);
+      return;
+    }
+
+    // On larger screens, hide or show the sidebar.
+    setSidebarVisible((previous) => !previous);
+  };
+
+  const handleMobileMenu = () => {
+    setMobileOpen(true);
+  };
 
   return (
-    <div className="app-shell">
-      <Sidebar
-        activePage={activePage}
-        onNavigate={setActivePage}
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      />
+    <div
+      className={`app-shell ${
+        sidebarVisible ? "" : "sidebar-hidden"
+      }`}
+    >
+      {sidebarVisible && (
+        <Sidebar
+          activePage={activePage}
+          onNavigate={setActivePage}
+          mobileOpen={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+        />
+      )}
 
-      <main className="main-content">
+      <main
+        className="main-content"
+        style={
+          !sidebarVisible
+            ? { marginLeft: 0, width: "100%" }
+            : undefined
+        }
+      >
         <DashboardHeader
           activePage={activePage}
           search={search}
           onSearchChange={setSearch}
-          onMenuClick={() => setMobileOpen(true)}
+          onMenuClick={handleMobileMenu}
+          sidebarVisible={sidebarVisible}
+          onSidebarToggle={handleSidebarToggle}
         />
 
         <div className="page-content">
