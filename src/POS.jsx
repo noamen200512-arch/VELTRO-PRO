@@ -165,7 +165,6 @@ export default function POS() {
     }));
   };
 
-  // Available stock excludes reservations from other pending invoices.
   const getAvailableForProduct = useCallback(
     (productId, excludedItemId = null, excludedInvoiceId = invoice.id) => {
       const inventoryProduct = getProducts().find(
@@ -342,7 +341,6 @@ export default function POS() {
     setRemovedItem(null);
   };
 
-  // Quantity changes are checked against real inventory and other reservations.
   const updateItem = (id, field, value) => {
     const currentItem = items.find(
       (item) => String(item.id) === String(id)
@@ -421,7 +419,6 @@ export default function POS() {
     updateItem(item.id, "quantity", getQuantity(item) + 1);
   };
 
-  // Add a full carton as a separate invoice line when carton pricing differs.
   const addCarton = (item) => {
     const productId = getProductId(item);
     const inventoryProduct = getProducts().find(
@@ -482,7 +479,6 @@ export default function POS() {
 
     const cartonLine = {
       ...normalizeItem(inventoryProduct, cartonSize),
-      // A separate line preserves the regular unit price on existing items.
       id: `${productId}-carton-${Date.now()}`,
       productId,
       qty: cartonSize,
