@@ -2598,3 +2598,48 @@ svg {
 .history-page .search-box input:focus {
   box-shadow: none;
 }
+/* VELTRO-PRO — Restore original sidebar colors */
+
+.sidebar .nav-item,
+.sidebar .nav-link,
+.sidebar a {
+  color: #97a3b6;
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+.sidebar .nav-item svg,
+.sidebar .nav-link svg,
+.sidebar a svg {
+  color: inherit;
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+/* Hover color */
+.sidebar .nav-item:hover,
+.sidebar .nav-link:hover,
+.sidebar a:hover {
+  color: #eef7ff;
+}
+
+/* Active item */
+.sidebar .nav-item.active,
+.sidebar .nav-link.active,
+.sidebar a.active {
+  color: #51e5d1;
+}
+
+.sidebar .nav-item.active svg,
+.sidebar .nav-link.active svg,
+.sidebar a.active svg {
+  color: #51e5d1;
+  filter: drop-shadow(0 0 5px rgba(53, 214, 194, 0.25));
+}
+
+/* Smaller sidebar section headings */
+.sidebar .nav-group-title {
+  font-size: 10px !important;
+  letter-spacing: 1px;
+}
