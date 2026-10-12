@@ -9,6 +9,8 @@ import {
   ScanLine,
   X,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 import { getProducts } from "../../productStore.js";
@@ -52,6 +54,7 @@ export function ProductEntry({
   const [cameraError, setCameraError] = useState("");
   const [cameraSupported, setCameraSupported] = useState(true);
   const [notice, setNotice] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -59,17 +62,45 @@ export function ProductEntry({
   const scanningRef = useRef(false);
   const busyRef = useRef(false);
 
-  const loadProducts = useCallback(() => {
-    const stored = getProducts();
-    setProducts(Array.isArray(stored) ? stored : []);
+  const loadProducts = useCallback((showMessage = false) => {
+    setRefreshing(true);
+
+    try {
+      const stored = getProducts();
+      const inventory = Array.isArray(stored) ? stored : [];
+
+      setProducts(inventory);
+
+      if (showMessage) {
+        setNotice(`Inventory refreshed. ${inventory.length} product(s) loaded.`);
+      }
+
+      return inventory;
+    } catch {
+      if (showMessage) {
+        setNotice("Could not refresh inventory. Please try again.");
+      }
+
+      return [];
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
+
+  const refreshProducts = useCallback(() => {
+    loadProducts(true);
+  }, [loadProducts]);
 
   useEffect(() => {
     loadProducts();
 
     const handleFocus = () => loadProducts();
+
     const handleStorage = (event) => {
-      if (!event.key || event.key === "veltro_products") {
+      if (
+        !event.key ||
+        event.key === "veltro_products"
+      ) {
         loadProducts();
       }
     };
@@ -136,22 +167,27 @@ export function ProductEntry({
   const submitBarcode = useCallback(
     (rawValue) => {
       const code = String(rawValue ?? "").trim();
+
       if (!code || busyRef.current) return;
 
       busyRef.current = true;
 
-      const product = findByBarcode(products, code);
+      try {
+        // Read the latest inventory before looking up the barcode.
+        const latestProducts = loadProducts();
+        const product = findByBarcode(latestProducts, code);
 
-      if (product) {
-        addFromInventory(product, 1);
-      } else {
-        setNotice(`No product found for barcode: ${code}`);
-        setBarcode(code);
+        if (product) {
+          addFromInventory(product, 1);
+        } else {
+          setNotice(`No product found for barcode: ${code}`);
+          setBarcode(code);
+        }
+      } finally {
+        busyRef.current = false;
       }
-
-      busyRef.current = false;
     },
-    [products, addFromInventory]
+    [loadProducts, addFromInventory]
   );
 
   const filteredProducts = search.trim()
@@ -191,6 +227,8 @@ export function ProductEntry({
       setShowCamera(true);
       return;
     }
+
+    setCameraSupported(true);
 
     try {
       const detector = new window.BarcodeDetector({
@@ -254,7 +292,7 @@ export function ProductEntry({
               return;
             }
           } catch {
-            // Continue scanning if one frame cannot be decoded.
+            // Continue scanning if a frame cannot be decoded.
           }
 
           if (scanningRef.current) {
@@ -269,6 +307,16 @@ export function ProductEntry({
         "Could not access the camera. Check browser permissions and try again."
       );
       setShowCamera(true);
+    }
+  };
+
+  const toggleProducts = () => {
+    const nextValue = !showProducts;
+
+    onShowProducts?.(nextValue);
+
+    if (nextValue) {
+      loadProducts();
     }
   };
 
@@ -290,6 +338,7 @@ export function ProductEntry({
         </button>
       </div>
 
+      {/* Barcode entry stays available even when product search is hidden. */}
       <div className="product-entry-barcode">
         <label className="product-entry-label" htmlFor="product-barcode">
           <Barcode size={17} />
@@ -332,27 +381,90 @@ export function ProductEntry({
         </form>
       </div>
 
-      <div className="product-entry-fields">
-        <div className="product-entry-field product-search-field">
-          <label htmlFor="product-search">
-            <Search size={16} />
-            Search Product
-          </label>
+      {showProducts && (
+        <>
+          <div className="product-entry-fields">
+            <div className="product-entry-field product-search-field">
+              <label htmlFor="product-search">
+                <Search size={16} />
+                Search Product
+              </label>
 
-          <div className="product-input-wrapper">
-            <Search size={17} />
+              <div className="product-input-wrapper">
+                <Search size={17} />
 
-            <input
-              id="product-search"
-              type="search"
-              autoComplete="off"
-              placeholder="Search by name, reference or barcode..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
+                <input
+                  id="product-search"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Search by name, reference or barcode..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          {search.trim() && (
+            <div className="product-search-results">
+              <div className="product-search-results-header">
+                <strong>Search Results</strong>
+                <span>{filteredProducts.length} found</span>
+              </div>
+
+              {filteredProducts.length === 0 ? (
+                <p className="product-search-empty">
+                  No matching products found in your inventory.
+                </p>
+              ) : (
+                <div className="product-search-list">
+                  {filteredProducts.map((product) => {
+                    const stock = Math.max(
+                      0,
+                      Number(product.stock) || 0
+                    );
+
+                    return (
+                      <button
+                        type="button"
+                        className="product-search-result"
+                        key={product.id}
+                        disabled={stock <= 0}
+                        onClick={() => addFromInventory(product, 1)}
+                      >
+                        <span className="product-search-result-icon">
+                          <Package size={19} />
+                        </span>
+
+                        <span className="product-search-result-info">
+                          <strong>{product.name}</strong>
+                          <small>
+                            Ref: {product.sku || product.id}
+                            {product.barcode
+                              ? ` · Barcode: ${product.barcode}`
+                              : ""}
+                          </small>
+                        </span>
+
+                        <span className="product-search-result-stock">
+                          <strong>
+                            {(Number(product.price) || 0).toLocaleString()} DA
+                          </strong>
+                          <small>
+                            {stock > 0 ? `${stock} in stock` : "Out of stock"}
+                          </small>
+                        </span>
+
+                        <Plus size={18} />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {notice && (
         <div className="product-entry-notice" role="status">
@@ -364,65 +476,6 @@ export function ProductEntry({
           >
             <X size={15} />
           </button>
-        </div>
-      )}
-
-      {search.trim() && (
-        <div className="product-search-results">
-          <div className="product-search-results-header">
-            <strong>Search Results</strong>
-            <span>{filteredProducts.length} found</span>
-          </div>
-
-          {filteredProducts.length === 0 ? (
-            <p className="product-search-empty">
-              No matching products found in your inventory.
-            </p>
-          ) : (
-            <div className="product-search-list">
-              {filteredProducts.map((product) => {
-                const stock = Math.max(
-                  0,
-                  Number(product.stock) || 0
-                );
-
-                return (
-                  <button
-                    type="button"
-                    className="product-search-result"
-                    key={product.id}
-                    disabled={stock <= 0}
-                    onClick={() => addFromInventory(product, 1)}
-                  >
-                    <span className="product-search-result-icon">
-                      <Package size={19} />
-                    </span>
-
-                    <span className="product-search-result-info">
-                      <strong>{product.name}</strong>
-                      <small>
-                        Ref: {product.sku || product.id}
-                        {product.barcode
-                          ? ` · Barcode: ${product.barcode}`
-                          : ""}
-                      </small>
-                    </span>
-
-                    <span className="product-search-result-stock">
-                      <strong>
-                        {(Number(product.price) || 0).toLocaleString()} DA
-                      </strong>
-                      <small>
-                        {stock > 0 ? `${stock} in stock` : "Out of stock"}
-                      </small>
-                    </span>
-
-                    <Plus size={18} />
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
       )}
 
@@ -438,22 +491,34 @@ export function ProductEntry({
           <button
             type="button"
             className="product-show-button"
-            onClick={() => {
-              loadProducts();
-              onShowProducts?.(!showProducts);
-            }}
+            onClick={toggleProducts}
+            aria-expanded={showProducts}
           >
-            {showProducts ? "Hide Products" : "Show Products"}
+            {showProducts ? (
+              <>
+                <ChevronUp size={15} />
+                Hide Products
+              </>
+            ) : (
+              <>
+                <ChevronDown size={15} />
+                Show Products
+              </>
+            )}
           </button>
 
           <button
             type="button"
             className="product-show-button"
-            onClick={loadProducts}
+            onClick={refreshProducts}
+            disabled={refreshing}
             title="Reload inventory"
           >
-            <RefreshCw size={15} />
-            Refresh
+            <RefreshCw
+              size={15}
+              className={refreshing ? "product-refresh-spinning" : ""}
+            />
+            {refreshing ? "Refreshing..." : "Refresh"}
           </button>
         </div>
       </div>
