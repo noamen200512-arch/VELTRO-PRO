@@ -1,7 +1,7 @@
+
 import React from "react";
 import {
   FilePlus2,
-  FilePenLine,
   Printer,
   UserRound,
   ClipboardList,
@@ -12,11 +12,6 @@ const toolbarButtons = [
     label: "New Invoice",
     icon: FilePlus2,
     action: "new",
-  },
-  {
-    label: "Modify Invoice",
-    icon: FilePenLine,
-    action: "modify",
   },
   {
     label: "Print Invoice",
@@ -37,14 +32,15 @@ const toolbarButtons = [
 
 export function SalesToolbar({
   onNew,
-  onModify,
   onPrint,
   onCustomer,
   onPending,
+  pendingCount = 0,
+  showPending = false,
+  disabled = false,
 }) {
   const actions = {
     new: onNew,
-    modify: onModify,
     print: onPrint,
     customer: onCustomer,
     pending: onPending,
@@ -60,15 +56,38 @@ export function SalesToolbar({
       <div className="sales-toolbar-actions">
         {toolbarButtons.map((button) => {
           const Icon = button.icon;
+          const isPending = button.action === "pending";
 
           return (
             <button
               key={button.action}
               type="button"
-              className={`sales-toolbar-button sales-toolbar-${button.action}`}
+              className={[
+                "sales-toolbar-button",
+                `sales-toolbar-${button.action}`,
+                isPending && showPending ? "is-active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
               onClick={actions[button.action]}
+              disabled={disabled}
+              aria-expanded={isPending ? showPending : undefined}
+              aria-label={
+                isPending
+                  ? `${button.label}: ${pendingCount} saved`
+                  : button.label
+              }
             >
-              <Icon size={18} strokeWidth={1.8} />
+              <span className="sales-toolbar-button-icon">
+                <Icon size={18} strokeWidth={1.8} />
+
+                {isPending && pendingCount > 0 && (
+                  <span className="sales-toolbar-badge">
+                    {pendingCount > 99 ? "99+" : pendingCount}
+                  </span>
+                )}
+              </span>
+
               <span>{button.label}</span>
             </button>
           );
