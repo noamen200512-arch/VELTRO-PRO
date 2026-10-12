@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
@@ -16,44 +17,109 @@ export default function POS() {
   const [discount, setDiscount] = useState(0);
   const [showProducts, setShowProducts] = useState(false);
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.qty,
-    0
-  );
+  // Calculate subtotal after individual product discounts.
+  const subtotal = items.reduce((sum, item) => {
+    const quantity = Number(item.qty ?? item.quantity) || 0;
+    const price = Number(item.price) || 0;
+    const itemDiscount = Math.max(
+      0,
+      Number(item.discount) || 0
+    );
 
-  const total = Math.max(
-    0,
-    subtotal - Math.max(0, Number(discount) || 0)
-  );
+    return sum + Math.max(0, quantity * price - itemDiscount);
+  }, 0);
 
-  const remaining = Math.max(
-    0,
-    total - Math.max(0, Number(paid) || 0)
-  );
+  // Apply the invoice-wide discount after product discounts.
+  const globalDiscount = Math.max(0, Number(discount) || 0);
+  const total = Math.max(0, subtotal - globalDiscount);
 
+  const paidAmount = Math.max(0, Number(paid) || 0);
+  const remaining = Math.max(0, total - paidAmount);
+
+  // Add a product and merge it when the same barcode is scanned.
   const addProduct = (product) => {
+    const quantity = Math.max(
+      0.01,
+      Number(product.quantity) || 1
+    );
+
+    const barcode = String(product.barcode || "").trim();
+
     setItems((current) => {
-      const existing = current.find(
-        (item) => item.id === product.id
-      );
+      const existing = barcode
+        ? current.find((item) => item.barcode === barcode)
+        : undefined;
 
       if (existing) {
+        const nextQuantity =
+          (Number(existing.qty ?? existing.quantity) || 0) +
+          quantity;
+
         return current.map((item) =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + 1 }
+          item.id === existing.id
+            ? {
+                ...item,
+                qty: nextQuantity,
+                quantity: nextQuantity,
+              }
             : item
         );
       }
 
-      return [...current, { ...product, qty: 1 }];
+      const id =
+        product.id ??
+        `manual-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`;
+
+      return [
+        ...current,
+        {
+          ...product,
+          id,
+          name: String(product.name || "Unnamed product"),
+          barcode,
+          price: Math.max(0, Number(product.price) || 0),
+          qty: quantity,
+          quantity,
+          discount: Math.max(0, Number(product.discount) || 0),
+        },
+      ];
     });
   };
 
-  const updateItem = (id, changes) => {
+  // Compatible with InvoiceTable's (id, field, value) callback.
+  const updateItem = (id, field, value) => {
     setItems((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, ...changes } : item
-      )
+      current.map((item) => {
+        if (item.id !== id) return item;
+
+        if (field === "quantity") {
+          const quantity = Math.max(0.01, Number(value) || 0.01);
+
+          return {
+            ...item,
+            qty: quantity,
+            quantity,
+          };
+        }
+
+        if (field === "price") {
+          return {
+            ...item,
+            price: Math.max(0, Number(value) || 0),
+          };
+        }
+
+        if (field === "discount") {
+          return {
+            ...item,
+            discount: Math.max(0, Number(value) || 0),
+          };
+        }
+
+        return item;
+      })
     );
   };
 
@@ -64,6 +130,15 @@ export default function POS() {
   };
 
   const newInvoice = () => {
+    if (
+      items.length > 0 &&
+      !window.confirm(
+        "Start a new invoice? Unsaved invoice items will be removed."
+      )
+    ) {
+      return;
+    }
+
     setInvoiceNumber((number) => number + 1);
     setCustomer("");
     setItems([]);
@@ -72,13 +147,34 @@ export default function POS() {
     setShowProducts(false);
   };
 
+  const chooseCustomer = () => {
+    const name = window.prompt("Customer name:", customer);
+
+    if (name !== null) {
+      setCustomer(name.trim());
+    }
+  };
+
+  const modifyInvoice = () => {
+    if (items.length === 0) {
+      window.alert("There are no products to modify.");
+      return;
+    }
+
+    window.alert(
+      "You can edit product quantities, prices and discounts directly in the invoice table."
+    );
+  };
+
   const savePending = () => {
-    alert("Pending invoices will be implemented in the next step.");
+    window.alert(
+      "Pending invoice storage will be connected in the next development step."
+    );
   };
 
   const printInvoice = () => {
     if (items.length === 0) {
-      alert("Please add products before printing.");
+      window.alert("Please add products before printing.");
       return;
     }
 
@@ -95,32 +191,19 @@ export default function POS() {
 
           <h1>Point of Sale</h1>
 
-          <p>
-            Manage invoices, products and payments.
-          </p>
+          <p>Manage invoices, products and payments.</p>
         </div>
       </header>
 
       <SalesToolbar
         onNew={newInvoice}
-        onModify={() =>
-          alert("Invoice modification will be added next.")
-        }
+        onModify={modifyInvoice}
         onPrint={printInvoice}
-        onCustomer={() => {
-          const name = window.prompt(
-            "Customer name:",
-            customer
-          );
-
-          if (name !== null) {
-            setCustomer(name);
-          }
-        }}
+        onCustomer={chooseCustomer}
         onPending={savePending}
       />
 
-      <div className="pos-layout">
+      <div className="sales-layout">
         <SalesSidebar
           invoiceNumber={invoiceNumber}
           customer={customer}
@@ -131,13 +214,11 @@ export default function POS() {
           newAmount={total}
         />
 
-        <main className="pos-workspace">
+        <main className="sales-workspace">
           <ProductEntry
             onAddProduct={addProduct}
             showProducts={showProducts}
-            onShowProducts={() =>
-              setShowProducts((visible) => !visible)
-            }
+            onShowProducts={setShowProducts}
           />
 
           <InvoiceTable
@@ -151,7 +232,7 @@ export default function POS() {
             discount={discount}
             onDiscountChange={setDiscount}
             total={total}
-            paid={paid}
+            paid={paidAmount}
             remaining={remaining}
             onSavePending={savePending}
             onPrint={printInvoice}
