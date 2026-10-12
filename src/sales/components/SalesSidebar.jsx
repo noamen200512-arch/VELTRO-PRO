@@ -1,11 +1,10 @@
+
 import React from "react";
 import {
   FileText,
   UserRound,
   CalendarDays,
   Clock3,
-  ChevronLeft,
-  ChevronRight,
   Wallet,
   CreditCard,
   CircleDollarSign,
@@ -80,40 +79,6 @@ export function SalesSidebar({
 
           <span className="sales-online-indicator" />
         </div>
-      </section>
-
-      <section className="sales-side-section">
-        <div className="sales-section-heading">
-          <FileText size={18} />
-          <h3>Invoice Navigation</h3>
-        </div>
-
-        <div className="sales-navigation-buttons">
-          <button
-            type="button"
-            className="sales-navigation-button"
-            disabled
-            title="Previous invoice"
-          >
-            <ChevronLeft size={17} />
-            Previous
-          </button>
-
-          <button
-            type="button"
-            className="sales-navigation-button"
-            disabled
-            title="Next invoice"
-          >
-            Next
-            <ChevronRight size={17} />
-          </button>
-        </div>
-
-        <p className="sales-helper-text">
-          Invoice navigation will be enabled when invoice
-          history is connected.
-        </p>
       </section>
 
       <section className="sales-side-section">
