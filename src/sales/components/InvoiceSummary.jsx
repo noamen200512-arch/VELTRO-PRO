@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Receipt,
@@ -7,6 +8,7 @@ import {
   Clock,
   CheckCircle2,
   Wallet,
+  LoaderCircle,
 } from "lucide-react";
 
 export function InvoiceSummary({
@@ -16,8 +18,13 @@ export function InvoiceSummary({
   total = 0,
   paid = 0,
   remaining = 0,
+  previousDebt = 0,
+  customerName = "",
+  onViewDebtDetails,
   onSavePending,
   onPrint,
+  onCompleteSale,
+  busy = false,
 }) {
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -25,11 +32,18 @@ export function InvoiceSummary({
       maximumFractionDigits: 2,
     })} DA`;
 
+  const safeDiscount = Math.max(0, Number(discount) || 0);
+  const safeTotal = Math.max(0, Number(total) || 0);
+  const safePaid = Math.max(0, Number(paid) || 0);
+  const safeRemaining = Math.max(0, Number(remaining) || 0);
+  const safePreviousDebt = Math.max(0, Number(previousDebt) || 0);
+
   return (
     <section className="invoice-summary">
       <div className="invoice-summary-header">
         <div className="invoice-summary-title">
           <Receipt size={20} />
+
           <div>
             <h2>Invoice Summary</h2>
             <p>Review the amounts before completing the sale</p>
@@ -55,28 +69,75 @@ export function InvoiceSummary({
               className="invoice-summary-discount"
               type="number"
               min="0"
+              max={Math.max(0, Number(subtotal) || 0)}
               step="0.01"
               value={discount}
-              onChange={(event) =>
-                onDiscountChange?.(event.target.value)
-              }
+              disabled={busy}
+              onChange={(event) => {
+                const value = Math.max(
+                  0,
+                  Number(event.target.value) || 0
+                );
+
+                onDiscountChange?.(
+                  Math.min(value, Math.max(0, Number(subtotal) || 0))
+                );
+              }}
             />
           </div>
 
           <div className="invoice-summary-row">
+            <span>Invoice Total</span>
+            <strong>{money(safeTotal)}</strong>
+          </div>
+
+          <div className="invoice-summary-row">
             <span>Payment Received</span>
-            <strong>{money(paid)}</strong>
+            <strong>{money(safePaid)}</strong>
           </div>
 
           <div className="invoice-summary-row">
             <span>
               <Wallet size={15} />
-              Remaining Balance
+              Remaining on Invoice
             </span>
+
             <strong className="invoice-summary-remaining">
-              {money(remaining)}
+              {money(safeRemaining)}
             </strong>
           </div>
+
+          <div className="invoice-summary-row invoice-summary-debt-row">
+            <span>Previous Customer Debt</span>
+            <strong>{money(safePreviousDebt)}</strong>
+          </div>
+
+          {safePreviousDebt > 0 && (
+            <div className="invoice-summary-row">
+              <span>Total Debt After Sale</span>
+              <strong className="invoice-summary-remaining">
+                {money(safePreviousDebt + safeRemaining)}
+              </strong>
+            </div>
+          )}
+
+          {customerName && (
+            <div className="invoice-summary-customer">
+              <span>Customer</span>
+              <strong>{customerName}</strong>
+
+              {safePreviousDebt > 0 && (
+                <button
+                  type="button"
+                  className="invoice-debt-details-button"
+                  disabled={busy}
+                  onClick={() => onViewDebtDetails?.()}
+                >
+                  View Debt Details
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="invoice-summary-total">
@@ -85,7 +146,7 @@ export function InvoiceSummary({
             <p>Final amount due</p>
           </div>
 
-          <strong>{money(total)}</strong>
+          <strong>{money(safeTotal)}</strong>
         </div>
       </div>
 
@@ -93,6 +154,7 @@ export function InvoiceSummary({
         <button
           type="button"
           className="invoice-pending-button"
+          disabled={busy}
           onClick={() => onSavePending?.()}
         >
           <Clock size={17} />
@@ -102,6 +164,7 @@ export function InvoiceSummary({
         <button
           type="button"
           className="invoice-print-button"
+          disabled={busy}
           onClick={() => onPrint?.()}
         >
           <Printer size={17} />
@@ -111,15 +174,26 @@ export function InvoiceSummary({
         <button
           type="button"
           className="invoice-complete-button"
-          onClick={() => onPrint?.()}
+          disabled={busy}
+          onClick={() => onCompleteSale?.()}
         >
-          <CheckCircle2 size={18} />
-          Complete Sale
+          {busy ? (
+            <>
+              <LoaderCircle size={18} />
+              Completing...
+            </>
+          ) : (
+            <>
+              <CheckCircle2 size={18} />
+              Complete Sale
+            </>
+          )}
         </button>
       </div>
 
       <div className="invoice-summary-note">
         <Banknote size={15} />
+
         <span>
           Please verify the payment and total before finalizing the invoice.
         </span>
