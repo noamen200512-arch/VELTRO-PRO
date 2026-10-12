@@ -1853,3 +1853,83 @@
     color: #111;
   }
 }
+/* COMPACT INVOICE TABLE CONTENT */
+
+.invoice-table {
+  border-spacing: 0;
+  table-layout: auto;
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 5px 4px !important;
+  line-height: 1.25;
+}
+
+/* Reduce space between product icon and text */
+.invoice-product-icon {
+  width: 26px;
+  height: 26px;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+
+.invoice-product-details {
+  gap: 2px;
+  max-width: 145px;
+  vertical-align: middle;
+}
+
+.invoice-product-details strong,
+.invoice-product-details > span {
+  line-height: 1.25;
+}
+
+/* Reduce internal spacing in quantity controls */
+.invoice-quantity-cell {
+  gap: 4px;
+}
+
+.invoice-quantity-control {
+  gap: 2px;
+  padding: 2px;
+  min-height: 27px;
+}
+
+.invoice-quantity-control button {
+  width: 22px;
+  height: 22px;
+}
+
+.pos-page .invoice-quantity-control input {
+  width: 32px;
+  min-height: 23px;
+  padding: 1px;
+}
+
+/* Compact unit and carton buttons */
+.invoice-pack-actions {
+  gap: 3px;
+}
+
+.invoice-pack-actions button {
+  gap: 2px;
+  min-height: 23px;
+  padding: 3px 4px;
+}
+
+/* Compact price and total content */
+.pos-page .invoice-cell-input {
+  width: 76px;
+  min-height: 29px;
+  padding: 4px;
+}
+
+.invoice-line-total-cell {
+  gap: 2px;
+}
+
+.invoice-line-total,
+.invoice-line-total-cell small {
+  line-height: 1.25;
+}
