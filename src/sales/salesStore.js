@@ -1,3 +1,4 @@
+
 import { getProducts, saveProducts } from "../productStore.js";
 
 const PENDING_KEY = "veltro_pending_invoices";
@@ -60,6 +61,15 @@ function getInvoiceQuantities(invoice) {
   return quantities;
 }
 
+function findSaleIndex(sales, invoiceId) {
+  return sales.findIndex(
+    (sale) =>
+      sale.id === invoiceId ||
+      sale.invoiceId === invoiceId ||
+      sale.invoiceNumber === invoiceId
+  );
+}
+
 export function createInvoiceNumber() {
   let counter = 1;
 
@@ -104,18 +114,16 @@ export function getCompletedSales() {
 }
 
 export function getCompletedSale(invoiceId) {
-  return getCompletedSales().find(
-    (sale) =>
-      sale.id === invoiceId ||
-      sale.invoiceId === invoiceId ||
-      sale.invoiceNumber === invoiceId
-  ) ?? null;
+  return (
+    getCompletedSales().find(
+      (sale) =>
+        sale.id === invoiceId ||
+        sale.invoiceId === invoiceId ||
+        sale.invoiceNumber === invoiceId
+    ) ?? null
+  );
 }
 
-/**
- * Sum quantities reserved by pending invoices.
- * Pass excludeInvoiceId when checking the invoice currently being edited.
- */
 export function getReservedQuantity(productId, excludeInvoiceId = "") {
   let reserved = 0;
 
@@ -145,10 +153,6 @@ export function getAvailableStock(productId, excludeInvoiceId = "") {
   return Math.max(0, stock - reserved);
 }
 
-/**
- * Save or update a pending invoice.
- * The invoice reserves stock, but does not change product.stock.
- */
 export function savePendingInvoice(invoice) {
   if (!invoice?.id) {
     return { ok: false, error: "INVALID_INVOICE" };
@@ -193,12 +197,10 @@ export function savePendingInvoice(invoice) {
     }
   }
 
-  const now = new Date().toISOString();
-
   const savedInvoice = {
     ...invoice,
     status: "Pending",
-    updatedAt: now,
+    updatedAt: new Date().toISOString(),
   };
 
   if (existingIndex >= 0) {
@@ -215,15 +217,13 @@ export function savePendingInvoice(invoice) {
 }
 
 export function getPendingInvoice(invoiceId) {
-  return getPendingInvoices().find(
-    (invoice) => invoice.id === invoiceId
-  ) ?? null;
+  return (
+    getPendingInvoices().find(
+      (invoice) => invoice.id === invoiceId
+    ) ?? null
+  );
 }
 
-/**
- * Remove a pending invoice and release its reservation.
- * Product stock remains unchanged.
- */
 export function cancelPendingInvoice(invoiceId) {
   const pending = getPendingInvoices();
   const next = pending.filter((invoice) => invoice.id !== invoiceId);
@@ -239,11 +239,6 @@ export function cancelPendingInvoice(invoiceId) {
   return { ok: true };
 }
 
-/**
- * Complete a sale exactly once in this browser's local storage.
- * Validates stock, decreases product.stock, removes the pending
- * reservation, and records the completed sale.
- */
 export function completeSale(invoice) {
   if (!invoice?.id) {
     return { ok: false, error: "INVALID_INVOICE" };
@@ -324,10 +319,6 @@ export function completeSale(invoice) {
     items: invoice.items.map((item) => ({ ...item })),
   };
 
-  /*
-   * Save the reduced stock first. If that fails, do not record a sale.
-   * This is a browser-local workflow, not a multi-device transaction.
-   */
   if (!saveProducts(updatedProducts)) {
     return { ok: false, error: "STOCK_SAVE_FAILED" };
   }
@@ -337,23 +328,152 @@ export function completeSale(invoice) {
   );
 
   if (!writeArray(PENDING_KEY, nextPending)) {
-    /*
-     * Best-effort rollback if pending storage cannot be updated.
-     */
     saveProducts(products);
     return { ok: false, error: "PENDING_SAVE_FAILED" };
   }
 
   if (!writeArray(SALES_KEY, [...sales, sale])) {
-    /*
-     * Best-effort rollback if the completed sale cannot be recorded.
-     */
     saveProducts(products);
     writeArray(PENDING_KEY, pending);
     return { ok: false, error: "SALE_SAVE_FAILED" };
   }
 
   return { ok: true, sale };
+}
+
+/**
+ * Edit a completed sale without applying the stock change twice.
+ * Restores the old quantities, then deducts the new quantities.
+ */
+export function editCompletedSale(invoiceId, updatedInvoice) {
+  if (!invoiceId || !updatedInvoice) {
+    return { ok: false, error: "INVALID_INVOICE" };
+  }
+
+  if (
+    !Array.isArray(updatedInvoice.items) ||
+    updatedInvoice.items.length === 0
+  ) {
+    return { ok: false, error: "EMPTY_INVOICE" };
+  }
+
+  const sales = getCompletedSales();
+  const saleIndex = findSaleIndex(sales, invoiceId);
+
+  if (saleIndex < 0) {
+    return { ok: false, error: "INVOICE_NOT_FOUND" };
+  }
+
+  const previousSale = sales[saleIndex];
+
+  // Keep the original identity; editing must not create another sale.
+  const stableId = previousSale.id || previousSale.invoiceId;
+  const oldQuantities = getInvoiceQuantities(previousSale);
+  const newQuantities = getInvoiceQuantities(updatedInvoice);
+  const products = getProducts();
+
+  const affectedIds = new Set([
+    ...oldQuantities.keys(),
+    ...newQuantities.keys(),
+  ]);
+
+  const updatedProducts = products.map((product) => {
+    const productId = String(product.id);
+
+    if (!affectedIds.has(productId)) return product;
+
+    const oldQuantity = oldQuantities.get(productId) || 0;
+    const newQuantity = newQuantities.get(productId) || 0;
+    const currentStock = Math.max(0, Number(product.stock) || 0);
+
+    // Restore the original sale quantity, then apply the edited quantity.
+    const nextStock = currentStock + oldQuantity - newQuantity;
+
+    if (nextStock < 0) {
+      return {
+        ...product,
+        __veltroStockError: true,
+        __veltroRequested: newQuantity,
+        __veltroAvailable: currentStock + oldQuantity,
+      };
+    }
+
+    return {
+      ...product,
+      stock: nextStock,
+    };
+  });
+
+  const stockErrorProduct = updatedProducts.find(
+    (product) => product.__veltroStockError
+  );
+
+  if (stockErrorProduct) {
+    const result = {
+      ok: false,
+      error: "INSUFFICIENT_STOCK",
+      productId: String(stockErrorProduct.id),
+      productName: stockErrorProduct.name,
+      requested: stockErrorProduct.__veltroRequested,
+      available: stockErrorProduct.__veltroAvailable,
+    };
+
+    return result;
+  }
+
+  // Ensure every product referenced by either version still exists.
+  for (const productId of affectedIds) {
+    if (!products.some((product) => String(product.id) === productId)) {
+      return {
+        ok: false,
+        error: "PRODUCT_NOT_FOUND",
+        productId,
+      };
+    }
+  }
+
+  const now = new Date().toISOString();
+
+  const updatedSale = {
+    ...previousSale,
+    ...updatedInvoice,
+    id: stableId,
+    invoiceId: previousSale.invoiceId || stableId,
+    invoiceNumber: previousSale.invoiceNumber,
+    status: "Completed",
+    createdAt: previousSale.createdAt,
+    completedAt: previousSale.completedAt || previousSale.createdAt,
+    updatedAt: now,
+    editedAt: now,
+    items: updatedInvoice.items.map((item) => ({ ...item })),
+  };
+
+  // Remove internal validation markers before saving.
+  const cleanProducts = updatedProducts.map((product) => {
+    const {
+      __veltroStockError,
+      __veltroRequested,
+      __veltroAvailable,
+      ...cleanProduct
+    } = product;
+
+    return cleanProduct;
+  });
+
+  if (!saveProducts(cleanProducts)) {
+    return { ok: false, error: "STOCK_SAVE_FAILED" };
+  }
+
+  const nextSales = [...sales];
+  nextSales[saleIndex] = updatedSale;
+
+  if (!writeArray(SALES_KEY, nextSales)) {
+    // Best-effort rollback to the inventory state before this edit.
+    saveProducts(products);
+    return { ok: false, error: "SALE_SAVE_FAILED" };
+  }
+
+  return { ok: true, sale: updatedSale };
 }
 
 export function getSalesForCustomer(customerId) {
