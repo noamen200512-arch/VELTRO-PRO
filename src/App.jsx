@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   LayoutDashboard,
@@ -81,10 +80,9 @@ const navGroups = [
   {
     title: "COMMERCE",
     items: [
-      { label: "Point of Sale", icon: ShoppingCart },
       {
-        label: "Sales",
-        icon: ReceiptText,
+        label: "Point of Sale",
+        icon: ShoppingCart,
         expandable: true,
         children: [
           { label: "Sales History", icon: History },
@@ -164,7 +162,7 @@ function StatCard({
 
 function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
   const [expandedMenus, setExpandedMenus] = useState({
-    Sales: activePage === "Sales History",
+    "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchase History",
   });
 
@@ -225,10 +223,13 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
                 const Icon = item.icon;
                 const isExpandable = Boolean(item.expandable);
                 const isExpanded = Boolean(expandedMenus[item.label]);
+
                 const isChildActive = item.children?.some(
                   (child) => child.label === activePage
                 );
-                const active = activePage === item.label || isChildActive;
+
+                const active =
+                  activePage === item.label || Boolean(isChildActive);
 
                 if (isExpandable) {
                   return (
@@ -238,7 +239,15 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
                         className={`nav-item nav-parent ${
                           active ? "active" : ""
                         }`}
-                        onClick={() => toggleSubmenu(item.label)}
+                        onClick={() => {
+                          toggleSubmenu(item.label);
+
+                          // Point of Sale remains directly accessible.
+                          // Clicking its parent opens POS and toggles its submenu.
+                          if (item.label === "Point of Sale") {
+                            onNavigate("Point of Sale");
+                          }
+                        }}
                         aria-expanded={isExpanded}
                         aria-label={`${isExpanded ? "Collapse" : "Expand"} ${item.label}`}
                       >
@@ -297,9 +306,6 @@ function Sidebar({ activePage, onNavigate, mobileOpen, onClose }) {
                   >
                     <Icon size={19} strokeWidth={1.8} />
                     <span>{item.label}</span>
-                    {item.label === "Point of Sale" && (
-                      <span className="nav-badge">POS</span>
-                    )}
                   </button>
                 );
               })}
@@ -344,7 +350,6 @@ function DashboardHeader({
 }) {
   const descriptions = {
     Dashboard: "Here's what's happening with your business today.",
-    Sales: "Manage your sales and review your sales history.",
     "Sales History": "Review your previous sales and invoices.",
     "Purchase History": "Review your purchase invoices and supplier transactions.",
     "Point of Sale": "Create and manage your sales invoices.",
@@ -855,7 +860,6 @@ function PlaceholderPage({ title }) {
   const icons = {
     Categories: Boxes,
     Purchases: CreditCard,
-    Sales: ReceiptText,
     Orders: ShoppingCart,
     Suppliers: Truck,
     Customers: Users,
