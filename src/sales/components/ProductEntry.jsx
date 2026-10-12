@@ -63,8 +63,6 @@ export function ProductEntry({
   const busyRef = useRef(false);
 
   const loadProducts = useCallback((showMessage = false) => {
-    setRefreshing(true);
-
     try {
       const stored = getProducts();
       const inventory = Array.isArray(stored) ? stored : [];
@@ -72,7 +70,9 @@ export function ProductEntry({
       setProducts(inventory);
 
       if (showMessage) {
-        setNotice(`Inventory refreshed. ${inventory.length} product(s) loaded.`);
+        setNotice(
+          `Inventory refreshed. ${inventory.length} product(s) loaded.`
+        );
       }
 
       return inventory;
@@ -82,13 +82,17 @@ export function ProductEntry({
       }
 
       return [];
-    } finally {
-      setRefreshing(false);
     }
   }, []);
 
   const refreshProducts = useCallback(() => {
-    loadProducts(true);
+    setRefreshing(true);
+
+    // Allow the refreshing state to render before reloading inventory.
+    window.setTimeout(() => {
+      loadProducts(true);
+      setRefreshing(false);
+    }, 150);
   }, [loadProducts]);
 
   useEffect(() => {
@@ -97,10 +101,7 @@ export function ProductEntry({
     const handleFocus = () => loadProducts();
 
     const handleStorage = (event) => {
-      if (
-        !event.key ||
-        event.key === "veltro_products"
-      ) {
+      if (!event.key || event.key === "veltro_products") {
         loadProducts();
       }
     };
@@ -173,7 +174,6 @@ export function ProductEntry({
       busyRef.current = true;
 
       try {
-        // Read the latest inventory before looking up the barcode.
         const latestProducts = loadProducts();
         const product = findByBarcode(latestProducts, code);
 
@@ -338,7 +338,6 @@ export function ProductEntry({
         </button>
       </div>
 
-      {/* Barcode entry stays available even when product search is hidden. */}
       <div className="product-entry-barcode">
         <label className="product-entry-label" htmlFor="product-barcode">
           <Barcode size={17} />
@@ -381,89 +380,87 @@ export function ProductEntry({
         </form>
       </div>
 
-      {showProducts && (
-        <>
-          <div className="product-entry-fields">
-            <div className="product-entry-field product-search-field">
-              <label htmlFor="product-search">
-                <Search size={16} />
-                Search Product
-              </label>
+      {/* Search stays visible; only the product list is hidden. */}
+      <div className="product-entry-fields">
+        <div className="product-entry-field product-search-field">
+          <label htmlFor="product-search">
+            <Search size={16} />
+            Search Product
+          </label>
 
-              <div className="product-input-wrapper">
-                <Search size={17} />
+          <div className="product-input-wrapper">
+            <Search size={17} />
 
-                <input
-                  id="product-search"
-                  type="search"
-                  autoComplete="off"
-                  placeholder="Search by name, reference or barcode..."
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              </div>
-            </div>
+            <input
+              id="product-search"
+              type="search"
+              autoComplete="off"
+              placeholder="Search by name, reference or barcode..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* This is the only section controlled by Hide Products. */}
+      {showProducts && search.trim() && (
+        <div className="product-search-results">
+          <div className="product-search-results-header">
+            <strong>Search Results</strong>
+            <span>{filteredProducts.length} found</span>
           </div>
 
-          {search.trim() && (
-            <div className="product-search-results">
-              <div className="product-search-results-header">
-                <strong>Search Results</strong>
-                <span>{filteredProducts.length} found</span>
-              </div>
+          {filteredProducts.length === 0 ? (
+            <p className="product-search-empty">
+              No matching products found in your inventory.
+            </p>
+          ) : (
+            <div className="product-search-list">
+              {filteredProducts.map((product) => {
+                const stock = Math.max(
+                  0,
+                  Number(product.stock) || 0
+                );
 
-              {filteredProducts.length === 0 ? (
-                <p className="product-search-empty">
-                  No matching products found in your inventory.
-                </p>
-              ) : (
-                <div className="product-search-list">
-                  {filteredProducts.map((product) => {
-                    const stock = Math.max(
-                      0,
-                      Number(product.stock) || 0
-                    );
+                return (
+                  <button
+                    type="button"
+                    className="product-search-result"
+                    key={product.id}
+                    disabled={stock <= 0}
+                    onClick={() => addFromInventory(product, 1)}
+                  >
+                    <span className="product-search-result-icon">
+                      <Package size={19} />
+                    </span>
 
-                    return (
-                      <button
-                        type="button"
-                        className="product-search-result"
-                        key={product.id}
-                        disabled={stock <= 0}
-                        onClick={() => addFromInventory(product, 1)}
-                      >
-                        <span className="product-search-result-icon">
-                          <Package size={19} />
-                        </span>
+                    <span className="product-search-result-info">
+                      <strong>{product.name}</strong>
+                      <small>
+                        Ref: {product.sku || product.id}
+                        {product.barcode
+                          ? ` · Barcode: ${product.barcode}`
+                          : ""}
+                      </small>
+                    </span>
 
-                        <span className="product-search-result-info">
-                          <strong>{product.name}</strong>
-                          <small>
-                            Ref: {product.sku || product.id}
-                            {product.barcode
-                              ? ` · Barcode: ${product.barcode}`
-                              : ""}
-                          </small>
-                        </span>
+                    <span className="product-search-result-stock">
+                      <strong>
+                        {(Number(product.price) || 0).toLocaleString()} DA
+                      </strong>
+                      <small>
+                        {stock > 0 ? `${stock} in stock` : "Out of stock"}
+                      </small>
+                    </span>
 
-                        <span className="product-search-result-stock">
-                          <strong>
-                            {(Number(product.price) || 0).toLocaleString()} DA
-                          </strong>
-                          <small>
-                            {stock > 0 ? `${stock} in stock` : "Out of stock"}
-                          </small>
-                        </span>
-
-                        <Plus size={18} />
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                    <Plus size={18} />
+                  </button>
+                );
+              })}
             </div>
           )}
-        </>
+        </div>
       )}
 
       {notice && (
