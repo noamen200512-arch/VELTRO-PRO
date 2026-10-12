@@ -69,14 +69,23 @@ export function SalesToolbar({
               ]
                 .filter(Boolean)
                 .join(" ")}
-              onClick={actions[button.action]}
-              disabled={disabled}
+              onClick={() => {
+                if (disabled) return;
+
+                const action = actions[button.action];
+
+                if (typeof action === "function") {
+                  action();
+                }
+              }}
+              disabled={disabled || typeof actions[button.action] !== "function"}
               aria-expanded={isPending ? showPending : undefined}
               aria-label={
                 isPending
                   ? `${button.label}: ${pendingCount} saved`
                   : button.label
               }
+              title={button.label}
             >
               <span className="sales-toolbar-button-icon">
                 <Icon size={18} strokeWidth={1.8} />
