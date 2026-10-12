@@ -36,7 +36,6 @@ export function SalesSidebar({
 
   return (
     <aside className="sales-sidebar">
-      {/* Invoice Information */}
       <section className="sales-side-section">
         <div className="sales-section-heading">
           <FileText size={18} />
@@ -44,7 +43,9 @@ export function SalesSidebar({
         </div>
 
         <div className="sales-info-card">
-          <span className="sales-field-label">Invoice Number</span>
+          <span className="sales-field-label">
+            Invoice Number
+          </span>
           <strong>INV-{invoiceNumber}</strong>
         </div>
 
@@ -63,7 +64,6 @@ export function SalesSidebar({
         </div>
       </section>
 
-      {/* Current User */}
       <section className="sales-side-section">
         <div className="sales-section-heading">
           <UserRound size={18} />
@@ -72,15 +72,16 @@ export function SalesSidebar({
 
         <div className="sales-user-card">
           <div className="sales-user-avatar">A</div>
+
           <div className="sales-user-details">
             <strong>Administrator</strong>
             <span>Sales Operator</span>
           </div>
+
           <span className="sales-online-indicator" />
         </div>
       </section>
 
-      {/* Invoice Navigation */}
       <section className="sales-side-section">
         <div className="sales-section-heading">
           <FileText size={18} />
@@ -110,11 +111,11 @@ export function SalesSidebar({
         </div>
 
         <p className="sales-helper-text">
-          Invoice navigation will be enabled when invoice history is connected.
+          Invoice navigation will be enabled when invoice
+          history is connected.
         </p>
       </section>
 
-      {/* Customer & Account */}
       <section className="sales-side-section">
         <div className="sales-section-heading">
           <Wallet size={18} />
