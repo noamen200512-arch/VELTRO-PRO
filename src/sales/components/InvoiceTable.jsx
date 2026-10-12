@@ -47,7 +47,10 @@ export function InvoiceTable({
       return;
     }
 
-    updateQuantity(item, (Number(item.quantity ?? item.qty) || 0) + 1);
+    updateQuantity(
+      item,
+      (Number(item.quantity ?? item.qty) || 0) + 1
+    );
   };
 
   const addCarton = (item) => {
@@ -57,6 +60,7 @@ export function InvoiceTable({
     }
 
     const cartonSize = getCartonSize(item);
+
     updateQuantity(
       item,
       (Number(item.quantity ?? item.qty) || 0) + cartonSize
@@ -117,38 +121,47 @@ export function InvoiceTable({
         </div>
       )}
 
-      <div className="invoice-table-scroll">
-        <table className="invoice-table">
-          <thead>
-            <tr>
-              <th className="invoice-col-product">Product</th>
-              <th>Quantity</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-              <th aria-label="Actions"></th>
-            </tr>
-          </thead>
+      {items.length === 0 ? (
+        <div
+          className="invoice-table-scroll"
+          style={{ overflowX: "hidden", width: "100%" }}
+        >
+          <div
+            className="invoice-empty-state"
+            style={{
+              width: "100%",
+              minWidth: 0,
+              padding: "24px 12px",
+              overflowWrap: "anywhere",
+            }}
+          >
+            <div className="invoice-empty-icon">
+              <Package size={30} />
+            </div>
 
-          <tbody>
-            {items.length === 0 ? (
+            <h3>No products added yet</h3>
+
+            <p>
+              Scan a barcode or search for a product above
+              to start a new invoice.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="invoice-table-scroll">
+          <table className="invoice-table">
+            <thead>
               <tr>
-                <td colSpan={5}>
-                  <div className="invoice-empty-state">
-                    <div className="invoice-empty-icon">
-                      <Package size={30} />
-                    </div>
-
-                    <h3>No products added yet</h3>
-
-                    <p>
-                      Scan a barcode or search for a product above
-                      to start a new invoice.
-                    </p>
-                  </div>
-                </td>
+                <th className="invoice-col-product">Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th aria-label="Actions"></th>
               </tr>
-            ) : (
-              items.map((item, index) => {
+            </thead>
+
+            <tbody>
+              {items.map((item, index) => {
                 const quantity = Math.max(
                   0,
                   Number(item.quantity ?? item.qty) || 0
@@ -185,7 +198,9 @@ export function InvoiceTable({
                         </strong>
 
                         <span>
-                          {item.sku || item.id || `Product #${index + 1}`}
+                          {item.sku ||
+                            item.id ||
+                            `Product #${index + 1}`}
                         </span>
 
                         {cartonSize > 1 && (
@@ -236,6 +251,7 @@ export function InvoiceTable({
                             value={quantity}
                             onChange={(event) => {
                               const value = event.target.value;
+
                               if (value === "") return;
 
                               updateQuantity(item, value);
@@ -314,11 +330,11 @@ export function InvoiceTable({
                     </td>
                   </tr>
                 );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {items.length > 0 && (
         <div className="invoice-table-footer">
