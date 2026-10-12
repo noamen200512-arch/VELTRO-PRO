@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -32,6 +32,9 @@ import {
   History,
   ReceiptText,
   RefreshCw,
+  FileText,
+  Calendar,
+  SearchX,
 } from "lucide-react";
 
 import {
@@ -123,6 +126,7 @@ const navGroups = [
       { label: "Products", icon: Package },
       { label: "Categories", icon: Boxes },
       { label: "Purchases", icon: CreditCard },
+      { label: "Purchase History", icon: ReceiptText },
       { label: "Orders", icon: ShoppingCart },
       { label: "Suppliers", icon: Truck },
       { label: "Customers", icon: Users },
@@ -351,6 +355,21 @@ function DashboardHeader({
   sidebarVisible,
   onSidebarToggle,
 }) {
+  const descriptions = {
+    Dashboard:
+      "Here's what's happening with your business today.",
+    "Sales History":
+      "Review your previous sales and invoices.",
+    "Purchase History":
+      "Review your purchase invoices and supplier transactions.",
+    "Point of Sale":
+      "Create and manage your sales invoices.",
+    Products:
+      "Manage your products and inventory.",
+    Purchases:
+      "Manage your incoming stock and purchases.",
+  };
+
   return (
     <header className="dashboard-header">
       <div className="header-heading">
@@ -394,9 +413,8 @@ function DashboardHeader({
           <h1>{activePage}</h1>
 
           <p className="header-description">
-            {activePage === "Sales History"
-              ? "Review your previous sales and invoices."
-              : "Here's what's happening with your business today."}
+            {descriptions[activePage] ||
+              "Manage your business with VELTRO-PRO."}
           </p>
         </div>
       </div>
@@ -1037,6 +1055,233 @@ function Dashboard({ onNavigate }) {
   );
 }
 
+function HistoryPage({ type }) {
+  const isPurchase = type === "purchase";
+  const title = isPurchase ? "Purchase History" : "Sales History";
+  const description = isPurchase
+    ? "Track purchase invoices and supplier transactions."
+    : "Review completed sales and customer invoices.";
+
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+
+  // The actual invoice store will be connected in the next stage.
+  const invoices = [];
+
+  const filteredInvoices = invoices.filter((invoice) => {
+    const query = search.trim().toLowerCase();
+
+    const matchesSearch =
+      !query ||
+      String(invoice.number || "").toLowerCase().includes(query) ||
+      String(invoice.name || "").toLowerCase().includes(query);
+
+    const matchesDate =
+      dateFilter === "all" ||
+      (invoice.date &&
+        dateFilter === "today" &&
+        new Date(invoice.date).toDateString() ===
+          new Date().toDateString());
+
+    return matchesSearch && matchesDate;
+  });
+
+  return (
+    <div className="history-page">
+      <div className="section-heading">
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+
+        <button
+          className="secondary-button"
+          type="button"
+          onClick={() => {
+            setSearch("");
+            setDateFilter("all");
+          }}
+        >
+          <RefreshCw size={16} />
+          Reset filters
+        </button>
+      </div>
+
+      <div className="stats-grid">
+        <StatCard
+          title={isPurchase ? "Total Purchases" : "Total Sales"}
+          value="0 DA"
+          change="0%"
+          positive
+          icon={Wallet}
+          accent="cyan"
+          subtitle="No connected invoice records yet"
+        />
+
+        <StatCard
+          title="Invoices"
+          value="0"
+          change="0%"
+          positive
+          icon={FileText}
+          accent="violet"
+          subtitle="Saved invoices"
+        />
+
+        <StatCard
+          title={isPurchase ? "Suppliers" : "Customers"}
+          value="0"
+          change="0%"
+          positive
+          icon={isPurchase ? Truck : Users}
+          accent="blue"
+          subtitle="Based on invoice records"
+        />
+
+        <StatCard
+          title="Pending"
+          value="0"
+          change="0%"
+          positive
+          icon={Clock}
+          accent="orange"
+          subtitle="Invoices requiring attention"
+        />
+      </div>
+
+      <section className="panel products-panel">
+        <div className="panel-header">
+          <div>
+            <h3>{isPurchase ? "Purchase Invoices" : "Sales Invoices"}</h3>
+            <p className="panel-description">
+              Search and review your invoice records.
+            </p>
+          </div>
+
+          <div className="panel-actions">
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() =>
+                alert("Export will be available after invoice data is connected.")
+              }
+            >
+              <Download size={16} />
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div className="history-filters">
+          <label className="search-box">
+            <Search size={17} />
+            <input
+              type="search"
+              placeholder="Search invoice or name..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+
+          <label className="history-date-filter">
+            <Calendar size={17} />
+            <select
+              className="select-control"
+              value={dateFilter}
+              onChange={(event) => setDateFilter(event.target.value)}
+              aria-label="Filter invoices by date"
+            >
+              <option value="all">All dates</option>
+              <option value="today">Today</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="products-table">
+            <thead>
+              <tr>
+                <th>INVOICE</th>
+                <th>{isPurchase ? "SUPPLIER" : "CUSTOMER"}</th>
+                <th>DATE</th>
+                <th>AMOUNT</th>
+                <th>STATUS</th>
+                <th />
+              </tr>
+            </thead>
+
+            <tbody>
+              {filteredInvoices.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="empty-state">
+                    <div className="history-empty">
+                      <div className="placeholder-icon">
+                        {isPurchase ? (
+                          <ReceiptText size={30} />
+                        ) : (
+                          <History size={30} />
+                        )}
+                      </div>
+
+                      <strong>
+                        {search
+                          ? "No matching invoices"
+                          : "No invoices available"}
+                      </strong>
+
+                      <p>
+                        {search
+                          ? "Try another search term or change the date filter."
+                          : "Invoice records will appear here once the invoice data source is connected."}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredInvoices.map((invoice) => (
+                  <tr key={invoice.id}>
+                    <td>{invoice.number}</td>
+                    <td>{invoice.name}</td>
+                    <td>{invoice.date}</td>
+                    <td className="price-cell">
+                      {formatMoney(invoice.total)}
+                    </td>
+                    <td>
+                      <span className="status-badge status-success">
+                        <span />
+                        {invoice.status || "Completed"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="icon-button"
+                        type="button"
+                        aria-label="Invoice options"
+                        onClick={() =>
+                          alert("Invoice details will be available after data integration.")
+                        }
+                      >
+                        <MoreHorizontal size={19} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="table-footer">
+          <span>{filteredInvoices.length} invoices</span>
+          <span className="muted-cell">
+            Invoice data connection pending
+          </span>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function PlaceholderPage({ title }) {
   const icons = {
     Categories: Boxes,
@@ -1079,13 +1324,11 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const handleSidebarToggle = () => {
-    // On phones, open or close the navigation drawer.
     if (window.innerWidth <= 620) {
       setMobileOpen((previous) => !previous);
       return;
     }
 
-    // On larger screens, hide or show the sidebar.
     setSidebarVisible((previous) => !previous);
   };
 
@@ -1132,6 +1375,10 @@ export default function App() {
             <POS />
           ) : activePage === "Products" ? (
             <Products />
+          ) : activePage === "Sales History" ? (
+            <HistoryPage type="sales" />
+          ) : activePage === "Purchase History" ? (
+            <HistoryPage type="purchase" />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
