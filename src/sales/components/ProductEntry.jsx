@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Barcode,
@@ -11,6 +10,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  Boxes,
+  AlertTriangle,
 } from "lucide-react";
 
 import { getProducts } from "../../productStore.js";
@@ -42,6 +43,13 @@ function findByBarcode(products, barcode) {
   );
 }
 
+function formatMoney(value) {
+  return `${(Number(value) || 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} DA`;
+}
+
 export function ProductEntry({
   onAddProduct,
   showProducts = true,
@@ -61,6 +69,7 @@ export function ProductEntry({
   const detectorRef = useRef(null);
   const scanningRef = useRef(false);
   const busyRef = useRef(false);
+  const refreshTimerRef = useRef(null);
 
   const loadProducts = useCallback((showMessage = false) => {
     try {
@@ -86,12 +95,16 @@ export function ProductEntry({
   }, []);
 
   const refreshProducts = useCallback(() => {
+    if (refreshTimerRef.current) {
+      window.clearTimeout(refreshTimerRef.current);
+    }
+
     setRefreshing(true);
 
-    // Allow the refreshing state to render before reloading inventory.
-    window.setTimeout(() => {
+    refreshTimerRef.current = window.setTimeout(() => {
       loadProducts(true);
       setRefreshing(false);
+      refreshTimerRef.current = null;
     }, 150);
   }, [loadProducts]);
 
@@ -112,6 +125,10 @@ export function ProductEntry({
     return () => {
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleStorage);
+
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current);
+      }
     };
   }, [loadProducts]);
 
@@ -151,7 +168,12 @@ export function ProductEntry({
         return;
       }
 
-      onAddProduct?.({
+      if (typeof onAddProduct !== "function") {
+        setNotice("Unable to add product. Please check the sales page.");
+        return;
+      }
+
+      onAddProduct({
         ...product,
         quantity,
         price: Math.max(0, Number(product.price) || 0),
@@ -190,23 +212,22 @@ export function ProductEntry({
     [loadProducts, addFromInventory]
   );
 
-  const filteredProducts = search.trim()
-    ? products
-        .filter((product) => {
-          const term = normalize(search);
+  const filteredProducts = products.filter((product) => {
+    const term = normalize(search);
 
-          return (
-            normalize(product.name).includes(term) ||
-            normalize(product.sku).includes(term) ||
-            normalize(product.id).includes(term) ||
-            normalize(product.barcode).includes(term) ||
-            getProductBarcodes(product).some((code) =>
-              normalize(code).includes(term)
-            )
-          );
-        })
-        .slice(0, 30)
-    : [];
+    if (!term) return true;
+
+    return (
+      normalize(product.name).includes(term) ||
+      normalize(product.sku).includes(term) ||
+      normalize(product.id).includes(term) ||
+      normalize(product.category).includes(term) ||
+      normalize(product.barcode).includes(term) ||
+      getProductBarcodes(product).some((code) =>
+        normalize(code).includes(term)
+      )
+    );
+  });
 
   const startCamera = async () => {
     setCameraError("");
@@ -286,13 +307,15 @@ export function ProductEntry({
 
             if (codes.length > 0 && codes[0].rawValue) {
               scanningRef.current = false;
+
               const value = codes[0].rawValue;
+
               stopCamera();
               submitBarcode(value);
               return;
             }
           } catch {
-            // Continue scanning if a frame cannot be decoded.
+            // Continue scanning when a frame cannot be decoded.
           }
 
           if (scanningRef.current) {
@@ -380,7 +403,7 @@ export function ProductEntry({
         </form>
       </div>
 
-      {/* Search stays visible; only the product list is hidden. */}
+      {/* Search remains visible even when the inventory list is hidden. */}
       <div className="product-entry-fields">
         <div className="product-entry-field product-search-field">
           <label htmlFor="product-search">
@@ -395,26 +418,57 @@ export function ProductEntry({
               id="product-search"
               type="search"
               autoComplete="off"
-              placeholder="Search by name, reference or barcode..."
+              placeholder="Search by name, reference, category or barcode..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+
+            {search && (
+              <button
+                type="button"
+                className="product-clear-button"
+                aria-label="Clear product search"
+                onClick={() => setSearch("")}
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* This is the only section controlled by Hide Products. */}
-      {showProducts && search.trim() && (
-        <div className="product-search-results">
+      {/* The toggle controls the full inventory list only. */}
+      {showProducts && (
+        <div className="product-search-results product-inventory-list">
           <div className="product-search-results-header">
-            <strong>Search Results</strong>
-            <span>{filteredProducts.length} found</span>
+            <div className="product-inventory-heading">
+              <Boxes size={17} />
+              <strong>
+                {search.trim() ? "Search Results" : "All Products"}
+              </strong>
+            </div>
+
+            <span>
+              {filteredProducts.length} of {products.length} products
+            </span>
           </div>
 
           {filteredProducts.length === 0 ? (
-            <p className="product-search-empty">
-              No matching products found in your inventory.
-            </p>
+            <div className="product-search-empty">
+              {products.length === 0 ? (
+                <>
+                  <Package size={24} />
+                  <p>No products found in your inventory.</p>
+                  <span>Try refreshing the inventory.</span>
+                </>
+              ) : (
+                <>
+                  <Search size={24} />
+                  <p>No matching products found.</p>
+                  <span>Try another name, reference or barcode.</span>
+                </>
+              )}
+            </div>
           ) : (
             <div className="product-search-list">
               {filteredProducts.map((product) => {
@@ -423,6 +477,10 @@ export function ProductEntry({
                   Number(product.stock) || 0
                 );
 
+                const lowStock =
+                  stock > 0 &&
+                  stock <= Math.max(0, Number(product.minStock) || 0);
+
                 return (
                   <button
                     type="button"
@@ -430,31 +488,63 @@ export function ProductEntry({
                     key={product.id}
                     disabled={stock <= 0}
                     onClick={() => addFromInventory(product, 1)}
+                    title={
+                      stock <= 0
+                        ? "This product is out of stock"
+                        : `Add ${product.name} to invoice`
+                    }
                   >
                     <span className="product-search-result-icon">
-                      <Package size={19} />
+                      {product.image ? (
+                        <img
+                          src={product.image}
+                          alt=""
+                          className="product-search-product-image"
+                        />
+                      ) : (
+                        <Package size={19} />
+                      )}
                     </span>
 
                     <span className="product-search-result-info">
-                      <strong>{product.name}</strong>
+                      <strong>{product.name || "Unnamed product"}</strong>
+
                       <small>
-                        Ref: {product.sku || product.id}
-                        {product.barcode
-                          ? ` · Barcode: ${product.barcode}`
-                          : ""}
+                        Ref: {product.sku || product.id || "—"}
+                        {product.category ? ` · ${product.category}` : ""}
                       </small>
+
+                      {product.barcode && (
+                        <small>Barcode: {product.barcode}</small>
+                      )}
                     </span>
 
                     <span className="product-search-result-stock">
-                      <strong>
-                        {(Number(product.price) || 0).toLocaleString()} DA
-                      </strong>
-                      <small>
-                        {stock > 0 ? `${stock} in stock` : "Out of stock"}
+                      <strong>{formatMoney(product.price)}</strong>
+
+                      <small
+                        className={
+                          stock <= 0
+                            ? "product-stock-out"
+                            : lowStock
+                              ? "product-stock-low"
+                              : ""
+                        }
+                      >
+                        {stock <= 0
+                          ? "Out of stock"
+                          : `${stock} in stock`}
                       </small>
                     </span>
 
-                    <Plus size={18} />
+                    {stock > 0 ? (
+                      <Plus size={18} className="product-result-add-icon" />
+                    ) : (
+                      <AlertTriangle
+                        size={17}
+                        className="product-result-out-icon"
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -466,6 +556,7 @@ export function ProductEntry({
       {notice && (
         <div className="product-entry-notice" role="status">
           <span>{notice}</span>
+
           <button
             type="button"
             aria-label="Dismiss message"
@@ -480,7 +571,7 @@ export function ProductEntry({
         <div className="product-entry-hint">
           <Package size={16} />
           <span>
-            Products and prices are loaded from your inventory.
+            {products.length} products loaded from your inventory.
           </span>
         </div>
 
