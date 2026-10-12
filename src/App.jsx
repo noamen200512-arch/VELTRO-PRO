@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -29,6 +29,9 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  History,
+  ReceiptText,
+  RefreshCw,
 } from "lucide-react";
 
 import {
@@ -116,6 +119,7 @@ const navGroups = [
     title: "COMMERCE",
     items: [
       { label: "Point of Sale", icon: ShoppingCart },
+      { label: "Sales History", icon: History },
       { label: "Products", icon: Package },
       { label: "Categories", icon: Boxes },
       { label: "Purchases", icon: CreditCard },
@@ -355,14 +359,10 @@ function DashboardHeader({
           type="button"
           onClick={onSidebarToggle}
           aria-label={
-            sidebarVisible
-              ? "Hide sidebar"
-              : "Show sidebar"
+            sidebarVisible ? "Hide sidebar" : "Show sidebar"
           }
           title={
-            sidebarVisible
-              ? "Hide sidebar"
-              : "Show sidebar"
+            sidebarVisible ? "Hide sidebar" : "Show sidebar"
           }
         >
           {sidebarVisible ? (
@@ -394,7 +394,9 @@ function DashboardHeader({
           <h1>{activePage}</h1>
 
           <p className="header-description">
-            Here's what's happening with your business today.
+            {activePage === "Sales History"
+              ? "Review your previous sales and invoices."
+              : "Here's what's happening with your business today."}
           </p>
         </div>
       </div>
