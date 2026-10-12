@@ -6,10 +6,8 @@ import {
   Plus,
   Trash2,
   ShoppingBag,
-  Barcode,
   Undo2,
   Boxes,
-  AlertTriangle,
 } from "lucide-react";
 
 export function InvoiceTable({
@@ -49,7 +47,7 @@ export function InvoiceTable({
       return;
     }
 
-    updateQuantity(item, (Number(item.quantity) || 0) + 1);
+    updateQuantity(item, (Number(item.quantity ?? item.qty) || 0) + 1);
   };
 
   const addCarton = (item) => {
@@ -61,7 +59,7 @@ export function InvoiceTable({
     const cartonSize = getCartonSize(item);
     updateQuantity(
       item,
-      (Number(item.quantity) || 0) + cartonSize
+      (Number(item.quantity ?? item.qty) || 0) + cartonSize
     );
   };
 
@@ -124,10 +122,8 @@ export function InvoiceTable({
           <thead>
             <tr>
               <th className="invoice-col-product">Product</th>
-              <th>Barcode</th>
               <th>Quantity</th>
               <th>Unit Price</th>
-              <th>Discount (DA)</th>
               <th>Total</th>
               <th aria-label="Actions"></th>
             </tr>
@@ -136,7 +132,7 @@ export function InvoiceTable({
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={7}>
+                <td colSpan={5}>
                   <div className="invoice-empty-state">
                     <div className="invoice-empty-icon">
                       <Package size={30} />
@@ -155,19 +151,15 @@ export function InvoiceTable({
               items.map((item, index) => {
                 const quantity = Math.max(
                   0,
-                  Number(item.quantity) || 0
+                  Number(item.quantity ?? item.qty) || 0
                 );
+
                 const price = Math.max(
                   0,
                   Number(item.price) || 0
                 );
-                const discount = Math.max(
-                  0,
-                  Number(item.discount) || 0
-                );
 
-                const subtotal = quantity * price;
-                const total = Math.max(0, subtotal - discount);
+                const total = quantity * price;
                 const cartonSize = getCartonSize(item);
                 const cartons = Math.floor(quantity / cartonSize);
                 const looseUnits = quantity % cartonSize;
@@ -216,19 +208,10 @@ export function InvoiceTable({
                               </span>
                             )}
 
-                            <span>
-                              {" "}· {quantity} total units
-                            </span>
+                            <span> · {quantity} total units</span>
                           </small>
                         )}
                       </div>
-                    </td>
-
-                    <td>
-                      <span className="invoice-barcode">
-                        <Barcode size={14} />
-                        {item.barcode || "—"}
-                      </span>
                     </td>
 
                     <td>
@@ -311,34 +294,10 @@ export function InvoiceTable({
                     </td>
 
                     <td>
-                      <input
-                        className="invoice-cell-input invoice-discount-input"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        aria-label={`Discount for ${item.name}`}
-                        value={item.discount ?? 0}
-                        onChange={(event) =>
-                          updateField(
-                            item,
-                            "discount",
-                            event.target.value
-                          )
-                        }
-                      />
-                    </td>
-
-                    <td>
                       <div className="invoice-line-total-cell">
                         <strong className="invoice-line-total">
                           {money(total)}
                         </strong>
-
-                        {discount > 0 && (
-                          <small>
-                            Before discount: {money(subtotal)}
-                          </small>
-                        )}
                       </div>
                     </td>
 
