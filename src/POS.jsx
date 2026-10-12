@@ -26,6 +26,10 @@ function getQuantity(item) {
   return Math.max(0, Number(item.qty ?? item.quantity) || 0);
 }
 
+function getProductId(item) {
+  return String(item.productId ?? item.id ?? "");
+}
+
 function calculateSubtotal(items = []) {
   return items.reduce((sum, item) => {
     const lineTotal = getQuantity(item) * money(item.price);
@@ -35,17 +39,22 @@ function calculateSubtotal(items = []) {
 }
 
 function normalizeItem(product, quantity = 1) {
+  const productId = String(product.productId ?? product.id ?? "");
+
   return {
     ...product,
-    productId: String(product.productId ?? product.id ?? ""),
-    id: String(product.productId ?? product.id ?? ""),
+    productId,
+    id: productId,
     name: String(product.name || "Unnamed product"),
     barcode: String(product.barcode || ""),
     price: money(product.price),
     qty: quantity,
     quantity,
     discount: money(product.discount),
-    piecesPerCarton: Math.max(1, Number(product.piecesPerCarton) || 1),
+    piecesPerCarton: Math.max(
+      1,
+      Number(product.piecesPerCarton) || 1
+    ),
     cartonPrice: money(product.cartonPrice),
   };
 }
@@ -55,7 +64,7 @@ function mergeItems(currentItems, product, quantity = 1) {
   const productId = normalized.productId;
 
   const index = currentItems.findIndex(
-    (item) => String(item.productId ?? item.id) === productId
+    (item) => getProductId(item) === productId
   );
 
   if (index === -1) {
@@ -100,13 +109,17 @@ function getErrorMessage(result) {
 
 export default function POS() {
   const [invoice, setInvoice] = useState(() => createInvoice());
-  const [pendingInvoices, setPendingInvoices] = useState(() => getPendingInvoices());
+  const [pendingInvoices, setPendingInvoices] = useState(
+    () => getPendingInvoices()
+  );
+
   const [showProducts, setShowProducts] = useState(true);
   const [showPending, setShowPending] = useState(false);
   const [showEmptyWarning, setShowEmptyWarning] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
   const [busy, setBusy] = useState(false);
+  const [removedItem, setRemovedItem] = useState(null);
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "";
@@ -152,6 +165,46 @@ export default function POS() {
     }));
   };
 
+  // Available stock excludes reservations from other pending invoices.
+  const getAvailableForProduct = useCallback(
+    (productId, excludedItemId = null, excludedInvoiceId = invoice.id) => {
+      const inventoryProduct = getProducts().find(
+        (product) => String(product.id) === String(productId)
+      );
+
+      if (!inventoryProduct) return 0;
+
+      const stock = money(inventoryProduct.stock);
+
+      const reservedByOtherInvoices = getPendingInvoices()
+        .filter((pending) => pending.id !== excludedInvoiceId)
+        .reduce((sum, pending) => {
+          return sum + (pending.items || []).reduce((itemSum, item) => {
+            return getProductId(item) === String(productId)
+              ? itemSum + getQuantity(item)
+              : itemSum;
+          }, 0);
+        }, 0);
+
+      const otherCurrentInvoiceItems = (invoice.items || []).reduce(
+        (sum, item) => {
+          if (String(item.id) === String(excludedItemId)) return sum;
+
+          return getProductId(item) === String(productId)
+            ? sum + getQuantity(item)
+            : sum;
+        },
+        0
+      );
+
+      return Math.max(
+        0,
+        stock - reservedByOtherInvoices - otherCurrentInvoiceItems
+      );
+    },
+    [invoice.id, invoice.items]
+  );
+
   const saveCurrentAsPending = useCallback(
     (silent = false) => {
       if (items.length === 0) {
@@ -184,7 +237,15 @@ export default function POS() {
 
       return true;
     },
-    [invoice, items.length, subtotal, total, paid, remaining, refreshPending]
+    [
+      invoice,
+      items.length,
+      subtotal,
+      total,
+      paid,
+      remaining,
+      refreshPending,
+    ]
   );
 
   const createNewInvoice = () => {
@@ -198,11 +259,11 @@ export default function POS() {
     }
 
     if (invoice.status !== "Pending") {
-      const saved = saveCurrentAsPending(true);
-      if (!saved) return;
+      if (!saveCurrentAsPending(true)) return;
     }
 
     setInvoice(createInvoice());
+    setRemovedItem(null);
     setShowEmptyWarning(false);
     notify("A new invoice is ready.", "success");
   };
@@ -211,12 +272,13 @@ export default function POS() {
     if (items.length > 0) return;
 
     setInvoice(createInvoice());
+    setRemovedItem(null);
     setShowEmptyWarning(false);
     notify("Empty invoice closed. New invoice created.", "success");
   };
 
   const addProduct = (product) => {
-    const productId = String(product.productId ?? product.id ?? "");
+    const productId = getProductId(product);
 
     const inventoryProduct = getProducts().find(
       (item) => String(item.id) === productId
@@ -227,21 +289,24 @@ export default function POS() {
       return;
     }
 
-    const quantityToAdd = Math.max(0.01, Number(product.quantity) || 1);
+    const quantityToAdd = Math.max(
+      1,
+      Math.floor(Number(product.quantity) || 1)
+    );
 
     const currentQuantity = items.reduce((sum, item) => {
-      return String(item.productId ?? item.id) === productId
+      return getProductId(item) === productId
         ? sum + getQuantity(item)
         : sum;
     }, 0);
 
     const stock = money(inventoryProduct.stock);
 
-    const othersReserved = pendingInvoices
+    const othersReserved = getPendingInvoices()
       .filter((pending) => pending.id !== invoice.id)
       .reduce((sum, pending) => {
         return sum + (pending.items || []).reduce((itemSum, item) => {
-          return String(item.productId ?? item.id) === productId
+          return getProductId(item) === productId
             ? itemSum + getQuantity(item)
             : itemSum;
         }, 0);
@@ -251,54 +316,213 @@ export default function POS() {
 
     if (currentQuantity + quantityToAdd > available) {
       notify(
-        `${inventoryProduct.name}: only ${Math.max(0, available - currentQuantity)} additional units are available.`,
+        `${inventoryProduct.name}: only ${Math.max(
+          0,
+          available - currentQuantity
+        )} additional units are available.`,
         "error"
       );
       return;
     }
 
-    updateInvoice({
-      items: mergeItems(items, inventoryProduct, quantityToAdd),
+    setInvoice((current) => ({
+      ...current,
+      items: mergeItems(
+        current.items || [],
+        inventoryProduct,
+        quantityToAdd
+      ),
       status: "Draft",
-    });
+      updatedAt: new Date().toISOString(),
+    }));
 
     setShowProducts(true);
     setShowEmptyWarning(false);
     setMessage("");
+    setRemovedItem(null);
   };
 
+  // Quantity changes are checked against real inventory and other reservations.
   const updateItem = (id, field, value) => {
-    setInvoice((current) => {
-      const nextItems = (current.items || []).map((item) => {
-        if (String(item.id) !== String(id)) return item;
+    const currentItem = items.find(
+      (item) => String(item.id) === String(id)
+    );
 
-        if (field === "quantity") {
-          const quantity = Math.max(0.01, Number(value) || 0.01);
-          return { ...item, qty: quantity, quantity };
-        }
+    if (!currentItem) return;
 
-        if (field === "price") {
-          return { ...item, price: money(value) };
-        }
+    if (field === "quantity") {
+      const rawQuantity = Number(value);
 
-        if (field === "discount") {
-          return { ...item, discount: money(value) };
-        }
+      if (!Number.isFinite(rawQuantity) || rawQuantity < 1) {
+        notify("Quantity must be at least one unit.", "error");
+        return;
+      }
 
-        return item;
-      });
+      const quantity = Math.floor(rawQuantity);
+      const available = getAvailableForProduct(
+        getProductId(currentItem),
+        currentItem.id
+      );
 
-      return {
+      if (quantity > available) {
+        notify(
+          `${currentItem.name}: only ${available} units are available for this line.`,
+          "error"
+        );
+        return;
+      }
+
+      setInvoice((current) => ({
         ...current,
-        items: nextItems,
+        items: (current.items || []).map((item) => {
+          if (String(item.id) !== String(id)) return item;
+
+          return {
+            ...item,
+            qty: quantity,
+            quantity,
+          };
+        }),
         status: "Draft",
         updatedAt: new Date().toISOString(),
-      };
-    });
+      }));
+
+      setMessage("");
+      return;
+    }
+
+    if (field === "price" || field === "discount") {
+      const numericValue = Number(value);
+
+      if (!Number.isFinite(numericValue) || numericValue < 0) {
+        notify("Price and discount must be zero or greater.", "error");
+        return;
+      }
+
+      setInvoice((current) => ({
+        ...current,
+        items: (current.items || []).map((item) => {
+          if (String(item.id) !== String(id)) return item;
+
+          return {
+            ...item,
+            [field]: money(numericValue),
+          };
+        }),
+        status: "Draft",
+        updatedAt: new Date().toISOString(),
+      }));
+
+      setMessage("");
+    }
+  };
+
+  const addUnit = (item) => {
+    updateItem(item.id, "quantity", getQuantity(item) + 1);
+  };
+
+  // Add a full carton as a separate invoice line when carton pricing differs.
+  const addCarton = (item) => {
+    const productId = getProductId(item);
+    const inventoryProduct = getProducts().find(
+      (product) => String(product.id) === productId
+    );
+
+    if (!inventoryProduct) {
+      notify("Product not found in the current inventory.", "error");
+      return;
+    }
+
+    const cartonSize = Math.max(
+      1,
+      Math.floor(Number(inventoryProduct.piecesPerCarton) || 1)
+    );
+
+    if (cartonSize <= 1) {
+      notify("This product has no carton quantity configured.", "error");
+      return;
+    }
+
+    const currentQuantity = items.reduce((sum, currentItem) => {
+      return getProductId(currentItem) === productId
+        ? sum + getQuantity(currentItem)
+        : sum;
+    }, 0);
+
+    const othersReserved = getPendingInvoices()
+      .filter((pending) => pending.id !== invoice.id)
+      .reduce((sum, pending) => {
+        return sum + (pending.items || []).reduce((itemSum, pendingItem) => {
+          return getProductId(pendingItem) === productId
+            ? itemSum + getQuantity(pendingItem)
+            : itemSum;
+        }, 0);
+      }, 0);
+
+    const available = Math.max(
+      0,
+      money(inventoryProduct.stock) - othersReserved
+    );
+
+    if (currentQuantity + cartonSize > available) {
+      notify(
+        `${inventoryProduct.name}: a carton requires ${cartonSize} units, but only ${Math.max(
+          0,
+          available - currentQuantity
+        )} are available.`,
+        "error"
+      );
+      return;
+    }
+
+    const cartonPrice = money(inventoryProduct.cartonPrice);
+    const regularPrice = money(inventoryProduct.price);
+    const cartonUnitPrice =
+      cartonPrice > 0 ? cartonPrice / cartonSize : regularPrice;
+
+    const cartonLine = {
+      ...normalizeItem(inventoryProduct, cartonSize),
+      // A separate line preserves the regular unit price on existing items.
+      id: `${productId}-carton-${Date.now()}`,
+      productId,
+      qty: cartonSize,
+      quantity: cartonSize,
+      price: cartonUnitPrice,
+      cartonPrice,
+      piecesPerCarton: cartonSize,
+      isCartonLine: true,
+      discount: 0,
+    };
+
+    setInvoice((current) => ({
+      ...current,
+      items: [...(current.items || []), cartonLine],
+      status: "Draft",
+      updatedAt: new Date().toISOString(),
+    }));
+
+    setMessage("");
+    setRemovedItem(null);
+
+    notify(
+      cartonPrice > 0
+        ? `Added one carton of ${inventoryProduct.name} at ${cartonPrice.toLocaleString()} DA.`
+        : `Added ${cartonSize} units of ${inventoryProduct.name}.`,
+      "success"
+    );
   };
 
   const removeItem = (id) => {
-    const removed = items.find((item) => String(item.id) === String(id));
+    const removed = items.find(
+      (item) => String(item.id) === String(id)
+    );
+
+    if (!removed) return;
+
+    setRemovedItem({
+      item: { ...removed },
+      invoiceId: invoice.id,
+    });
 
     setInvoice((current) => ({
       ...current,
@@ -309,9 +533,71 @@ export default function POS() {
       updatedAt: new Date().toISOString(),
     }));
 
-    if (removed) {
-      notify(`${removed.name} removed from this invoice.`, "info");
+    notify(`${removed.name} removed. You can undo this action.`, "info");
+  };
+
+  const undoRemove = (itemToRestore) => {
+    const target = itemToRestore || removedItem?.item;
+
+    if (!target) return;
+
+    if (removedItem && removedItem.invoiceId !== invoice.id) {
+      setRemovedItem(null);
+      notify("Undo is unavailable because you changed invoices.", "error");
+      return;
     }
+
+    const productId = getProductId(target);
+    const inventoryProduct = getProducts().find(
+      (product) => String(product.id) === productId
+    );
+
+    if (!inventoryProduct) {
+      notify("Cannot restore this item: it is no longer in inventory.", "error");
+      return;
+    }
+
+    const alreadyInInvoice = items.reduce((sum, item) => {
+      return getProductId(item) === productId
+        ? sum + getQuantity(item)
+        : sum;
+    }, 0);
+
+    const othersReserved = getPendingInvoices()
+      .filter((pending) => pending.id !== invoice.id)
+      .reduce((sum, pending) => {
+        return sum + (pending.items || []).reduce((itemSum, pendingItem) => {
+          return getProductId(pendingItem) === productId
+            ? itemSum + getQuantity(pendingItem)
+            : itemSum;
+        }, 0);
+      }, 0);
+
+    const available = Math.max(
+      0,
+      money(inventoryProduct.stock) - othersReserved
+    );
+
+    if (alreadyInInvoice + getQuantity(target) > available) {
+      notify(
+        `Cannot undo: only ${Math.max(
+          0,
+          available - alreadyInInvoice
+        )} units are currently available.`,
+        "error"
+      );
+      return;
+    }
+
+    setInvoice((current) => ({
+      ...current,
+      items: [...(current.items || []), { ...target }],
+      status: "Draft",
+      updatedAt: new Date().toISOString(),
+    }));
+
+    setRemovedItem(null);
+    notify(`${target.name} restored to the invoice.`, "success");
   };
 
   const chooseCustomer = () => {
@@ -321,6 +607,7 @@ export default function POS() {
     updateInvoice({
       customerName: name.trim(),
       customerId: name.trim(),
+      status: "Draft",
     });
   };
 
@@ -339,7 +626,10 @@ export default function POS() {
       }
     } else if (items.length === 0 && invoice.id !== pending.id) {
       setShowEmptyWarning(true);
-      notify("Close the empty invoice before opening another invoice.", "error");
+      notify(
+        "Close the empty invoice before opening another invoice.",
+        "error"
+      );
       return;
     }
 
@@ -349,6 +639,7 @@ export default function POS() {
       items: (pending.items || []).map((item) => ({ ...item })),
     });
 
+    setRemovedItem(null);
     setShowPending(false);
     setShowEmptyWarning(false);
     notify(`Opened ${pending.invoiceNumber}.`, "success");
@@ -395,6 +686,7 @@ export default function POS() {
       }
 
       setInvoice(createInvoice());
+      setRemovedItem(null);
       refreshPending();
       notify("Sale completed and inventory updated.", "success");
     } finally {
@@ -558,6 +850,9 @@ export default function POS() {
             items={items}
             onUpdate={updateItem}
             onRemove={removeItem}
+            onUndoRemove={undoRemove}
+            onAddUnit={addUnit}
+            onAddCarton={addCarton}
           />
 
           <InvoiceSummary
