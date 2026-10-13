@@ -552,6 +552,13 @@ function Sidebar({
                           }));
                         }
 
+                        // الضغط على أيقونة المشتريات يفتح القسم مباشرة.
+                        if (item.label === "Purchases") {
+                          onNavigate("Purchase History");
+                          onClose();
+                          return;
+                        }
+
                         if (
                           item.label === "Point of Sale" ||
                           !hasChildren
