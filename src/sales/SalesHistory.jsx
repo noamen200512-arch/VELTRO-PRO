@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import {
   Wallet,
@@ -26,6 +27,7 @@ import {
 } from "./salesStore.js";
 
 import "./salesHistory.css";
+import EditInvoiceProductPicker from "./components/EditInvoiceProductPicker.jsx";
 
 /* =========================================================
    HELPERS
@@ -350,6 +352,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [productPickerOpen, setProductPickerOpen] = useState(false);
 
   const inventory = getProducts();
   const subtotal = invoiceSubtotal(draft.items);
@@ -556,23 +559,14 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
         <div className="edit-products-heading">
           <h4>Invoice items</h4>
 
-          <label className="add-product-select">
+          <button
+            className="edit-add-product-button"
+            type="button"
+            onClick={() => setProductPickerOpen(true)}
+          >
             <Plus size={16} />
-            <select
-              defaultValue=""
-              onChange={(event) => {
-                addProduct(event.target.value);
-                event.target.value = "";
-              }}
-            >
-              <option value="">Add product...</option>
-              {inventory.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </label>
+            Add another product
+          </button>
         </div>
 
         <div className="table-wrapper">
@@ -700,6 +694,13 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
           </button>
         </div>
       </section>
+
+      {productPickerOpen && (
+        <EditInvoiceProductPicker
+          onSelect={addProduct}
+          onClose={() => setProductPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }
