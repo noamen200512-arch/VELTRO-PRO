@@ -18,14 +18,36 @@ export function SalesSidebar({
   onPaidChange,
   remaining,
   newAmount,
+  invoiceDate,
+  currentUser = "Administrator",
+  previousDebt = 0,
 }) {
-  const now = new Date();
+  const parsedDate = invoiceDate
+    ? new Date(invoiceDate)
+    : new Date();
 
-  const date = now.toLocaleDateString("en-GB");
-  const time = now.toLocaleTimeString("en-GB", {
+  const validDate = Number.isNaN(parsedDate.getTime())
+    ? new Date()
+    : parsedDate;
+
+  const date = validDate.toLocaleDateString("en-GB");
+
+  const time = validDate.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const displayInvoiceNumber = String(invoiceNumber || "—");
+
+  const formattedInvoiceNumber =
+    displayInvoiceNumber.startsWith("INV-")
+      ? displayInvoiceNumber
+      : `INV-${displayInvoiceNumber}`;
+
+  const displayUser = String(currentUser || "Administrator");
+
+  const userInitial =
+    displayUser.trim().charAt(0).toUpperCase() || "A";
 
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -45,7 +67,8 @@ export function SalesSidebar({
           <span className="sales-field-label">
             Invoice Number
           </span>
-          <strong>INV-{invoiceNumber}</strong>
+
+          <strong>{formattedInvoiceNumber}</strong>
         </div>
 
         <div className="sales-info-grid">
@@ -70,10 +93,12 @@ export function SalesSidebar({
         </div>
 
         <div className="sales-user-card">
-          <div className="sales-user-avatar">A</div>
+          <div className="sales-user-avatar">
+            {userInitial}
+          </div>
 
           <div className="sales-user-details">
-            <strong>Administrator</strong>
+            <strong>{displayUser}</strong>
             <span>Sales Operator</span>
           </div>
 
@@ -111,7 +136,8 @@ export function SalesSidebar({
               <CreditCard size={15} />
               Previous Debt
             </span>
-            <strong>{money(0)}</strong>
+
+            <strong>{money(previousDebt)}</strong>
           </div>
 
           <div className="sales-account-row">
@@ -119,6 +145,7 @@ export function SalesSidebar({
               <Wallet size={15} />
               Paid Amount
             </span>
+
             <strong>{money(paid)}</strong>
           </div>
 
@@ -127,6 +154,7 @@ export function SalesSidebar({
               <CircleDollarSign size={15} />
               Remaining Amount
             </span>
+
             <strong className="sales-remaining-amount">
               {money(remaining)}
             </strong>
