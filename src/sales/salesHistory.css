@@ -1,23 +1,21 @@
-
 /* =========================================================
-   VELTRO-PRO — PREMIUM DARK SALES HISTORY
-   Scoped to Sales History to avoid changing other modules.
+   VELTRO-PRO — SALES HISTORY
+   Compact responsive dark interface
 ========================================================= */
 
 .history-page {
   --history-bg: #0a101b;
   --history-panel: #111a29;
-  --history-panel-raised: #172336;
   --history-border: rgba(157, 180, 208, 0.14);
   --history-text: #eef4fb;
   --history-muted: #93a5bb;
   --history-cyan: #4ce0c8;
   --history-cyan-soft: rgba(76, 224, 200, 0.1);
-  --history-violet: #a99aff;
 
   width: 100%;
   min-width: 0;
   color: var(--history-text);
+  font-size: 12px;
 }
 
 .history-page,
@@ -25,43 +23,49 @@
   box-sizing: border-box;
 }
 
+/* Headings */
+
 .history-page .section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .history-page .section-heading h2 {
   margin: 0;
   color: var(--history-text);
-  font-size: clamp(23px, 2vw, 30px);
+  font-size: clamp(20px, 1.8vw, 26px);
   font-weight: 750;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.4px;
 }
 
 .history-page .section-heading p {
-  margin: 7px 0 0;
+  margin: 5px 0 0;
   color: var(--history-muted);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 11px;
+  line-height: 1.5;
 }
+
+/* Toolbar buttons */
 
 .history-page .history-toolbar-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 9px;
+  gap: 7px;
   flex-wrap: wrap;
 }
 
 .history-page .secondary-button,
 .history-page .primary-button {
-  min-height: 40px;
-  border-radius: 11px;
-  font-size: 12px;
+  min-height: 35px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  font-size: 11px;
   font-weight: 650;
+  cursor: pointer;
   transition:
     background 160ms ease,
     border-color 160ms ease,
@@ -84,7 +88,7 @@
   color: #06221e;
   background: var(--history-cyan);
   border: 1px solid transparent;
-  box-shadow: 0 5px 18px rgba(76, 224, 200, 0.12);
+  box-shadow: 0 4px 12px rgba(76, 224, 200, 0.1);
 }
 
 .history-page .primary-button:hover {
@@ -92,45 +96,46 @@
   transform: translateY(-1px);
 }
 
-/* Success notices */
+/* Success messages */
 
 .history-page .pos-message-success {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-  padding: 12px 15px;
+  gap: 10px;
+  margin-bottom: 13px;
+  padding: 10px 12px;
   color: #a7f5df;
   background: rgba(28, 157, 125, 0.12);
   border: 1px solid rgba(76, 224, 200, 0.22);
-  border-radius: 12px;
+  border-radius: 10px;
+  font-size: 11px;
 }
 
-/* Statistics */
+/* Statistics cards */
 
 .history-page .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 11px;
+  margin-bottom: 15px;
 }
 
 .history-page .stat-card {
   position: relative;
   min-width: 0;
   overflow: hidden;
-  padding: 19px;
+  padding: 14px;
   background:
     radial-gradient(
       circle at 100% 0%,
-      rgba(76, 224, 200, 0.075),
+      rgba(76, 224, 200, 0.065),
       transparent 46%
     ),
     linear-gradient(145deg, #151f30, #101826 75%);
   border: 1px solid var(--history-border);
-  border-radius: 17px;
-  box-shadow: 0 9px 25px rgba(0, 0, 0, 0.11);
+  border-radius: 13px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
 }
 
 .history-page .stat-card::after {
@@ -143,94 +148,100 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(76, 224, 200, 0.45),
+    rgba(76, 224, 200, 0.4),
     transparent
   );
-  opacity: 0.75;
 }
 
 .history-page .stat-card-top {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .history-page .stat-icon {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   color: var(--history-cyan);
   background: var(--history-cyan-soft);
   border: 1px solid rgba(76, 224, 200, 0.14);
-  border-radius: 12px;
+  border-radius: 9px;
+}
+
+.history-page .stat-icon svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
 }
 
 .history-page .stat-title {
-  margin: 0 0 9px;
+  margin: 0 0 6px;
   color: var(--history-muted);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 550;
+  line-height: 1.4;
 }
 
 .history-page .stat-value-row h2 {
   margin: 0;
   color: #f2f7fc;
-  font-size: clamp(20px, 1.7vw, 28px);
+  font-size: clamp(17px, 1.5vw, 23px);
   font-weight: 750;
-  letter-spacing: -0.7px;
-  line-height: 1.25;
+  letter-spacing: -0.4px;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .history-page .stat-subtitle {
-  margin: 10px 0 0;
+  margin: 6px 0 0;
   color: #788ca4;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.45;
 }
 
 /* Panels */
 
-.history-page .panel.products-panel,
-.history-page .panel {
+.history-page .panel,
+.history-page .panel.products-panel {
   color: var(--history-text);
   background: linear-gradient(155deg, #131d2c, #101826);
   border: 1px solid var(--history-border);
-  border-radius: 17px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.1);
 }
 
 .history-page .panel.products-panel {
-  padding: 21px;
+  padding: 15px;
 }
 
 .history-page .panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 18px;
+  gap: 10px;
+  margin-bottom: 13px;
 }
 
 .history-page .panel-header h3 {
   margin: 0;
   color: var(--history-text);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.2px;
+  letter-spacing: -0.15px;
 }
 
 .history-page .panel-description {
-  margin: 6px 0 0;
+  margin: 5px 0 0;
   color: var(--history-muted);
-  font-size: 12px;
-  line-height: 1.6;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .history-page .history-reset-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
@@ -240,35 +251,41 @@
 .history-page .history-filters-extended {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 13px;
-  margin-bottom: 20px;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .history-page .history-search {
   display: flex;
   grid-column: 1 / -1;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
-  min-height: 46px;
-  padding: 0 14px;
+  min-height: 38px;
+  padding: 0 10px;
   color: var(--history-muted);
   background: #0c1421;
   border: 1px solid var(--history-border);
-  border-radius: 12px;
+  border-radius: 9px;
   transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.history-page .history-search > svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .history-page .history-search:focus-within {
   border-color: rgba(76, 224, 200, 0.55);
-  box-shadow: 0 0 0 3px rgba(76, 224, 200, 0.07);
+  box-shadow: 0 0 0 2px rgba(76, 224, 200, 0.07);
 }
 
 .history-page .history-search input {
   flex: 1;
   width: 100%;
   min-width: 0;
-  min-height: 42px;
+  min-height: 34px;
   padding: 0;
   color: var(--history-text);
   background: transparent;
@@ -284,21 +301,24 @@
 .history-page .history-filter-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   color: var(--history-muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
 }
 
 .history-page .history-filter-field > span {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: #a8b7c9;
 }
 
 .history-page .history-filter-field > span svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
   color: var(--history-cyan);
 }
 
@@ -306,22 +326,22 @@
 .history-page select {
   width: 100%;
   min-width: 0;
-  min-height: 42px;
-  padding: 9px 11px;
+  min-height: 35px;
+  padding: 7px 9px;
   color: var(--history-text);
   background: #0c1421;
   border: 1px solid var(--history-border);
-  border-radius: 10px;
+  border-radius: 8px;
   outline: none;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   color-scheme: dark;
 }
 
 .history-page input:focus,
 .history-page select:focus {
   border-color: rgba(76, 224, 200, 0.58);
-  box-shadow: 0 0 0 3px rgba(76, 224, 200, 0.07);
+  box-shadow: 0 0 0 2px rgba(76, 224, 200, 0.07);
 }
 
 .history-page select option {
@@ -329,20 +349,20 @@
   background: #111a29;
 }
 
-/* Desktop invoice table */
+/* Desktop table */
 
 .history-page .table-wrapper {
   width: 100%;
   min-width: 0;
   overflow-x: auto;
   border: 1px solid var(--history-border);
-  border-radius: 13px;
+  border-radius: 10px;
   -webkit-overflow-scrolling: touch;
 }
 
 .history-page .products-table {
   width: 100%;
-  min-width: 790px;
+  min-width: 720px;
   border-collapse: separate;
   border-spacing: 0;
   background: transparent;
@@ -353,21 +373,21 @@
 }
 
 .history-page .products-table th {
-  padding: 14px 13px;
+  padding: 10px 9px;
   color: #91a5bd;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 750;
-  letter-spacing: 0.65px;
+  letter-spacing: 0.35px;
   text-align: left;
   white-space: nowrap;
   border-bottom: 1px solid var(--history-border);
 }
 
 .history-page .products-table td {
-  padding: 15px 13px;
+  padding: 10px 9px;
   color: #c8d5e4;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 11px;
+  line-height: 1.4;
   vertical-align: middle;
   border-bottom: 1px solid rgba(157, 180, 208, 0.09);
 }
@@ -387,7 +407,7 @@
 
 .history-page .products-table td small {
   color: #7f94ac;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .history-page .products-table .price-cell {
@@ -396,27 +416,37 @@
   white-space: nowrap;
 }
 
+/* Table row actions */
+
 .history-page .history-row-actions {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
+  flex-wrap: wrap;
 }
 
 .history-page .history-row-actions .icon-button {
   display: inline-grid;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 29px;
+  height: 29px;
+  flex: 0 0 29px;
+  padding: 0;
   place-items: center;
   color: #b8c8d9;
   background: #1a2739;
   border: 1px solid rgba(157, 180, 208, 0.12);
-  border-radius: 9px;
+  border-radius: 7px;
   cursor: pointer;
   transition:
     color 150ms ease,
     background 150ms ease,
     border-color 150ms ease;
+}
+
+.history-page .history-row-actions .icon-button svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
 .history-page .history-row-actions .icon-button:hover {
@@ -429,18 +459,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-top: 15px;
+  gap: 10px;
+  padding-top: 12px;
   color: var(--history-muted);
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .history-page .muted-cell {
   color: #71849b;
 }
 
+/* Empty state */
+
 .history-page .empty-state {
-  padding: 35px 18px !important;
+  padding: 28px 14px !important;
   text-align: center;
 }
 
@@ -448,43 +480,46 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .history-page .history-empty .placeholder-icon {
   display: grid;
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   place-items: center;
   color: var(--history-cyan);
   background: var(--history-cyan-soft);
   border: 1px solid rgba(76, 224, 200, 0.14);
-  border-radius: 15px;
+  border-radius: 11px;
+}
+
+.history-page .history-empty .placeholder-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 .history-page .history-empty strong {
   color: #e7f0fa;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .history-page .history-empty p {
   margin: 0;
   color: var(--history-muted);
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: 10px;
+  line-height: 1.5;
 }
 
-/* Modal styling scoped to history overlays */
+/* Focus accessibility */
 
 .history-page .history-row-actions button:focus-visible,
 .history-page button:focus-visible {
   outline: 2px solid var(--history-cyan);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 
-/* =========================================================
-   TABLET
-========================================================= */
+/* Tablet */
 
 @media (max-width: 1050px) {
   .history-page .stats-grid {
@@ -497,123 +532,128 @@
   }
 }
 
-/* =========================================================
-   MOBILE — INVOICE CARDS
-========================================================= */
+/* Mobile invoice cards */
 
 @media (max-width: 650px) {
   .history-page .section-heading {
     align-items: flex-start;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 17px;
+    gap: 10px;
+    margin-bottom: 13px;
   }
 
   .history-page .section-heading h2 {
-    font-size: 24px;
+    font-size: 21px;
   }
 
   .history-page .section-heading p {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .history-page .history-toolbar-actions {
     width: 100%;
     justify-content: flex-start;
+    gap: 6px;
   }
 
   .history-page .history-toolbar-actions button {
     flex: 1;
+    min-width: 0;
+    min-height: 34px;
+    padding: 6px 8px;
+    font-size: 10px;
   }
 
   .history-page .stats-grid {
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 8px;
+    margin-bottom: 12px;
   }
 
   .history-page .stat-card {
-    padding: 13px;
-    border-radius: 14px;
+    padding: 10px;
+    border-radius: 11px;
   }
 
   .history-page .stat-card-top {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
 
   .history-page .stat-icon {
-    width: 35px;
-    height: 35px;
-    border-radius: 10px;
+    width: 29px;
+    height: 29px;
+    border-radius: 8px;
   }
 
   .history-page .stat-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 15px;
   }
 
   .history-page .stat-title {
-    margin-bottom: 7px;
-    font-size: 11px;
+    margin-bottom: 5px;
+    font-size: 9px;
   }
 
   .history-page .stat-value-row h2 {
-    font-size: clamp(17px, 4.8vw, 22px);
-    line-height: 1.35;
+    font-size: clamp(15px, 4.3vw, 19px);
+    line-height: 1.3;
     overflow-wrap: anywhere;
   }
 
   .history-page .stat-subtitle {
-    margin-top: 7px;
-    font-size: 10px;
+    margin-top: 5px;
+    font-size: 9px;
   }
 
   .history-page .panel.products-panel {
-    padding: 15px 12px;
-    border-radius: 15px;
+    padding: 11px 9px;
+    border-radius: 12px;
   }
 
   .history-page .panel-header {
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
+    margin-bottom: 11px;
   }
 
   .history-page .panel-header h3 {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .history-page .panel-description {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .history-page .history-reset-button {
-    min-height: 36px;
-    padding: 0 9px;
-    font-size: 10px;
+    min-height: 31px;
+    padding: 0 7px;
+    font-size: 9px;
   }
 
   .history-page .history-filters,
   .history-page .history-filters-extended {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 9px;
+    margin-bottom: 12px;
   }
 
   .history-page .history-search {
     grid-column: auto;
-    min-height: 44px;
+    min-height: 36px;
   }
 
   .history-page .history-filter-field {
-    gap: 7px;
-    font-size: 11px;
+    gap: 5px;
+    font-size: 10px;
   }
 
   .history-page input,
   .history-page select {
-    min-height: 42px;
-    font-size: 12px;
+    min-height: 35px;
+    font-size: 11px;
   }
 
-  /* Replace the wide table with independent invoice cards. */
+  /* Mobile table becomes invoice cards */
 
   .history-page .table-wrapper {
     overflow: visible;
@@ -636,26 +676,26 @@
 
   .history-page .products-table tbody {
     display: grid;
-    gap: 12px;
+    gap: 9px;
     width: 100%;
   }
 
   .history-page .products-table tbody tr {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0 13px;
+    gap: 0 10px;
     min-width: 0;
-    padding: 14px;
+    padding: 10px;
     background:
       radial-gradient(
         circle at 100% 0%,
-        rgba(76, 224, 200, 0.055),
+        rgba(76, 224, 200, 0.045),
         transparent 45%
       ),
       #111c2b;
     border: 1px solid rgba(157, 180, 208, 0.15);
-    border-radius: 14px;
-    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.1);
+    border-radius: 11px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   .history-page .products-table tbody tr:not(:last-child):hover {
@@ -667,21 +707,22 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    gap: 5px;
+    gap: 4px;
     min-width: 0;
-    padding: 10px 0;
+    padding: 7px 0;
     color: #e1eaf4;
-    font-size: 12px;
+    font-size: 10px;
+    line-height: 1.4;
     overflow-wrap: anywhere;
     border: 0;
   }
 
   .history-page .products-table tbody tr td::before {
     color: #8398b0;
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 750;
-    letter-spacing: 0.65px;
-    line-height: 1.4;
+    letter-spacing: 0.35px;
+    line-height: 1.3;
   }
 
   .history-page .products-table tbody tr td:nth-child(1)::before {
@@ -719,7 +760,6 @@
   .history-page .products-table tbody tr td:nth-child(1) {
     grid-column: 1;
     grid-row: 1;
-    align-items: flex-start;
   }
 
   .history-page .products-table tbody tr td:nth-child(2) {
@@ -755,24 +795,24 @@
   .history-page .products-table tbody tr td:nth-child(8) {
     grid-column: 1 / -1;
     grid-row: 5;
-    padding-top: 12px;
+    padding-top: 9px;
     border-top: 1px solid rgba(157, 180, 208, 0.12);
   }
 
   .history-page .products-table tbody tr td:nth-child(1) strong {
     color: var(--history-cyan);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
   }
 
   .history-page .products-table tbody tr td:nth-child(4) small {
     color: #8297ae;
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .history-page .products-table tbody tr td:nth-child(5) {
     color: var(--history-cyan);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 800;
   }
 
@@ -783,77 +823,84 @@
 
   .history-page .history-row-actions {
     width: 100%;
-    gap: 9px;
+    gap: 6px;
   }
 
   .history-page .history-row-actions .icon-button {
-    width: 39px;
-    height: 37px;
-    flex-basis: 39px;
-    border-radius: 10px;
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 7px;
   }
 
-  /* Empty state occupies the entire card. */
+  .history-page .history-row-actions .icon-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Empty state */
 
   .history-page .products-table tbody tr:has(td[colspan]) {
     display: block;
-    padding: 12px;
+    padding: 10px;
   }
 
   .history-page .products-table tbody tr td.empty-state {
     display: block;
     grid-column: 1 / -1;
-    padding: 22px 10px !important;
+    padding: 18px 8px !important;
   }
 
   .history-page .products-table tbody tr td.empty-state::before {
     display: none;
+    content: none;
   }
 
   .history-page .table-footer {
     align-items: flex-start;
     flex-direction: column;
-    gap: 7px;
-    padding-top: 13px;
+    gap: 6px;
+    padding-top: 10px;
+    font-size: 10px;
   }
 }
 
-/* =========================================================
-   VERY SMALL PHONES
-========================================================= */
+/* Extra-small phones */
 
 @media (max-width: 380px) {
   .history-page .stats-grid {
-    gap: 8px;
+    gap: 6px;
   }
 
   .history-page .stat-card {
-    padding: 11px 9px;
+    padding: 8px;
   }
 
   .history-page .stat-value-row h2 {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .history-page .products-table tbody tr {
-    gap: 0 9px;
-    padding: 11px;
+    gap: 0 7px;
+    padding: 8px;
   }
 
   .history-page .products-table tbody tr td {
-    font-size: 11px;
+    font-size: 9px;
+  }
+
+  .history-page .history-row-actions {
+    gap: 4px;
   }
 
   .history-page .history-row-actions .icon-button {
-    width: 36px;
-    height: 35px;
-    flex-basis: 36px;
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
   }
 }
 
-/* =========================================================
-   PRINT — KEEP THE INVOICE PAPER CLEAN
-========================================================= */
+/* Print — preserve invoice paper layout */
 
 @media print {
   body * {
@@ -884,6 +931,7 @@
     max-width: none !important;
     padding: 0 !important;
     overflow: visible !important;
+    color: #111 !important;
     background: #fff !important;
     border: 0 !important;
     box-shadow: none !important;
@@ -916,6 +964,7 @@
     display: table-cell !important;
     padding: 7px !important;
     color: #111 !important;
+    font-size: 10px !important;
     border: 1px solid #ddd !important;
   }
 
@@ -925,7 +974,7 @@
   }
 }
 
-/* Reduced motion accessibility */
+/* Accessibility: reduce motion */
 
 @media (prefers-reduced-motion: reduce) {
   .history-page *,
