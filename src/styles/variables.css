@@ -1,0 +1,53 @@
+
+/* =====================================================
+   VELTRO-PRO — DESIGN TOKENS
+===================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Inter', sans-serif;
+  color: #edf2fa;
+  background: #080c14;
+  color-scheme: dark;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Backgrounds */
+  --bg: #080c14;
+  --sidebar: #0b101a;
+  --panel: #101722;
+  --panel-hover: #151f2d;
+  --field: #0b1220;
+
+  /* Borders */
+  --border: #222c3c;
+  --border-hover: #35445b;
+
+  /* Text */
+  --text: #edf2fa;
+  --muted: #8491a7;
+  --muted-2: #69778c;
+
+  /* Accent colors */
+  --turquoise: #35d6c2;
+  --turquoise-bright: #51e5d1;
+  --violet: #a78bfa;
+  --blue: #78b8ff;
+  --orange: #ffc274;
+  --danger: #ff7c8b;
+
+  /* Layout */
+  --sidebar-width: 252px;
+  --sidebar-compact-width: 76px;
+  --page-padding: 30px;
+
+  /* Shape and animation */
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 13px;
+  --transition: 180ms ease;
+}
