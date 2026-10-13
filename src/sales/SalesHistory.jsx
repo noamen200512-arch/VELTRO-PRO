@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState } from "react";
 import {
   Wallet,
@@ -24,6 +25,8 @@ import {
   getCompletedSales,
   editCompletedSale,
 } from "./salesStore.js";
+
+import "./salesHistory.css";
 
 /* =========================================================
    HELPERS
