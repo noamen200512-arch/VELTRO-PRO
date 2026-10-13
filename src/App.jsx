@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -27,6 +26,7 @@ import POS from "./POS";
 import Products from "./Products.jsx";
 import SalesHistory from "./sales/SalesHistory.jsx";
 import Purchases from "./purchases/Purchases.jsx";
+import Suppliers from "./suppliers/Suppliers.jsx";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -552,7 +552,6 @@ function Sidebar({
                           }));
                         }
 
-                        // الضغط على أيقونة المشتريات يفتح القسم مباشرة.
                         if (item.label === "Purchases") {
                           onNavigate("Purchase History");
                           onClose();
@@ -645,6 +644,7 @@ function Header({
     Products: "Manage your products and inventory.",
     "Sales History": "Review, print and edit completed sales.",
     "Purchase History": "Create and manage purchase invoices.",
+    Suppliers: "Manage supplier details, purchase history and balances.",
   };
 
   return (
@@ -794,7 +794,6 @@ function PlaceholderPage({ title }) {
     Categories: Boxes,
     Purchases: CreditCard,
     Orders: ShoppingCart,
-    Suppliers: Truck,
     Customers: Users,
     "Cash Register": Wallet,
     Reports: BarChart3,
@@ -881,6 +880,8 @@ export default function App() {
             <SalesHistory />
           ) : activePage === "Purchase History" ? (
             <Purchases />
+          ) : activePage === "Suppliers" ? (
+            <Suppliers />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
