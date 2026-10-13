@@ -1,0 +1,126 @@
+
+/* =========================================
+   VELTRO-PRO — PRODUCTS
+   Dark Premium UI
+   ========================================= */
+
+/* Products statistics grid */
+.veltro-products-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Products toolbar */
+.veltro-product-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Product table container */
+.veltro-product-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+/* Product table */
+.veltro-product-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* Table header */
+.veltro-product-table th {
+  color: #8795AC;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 13px 15px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  white-space: nowrap;
+}
+
+/* Table cells */
+.veltro-product-table td {
+  padding: 14px 15px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Table row hover */
+.veltro-product-table tbody tr:hover {
+  background: rgba(53, 214, 208, 0.035);
+}
+
+/* Product form inputs */
+.veltro-product-input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: #080D18;
+  color: #F1F5F9;
+  outline: none;
+  box-sizing: border-box;
+  font-size: 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Input focus */
+.veltro-product-input:focus {
+  border-color: #35D6D0;
+  box-shadow: 0 0 0 3px rgba(53, 214, 208, 0.08);
+}
+
+/* Product action buttons */
+.veltro-product-action {
+  min-width: 34px;
+  min-height: 34px;
+  flex-shrink: 0;
+}
+
+/* Tablet */
+@media (max-width: 1050px) {
+  .veltro-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Mobile */
+@media (max-width: 520px) {
+  .veltro-products-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .veltro-product-toolbar {
+    gap: 8px;
+  }
+
+  .veltro-product-table th,
+  .veltro-product-table td {
+    padding: 11px 12px;
+  }
+
+  .veltro-product-input {
+    font-size: 16px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .veltro-product-input {
+    transition: none;
+  }
+}
