@@ -48,7 +48,7 @@ export function SalesToolbar({
 }) {
   const actions = {
     new: onNew,
-    modify: onModify || onPending,
+    modify: onModify,
     print: onPrint,
     customer: onCustomer,
     pending: onPending,
