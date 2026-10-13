@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from "react";
 import {
   ShoppingCart,
@@ -17,31 +16,19 @@ import {
   Printer,
   Pencil,
 } from "lucide-react";
-import { getProducts, saveProducts } from "../productStore.js";
+import { getProducts } from "../productStore.js";
+import {
+  getPurchaseInvoices,
+  getPurchaseSuppliers,
+  savePurchaseInvoices,
+  savePurchaseSuppliers,
+  applyPurchaseStock,
+  getPurchasePaymentStatus,
+} from "./purchaseService.js";
 import "./purchases.css";
 
-const INVOICES_KEY = "veltro_purchase_invoices";
-const SUPPLIERS_KEY = "veltro_purchase_suppliers";
 const money = (value) =>
   `${Number(value || 0).toLocaleString("fr-FR")} DA`;
-
-const readStorage = (key, fallback = []) => {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || "null");
-    return Array.isArray(value) ? value : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const saveStorage = (key, value) => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
-};
 
 const inputStyle = {
   width: "100%",
@@ -65,7 +52,12 @@ function Field({ label, children }) {
   );
 }
 
-function ActionButton({ children, onClick, danger = false, type = "button" }) {
+function ActionButton({
+  children,
+  onClick,
+  danger = false,
+  type = "button",
+}) {
   return (
     <button
       type={type}
@@ -79,7 +71,9 @@ function ActionButton({ children, onClick, danger = false, type = "button" }) {
         padding: "8px 12px",
         borderRadius: 9,
         border: `1px solid ${
-          danger ? "rgba(251,113,133,.3)" : "rgba(148,163,184,.2)"
+          danger
+            ? "rgba(251,113,133,.3)"
+            : "rgba(148,163,184,.2)"
         }`,
         background: danger ? "rgba(251,113,133,.08)" : "#111a29",
         color: danger ? "#fb7185" : "#edf2fa",
@@ -115,10 +109,10 @@ export default function Purchases() {
   const [productCartonPrice, setProductCartonPrice] = useState("");
   const [lines, setLines] = useState([]);
   const [invoices, setInvoices] = useState(() =>
-    readStorage(INVOICES_KEY)
+    getPurchaseInvoices()
   );
   const [suppliers, setSuppliers] = useState(() =>
-    readStorage(SUPPLIERS_KEY)
+    getPurchaseSuppliers()
   );
   const [viewInvoice, setViewInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -132,40 +126,53 @@ export default function Purchases() {
   }, [showInvoice, selectedProduct, invoices.length]);
 
   const total = lines.reduce(
-    (sum, line) => sum + Number(line.quantity || 0) * Number(line.unitPrice || 0),
+    (sum, line) =>
+      sum +
+      Number(line.quantity || 0) *
+        Number(line.unitPrice || 0),
     0
   );
 
   const paidAmount = Math.max(0, Number(payment) || 0);
   const remaining = Math.max(0, total - paidAmount);
 
-  const filteredProducts = products.filter((product) => {
-    const q = productSearch.trim().toLowerCase();
-    if (!q) return true;
+  const filteredProducts = products
+    .filter((product) => {
+      const q = productSearch.trim().toLowerCase();
+      if (!q) return true;
 
-    const barcodes = [
-      product.barcode,
-      ...(Array.isArray(product.barcodeAliases) ? product.barcodeAliases : []),
-    ];
+      const barcodes = [
+        product.barcode,
+        ...(Array.isArray(product.barcodeAliases)
+          ? product.barcodeAliases
+          : []),
+      ];
 
-    return [
-      product.name,
-      product.sku,
-      product.id,
-      ...barcodes,
-    ].some((value) =>
-      String(value || "").toLowerCase().includes(q)
-    );
-  }).slice(0, 8);
+      return [
+        product.name,
+        product.sku,
+        product.id,
+        ...barcodes,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      );
+    })
+    .slice(0, 8);
 
   const filteredInvoices = invoices.filter((invoice) => {
     const q = search.trim().toLowerCase();
-    return !q || [
-      invoice.number,
-      invoice.supplier,
-      invoice.phone,
-      invoice.status,
-    ].some((value) => String(value || "").toLowerCase().includes(q));
+
+    return (
+      !q ||
+      [
+        invoice.number,
+        invoice.supplier,
+        invoice.phone,
+        invoice.status,
+      ].some((value) =>
+        String(value || "").toLowerCase().includes(q)
+      )
+    );
   });
 
   function resetDraft() {
@@ -189,6 +196,8 @@ export default function Purchases() {
 
   function openNewInvoice() {
     resetDraft();
+    setNotice("");
+    setShowPayment(false);
     setShowInvoice(true);
   }
 
@@ -211,12 +220,17 @@ export default function Purchases() {
 
   function updateCartons(value) {
     setCartons(value);
+
     if (value !== "" && selectedProduct) {
       const perCarton = Math.max(
         1,
         Number(selectedProduct.piecesPerCarton || 1)
       );
-      setQuantity(String(Math.max(0, Number(value) || 0) * perCarton));
+
+      setQuantity(
+        String(Math.max(0, Number(value) || 0) * perCarton)
+      );
+
       setUnitPrice(
         cartonPrice !== ""
           ? String((Number(cartonPrice) || 0) / perCarton)
@@ -227,12 +241,16 @@ export default function Purchases() {
 
   function updateCartonPrice(value) {
     setCartonPrice(value);
+
     const perCarton = Math.max(
       1,
       Number(selectedProduct?.piecesPerCarton || 1)
     );
+
     if (value !== "") {
-      setUnitPrice(String(Number((Number(value) / perCarton).toFixed(4))));
+      setUnitPrice(
+        String(Number((Number(value) / perCarton).toFixed(4)))
+      );
     } else {
       setUnitPrice("");
     }
@@ -246,7 +264,9 @@ export default function Purchases() {
 
   function addLine() {
     if (!selectedProduct) {
-      setNotice("Select a product from the product database first.");
+      setNotice(
+        "Select a product from the product database first."
+      );
       return;
     }
 
@@ -277,8 +297,14 @@ export default function Purchases() {
       unitPrice: price,
       cartonPrice: Math.max(0, Number(cartonPrice) || 0),
       salePrice: Math.max(0, Number(salePrice) || 0),
-      wholesalePrice: Math.max(0, Number(wholesalePrice) || 0),
-      productCartonPrice: Math.max(0, Number(productCartonPrice) || 0),
+      wholesalePrice: Math.max(
+        0,
+        Number(wholesalePrice) || 0
+      ),
+      productCartonPrice: Math.max(
+        0,
+        Number(productCartonPrice) || 0
+      ),
       image: selectedProduct.image || "",
     };
 
@@ -290,6 +316,7 @@ export default function Purchases() {
             : line
         );
       }
+
       return [...previous, newLine];
     });
 
@@ -321,6 +348,8 @@ export default function Purchases() {
     );
   }
 
+  // Save a new invoice or update an existing invoice.
+  // Existing invoices never increase stock a second time.
   function saveInvoice() {
     if (!supplier.trim()) {
       setNotice("Enter the supplier name.");
@@ -332,19 +361,45 @@ export default function Purchases() {
       return;
     }
 
-    if (paidAmount > total) {
-      setNotice("The paid amount cannot exceed the invoice total.");
+    const invalidLine = lines.some((line) => {
+      const qty = Number(line.quantity);
+      const price = Number(line.unitPrice);
+
+      return (
+        !Number.isFinite(qty) ||
+        qty <= 0 ||
+        !Number.isFinite(price) ||
+        price < 0
+      );
+    });
+
+    if (invalidLine) {
+      setNotice("Check product quantities and purchase prices.");
       return;
     }
 
-    setShowPayment(false);
-    setNotice("");
-    setShowInvoice(false);
+    if (
+      !Number.isFinite(paidAmount) ||
+      paidAmount < 0 ||
+      paidAmount > total
+    ) {
+      setNotice(
+        "The paid amount must be between zero and the invoice total."
+      );
+      return;
+    }
+
+    const existing = editingInvoice
+      ? invoices.find(
+          (invoice) => invoice.id === editingInvoice
+        )
+      : null;
 
     const now = new Date().toISOString();
-    const existing = editingInvoice
-      ? invoices.find((invoice) => invoice.id === editingInvoice)
-      : null;
+    const paymentStatus = getPurchasePaymentStatus(
+      total,
+      paidAmount
+    );
 
     const invoice = {
       id: existing?.id || `PUR-${Date.now()}`,
@@ -354,74 +409,77 @@ export default function Purchases() {
       date: existing?.date || now,
       updatedAt: now,
       lines: lines.map((line) => ({ ...line })),
-      total,
-      paid: paidAmount,
-      remaining,
-      status:
-        remaining <= 0
-          ? "Paid"
-          : paidAmount > 0
-          ? "Partially paid"
-          : "Unpaid",
+      ...paymentStatus,
       note: invoiceNote.trim(),
     };
 
-    // A new confirmed invoice updates stock once.
-    // Editing an existing invoice does not apply stock a second time.
+    // Update inventory only when confirming a new invoice.
     if (!existing) {
-      const currentProducts = getProducts();
-      const updatedProducts = currentProducts.map((product) => {
-        const matchingLines = lines.filter(
-          (line) => line.productId === product.id
+      const stockResult = applyPurchaseStock(invoice.lines);
+
+      if (!stockResult.success) {
+        setNotice(
+          stockResult.message ||
+            "Could not update product stock. Invoice was not saved."
         );
-        if (!matchingLines.length) return product;
-
-        const addedUnits = matchingLines.reduce(
-          (sum, line) => sum + Number(line.quantity || 0),
-          0
-        );
-
-        const latest = matchingLines[matchingLines.length - 1];
-
-        return {
-          ...product,
-          stock: Number(product.stock || 0) + addedUnits,
-          purchasePrice: Number(latest.unitPrice || product.purchasePrice || 0),
-          price: Number(latest.salePrice || product.price || 0),
-          wholesalePrice: Number(
-            latest.wholesalePrice || product.wholesalePrice || 0
-          ),
-          cartonPrice: Number(
-            latest.productCartonPrice || product.cartonPrice || 0
-          ),
-        };
-      });
-
-      const savedProducts = saveProducts(updatedProducts);
-      if (!savedProducts) {
-        setNotice("Could not update product stock. Invoice was not saved.");
         setShowInvoice(true);
+        setShowPayment(false);
         return;
       }
     }
 
     const nextInvoices = existing
-      ? invoices.map((item) => item.id === invoice.id ? invoice : item)
+      ? invoices.map((item) =>
+          item.id === invoice.id ? invoice : item
+        )
       : [invoice, ...invoices];
 
-    const nextSuppliers = [...suppliers];
+    // Remove the previous invoice balance from its supplier
+    // before adding the new balance.
+    const nextSuppliers = suppliers.map((item) => ({
+      ...item,
+    }));
+
+    if (existing) {
+      const previousSupplierIndex = nextSuppliers.findIndex(
+        (item) =>
+          String(item.name || "").trim().toLowerCase() ===
+          String(existing.supplier || "").trim().toLowerCase()
+      );
+
+      if (previousSupplierIndex >= 0) {
+        const previousSupplier =
+          nextSuppliers[previousSupplierIndex];
+
+        nextSuppliers[previousSupplierIndex] = {
+          ...previousSupplier,
+          debt: Math.max(
+            0,
+            Number(previousSupplier.debt || 0) -
+              Number(existing.remaining || 0)
+          ),
+        };
+      }
+    }
+
     const supplierIndex = nextSuppliers.findIndex(
-      (item) => item.name.toLowerCase() === invoice.supplier.toLowerCase()
+      (item) =>
+        String(item.name || "").trim().toLowerCase() ===
+        invoice.supplier.trim().toLowerCase()
     );
 
     if (supplierIndex >= 0) {
+      const currentSupplier = nextSuppliers[supplierIndex];
+
       nextSuppliers[supplierIndex] = {
-        ...nextSuppliers[supplierIndex],
-        phone: invoice.phone || nextSuppliers[supplierIndex].phone || "",
-        debt: Math.max(
-          0,
-          Number(nextSuppliers[supplierIndex].debt || 0) + invoice.remaining
-        ),
+        ...currentSupplier,
+        phone:
+          invoice.phone ||
+          currentSupplier.phone ||
+          "",
+        debt:
+          Math.max(0, Number(currentSupplier.debt || 0)) +
+          invoice.remaining,
       };
     } else {
       nextSuppliers.push({
@@ -432,8 +490,8 @@ export default function Purchases() {
       });
     }
 
-    const invoicesSaved = saveStorage(INVOICES_KEY, nextInvoices);
-    const suppliersSaved = saveStorage(SUPPLIERS_KEY, nextSuppliers);
+    const invoicesSaved = savePurchaseInvoices(nextInvoices);
+    const suppliersSaved = savePurchaseSuppliers(nextSuppliers);
 
     if (!invoicesSaved || !suppliersSaved) {
       setNotice(
@@ -444,6 +502,9 @@ export default function Purchases() {
 
     setInvoices(nextInvoices);
     setSuppliers(nextSuppliers);
+    setShowPayment(false);
+    setShowInvoice(false);
+    setNotice("");
     setViewInvoice(invoice);
     setActiveTab("history");
     resetDraft();
@@ -454,38 +515,63 @@ export default function Purchases() {
       setNotice("Enter the supplier name.");
       return;
     }
+
     if (!lines.length) {
-      setNotice("Add products before confirming the invoice.");
+      setNotice(
+        "Add products before confirming the invoice."
+      );
       return;
     }
+
+    setNotice("");
     setPayment("0");
     setShowPayment(true);
   }
 
   function deleteInvoice(invoice) {
     const accepted = window.confirm(
-      `Delete invoice ${invoice.number}? This will not reverse stock changes.`
+      `Delete invoice ${invoice.number}? This will not reverse stock changes or supplier debt.`
     );
+
     if (!accepted) return;
 
-    const next = invoices.filter((item) => item.id !== invoice.id);
-    if (saveStorage(INVOICES_KEY, next)) {
+    const next = invoices.filter(
+      (item) => item.id !== invoice.id
+    );
+
+    if (savePurchaseInvoices(next)) {
       setInvoices(next);
-      setNotice("Invoice deleted. Stock was not changed.");
+      setNotice(
+        "Invoice deleted. Stock and supplier debt were not changed."
+      );
+    } else {
+      setNotice("Could not delete the invoice. Please try again.");
     }
   }
 
   function printInvoice(invoice) {
-    const rows = invoice.lines.map((line) => `
+    const rows = invoice.lines
+      .map(
+        (line) => `
       <tr>
         <td>${String(line.name || "").replace(/[<>&]/g, "")}</td>
         <td>${Number(line.quantity || 0)}</td>
         <td>${Number(line.unitPrice || 0).toLocaleString("fr-FR")} DA</td>
-        <td>${(Number(line.quantity || 0) * Number(line.unitPrice || 0)).toLocaleString("fr-FR")} DA</td>
+        <td>${(
+          Number(line.quantity || 0) *
+          Number(line.unitPrice || 0)
+        ).toLocaleString("fr-FR")} DA</td>
       </tr>
-    `).join("");
+    `
+      )
+      .join("");
 
-    const popup = window.open("", "_blank", "width=850,height=700");
+    const popup = window.open(
+      "",
+      "_blank",
+      "width=850,height=700"
+    );
+
     if (!popup) {
       setNotice("Allow pop-ups to print the invoice.");
       return;
@@ -512,16 +598,26 @@ export default function Purchases() {
         <p>Supplier: ${String(invoice.supplier || "").replace(/[<>&]/g, "")}</p>
         <p>Date: ${new Date(invoice.date).toLocaleString()}</p>
         <table>
-          <thead><tr><th>Product</th><th>Quantity</th><th>Unit cost</th><th>Total</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Unit cost</th>
+              <th>Total</th>
+            </tr>
+          </thead>
           <tbody>${rows}</tbody>
         </table>
-        <div class="total">Total: ${Number(invoice.total || 0).toLocaleString("fr-FR")} DA</div>
+        <div class="total">
+          Total: ${Number(invoice.total || 0).toLocaleString("fr-FR")} DA
+        </div>
         <p>Paid: ${Number(invoice.paid || 0).toLocaleString("fr-FR")} DA</p>
         <p>Remaining: ${Number(invoice.remaining || 0).toLocaleString("fr-FR")} DA</p>
         <script>window.onload=()=>window.print();<\/script>
       </body>
       </html>
     `);
+
     popup.document.close();
   }
 
@@ -530,12 +626,15 @@ export default function Purchases() {
     setSupplier(invoice.supplier || "");
     setSupplierPhone(invoice.phone || "");
     setInvoiceNote(invoice.note || "");
-    setLines(invoice.lines.map((line) => ({ ...line })));
+    setLines(
+      (invoice.lines || []).map((line) => ({ ...line }))
+    );
     setPayment(String(invoice.paid || 0));
+    setShowPayment(false);
     setShowInvoice(true);
     setActiveTab("new");
     setNotice(
-      "Editing invoice details will not change stock or supplier debt automatically."
+      "Editing an invoice updates its saved details and supplier balance, but does not change stock."
     );
   }
 
@@ -545,8 +644,11 @@ export default function Purchases() {
         <div>
           <span className="purchases-eyebrow">COMMERCE</span>
           <h1>Purchases</h1>
-          <p>Manage supplier invoices, purchase costs and incoming stock.</p>
+          <p>
+            Manage supplier invoices, purchase costs and incoming stock.
+          </p>
         </div>
+
         <button
           className="purchases-primary-button"
           onClick={openNewInvoice}
@@ -557,17 +659,20 @@ export default function Purchases() {
       </header>
 
       {notice && (
-        <div style={{
-          marginBottom: 16,
-          padding: "12px 14px",
-          border: "1px solid rgba(39,217,195,.25)",
-          borderRadius: 10,
-          color: "#b6fff5",
-          background: "rgba(39,217,195,.07)",
-          fontSize: 13,
-          lineHeight: 1.5,
-        }}>
+        <div
+          style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            border: "1px solid rgba(39,217,195,.25)",
+            borderRadius: 10,
+            color: "#b6fff5",
+            background: "rgba(39,217,195,.07)",
+            fontSize: 13,
+            lineHeight: 1.5,
+          }}
+        >
           {notice}
+
           <button
             onClick={() => setNotice("")}
             style={{
@@ -592,6 +697,7 @@ export default function Purchases() {
           <ShoppingCart size={18} />
           New Purchase Invoice
         </button>
+
         <button
           className={activeTab === "history" ? "active" : ""}
           onClick={() => setActiveTab("history")}
@@ -607,9 +713,12 @@ export default function Purchases() {
             <div className="purchases-heading-icon">
               <FileText size={22} />
             </div>
+
             <div>
               <h2>Purchase invoices</h2>
-              <p>Create an invoice and add products from your existing inventory list.</p>
+              <p>
+                Create an invoice and add products from your existing inventory list.
+              </p>
             </div>
           </div>
 
@@ -617,11 +726,14 @@ export default function Purchases() {
             <div className="purchases-empty-icon">
               <ShoppingCart size={30} />
             </div>
+
             <h3>Ready to receive new stock?</h3>
+
             <p>
               Start a supplier invoice, add products and quantities, then confirm
               the payment details.
             </p>
+
             <button
               className="purchases-primary-button"
               onClick={openNewInvoice}
@@ -631,41 +743,64 @@ export default function Purchases() {
             </button>
           </div>
 
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-            gap: 12,
-            marginTop: 8,
-          }}>
-            <div style={{
-              padding: 16,
-              border: "1px solid rgba(148,163,184,.15)",
-              borderRadius: 12,
-              background: "#0b121e",
-            }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: 12,
+              marginTop: 8,
+            }}
+          >
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid rgba(148,163,184,.15)",
+                borderRadius: 12,
+                background: "#0b121e",
+              }}
+            >
               <Package size={20} color="#27d9c3" />
-              <p style={{ color: "#8996aa", fontSize: 12 }}>Products available</p>
-              <strong style={{ fontSize: 23 }}>{products.length}</strong>
+              <p style={{ color: "#8996aa", fontSize: 12 }}>
+                Products available
+              </p>
+              <strong style={{ fontSize: 23 }}>
+                {products.length}
+              </strong>
             </div>
-            <div style={{
-              padding: 16,
-              border: "1px solid rgba(148,163,184,.15)",
-              borderRadius: 12,
-              background: "#0b121e",
-            }}>
+
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid rgba(148,163,184,.15)",
+                borderRadius: 12,
+                background: "#0b121e",
+              }}
+            >
               <FileText size={20} color="#9b8afb" />
-              <p style={{ color: "#8996aa", fontSize: 12 }}>Saved invoices</p>
-              <strong style={{ fontSize: 23 }}>{invoices.length}</strong>
+              <p style={{ color: "#8996aa", fontSize: 12 }}>
+                Saved invoices
+              </p>
+              <strong style={{ fontSize: 23 }}>
+                {invoices.length}
+              </strong>
             </div>
-            <div style={{
-              padding: 16,
-              border: "1px solid rgba(148,163,184,.15)",
-              borderRadius: 12,
-              background: "#0b121e",
-            }}>
+
+            <div
+              style={{
+                padding: 16,
+                border: "1px solid rgba(148,163,184,.15)",
+                borderRadius: 12,
+                background: "#0b121e",
+              }}
+            >
               <Truck size={20} color="#34d399" />
-              <p style={{ color: "#8996aa", fontSize: 12 }}>Saved suppliers</p>
-              <strong style={{ fontSize: 23 }}>{suppliers.length}</strong>
+              <p style={{ color: "#8996aa", fontSize: 12 }}>
+                Saved suppliers
+              </p>
+              <strong style={{ fontSize: 23 }}>
+                {suppliers.length}
+              </strong>
             </div>
           </div>
         </div>
@@ -675,9 +810,12 @@ export default function Purchases() {
             <div className="purchases-heading-icon">
               <History size={22} />
             </div>
+
             <div>
               <h2>Purchase History</h2>
-              <p>Search, inspect, edit or print your saved purchase invoices.</p>
+              <p>
+                Search, inspect, edit or print your saved purchase invoices.
+              </p>
             </div>
           </div>
 
@@ -692,59 +830,142 @@ export default function Purchases() {
 
           {filteredInvoices.length ? (
             <div style={{ width: "100%", overflowX: "auto" }}>
-              <table style={{
-                width: "100%",
-                minWidth: 650,
-                borderCollapse: "collapse",
-                fontSize: 12,
-              }}>
+              <table
+                style={{
+                  width: "100%",
+                  minWidth: 650,
+                  borderCollapse: "collapse",
+                  fontSize: 12,
+                }}
+              >
                 <thead>
                   <tr style={{ color: "#8996aa", textAlign: "left" }}>
-                    {["Invoice", "Date", "Supplier", "Purchase Value", "Amount Paid", "Remaining", "Actions"].map((label) => (
-                      <th key={label} style={{
-                        padding: "12px 10px",
-                        borderBottom: "1px solid rgba(148,163,184,.15)",
-                      }}>{label}</th>
+                    {[
+                      "Invoice",
+                      "Date",
+                      "Supplier",
+                      "Purchase Value",
+                      "Amount Paid",
+                      "Remaining",
+                      "Actions",
+                    ].map((label) => (
+                      <th
+                        key={label}
+                        style={{
+                          padding: "12px 10px",
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.15)",
+                        }}
+                      >
+                        {label}
+                      </th>
                     ))}
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredInvoices.map((invoice) => (
                     <tr key={invoice.id}>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
                         <strong>{invoice.number}</strong>
                       </td>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
                         {new Date(invoice.date).toLocaleDateString()}
                       </td>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
                         {invoice.supplier}
                       </td>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
                         {money(invoice.total)}
                       </td>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
                         {money(invoice.paid)}
                       </td>
-                      <td style={{
-                        padding: 10,
-                        borderBottom: "1px solid rgba(148,163,184,.1)",
-                        color: Number(invoice.remaining) > 0 ? "#fbbf24" : "#34d399",
-                      }}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                          color:
+                            Number(invoice.remaining) > 0
+                              ? "#fbbf24"
+                              : "#34d399",
+                        }}
+                      >
                         {money(invoice.remaining)}
                       </td>
-                      <td style={{ padding: 10, borderBottom: "1px solid rgba(148,163,184,.1)" }}>
-                        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                          <ActionButton onClick={() => setViewInvoice(invoice)}>
+
+                      <td
+                        style={{
+                          padding: 10,
+                          borderBottom:
+                            "1px solid rgba(148,163,184,.1)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 5,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <ActionButton
+                            onClick={() => setViewInvoice(invoice)}
+                          >
                             <Eye size={14} />
                           </ActionButton>
-                          <ActionButton onClick={() => startEditing(invoice)}>
+
+                          <ActionButton
+                            onClick={() => startEditing(invoice)}
+                          >
                             <Pencil size={14} />
                           </ActionButton>
-                          <ActionButton onClick={() => printInvoice(invoice)}>
+
+                          <ActionButton
+                            onClick={() => printInvoice(invoice)}
+                          >
                             <Printer size={14} />
                           </ActionButton>
-                          <ActionButton danger onClick={() => deleteInvoice(invoice)}>
+
+                          <ActionButton
+                            danger
+                            onClick={() => deleteInvoice(invoice)}
+                          >
                             <Trash2 size={14} />
                           </ActionButton>
                         </div>
@@ -764,10 +985,13 @@ export default function Purchases() {
       )}
 
       {showInvoice && (
-        <div className="purchases-modal-backdrop" onClick={() => {
-          setShowInvoice(false);
-          setShowPayment(false);
-        }}>
+        <div
+          className="purchases-modal-backdrop"
+          onClick={() => {
+            setShowInvoice(false);
+            setShowPayment(false);
+          }}
+        >
           <div
             className="purchases-modal purchases-invoice-modal"
             onClick={(event) => event.stopPropagation()}
@@ -780,53 +1004,74 @@ export default function Purchases() {
               <X size={19} />
             </button>
 
-            <div className="purchases-panel-heading" style={{ paddingBottom: 18 }}>
+            <div
+              className="purchases-panel-heading"
+              style={{ paddingBottom: 18 }}
+            >
               <div className="purchases-heading-icon">
                 <ShoppingCart size={22} />
               </div>
+
               <div>
-                <h2>{editingInvoice ? "Edit Purchase Invoice" : "New Purchase Invoice"}</h2>
-                <p>Invoice number is generated automatically on confirmation.</p>
+                <h2>
+                  {editingInvoice
+                    ? "Edit Purchase Invoice"
+                    : "New Purchase Invoice"}
+                </h2>
+                <p>
+                  Invoice number is generated automatically on confirmation.
+                </p>
               </div>
             </div>
 
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 190px), 1fr))",
-              gap: 13,
-              marginTop: 20,
-            }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(min(100%, 190px), 1fr))",
+                gap: 13,
+                marginTop: 20,
+              }}
+            >
               <Field label="Supplier name *">
                 <input
                   style={inputStyle}
                   value={supplier}
-                  onChange={(event) => setSupplier(event.target.value)}
+                  onChange={(event) =>
+                    setSupplier(event.target.value)
+                  }
                   placeholder="Enter supplier name"
                   list="purchase-suppliers"
                 />
+
                 <datalist id="purchase-suppliers">
                   {suppliers.map((item) => (
                     <option key={item.id} value={item.name} />
                   ))}
                 </datalist>
               </Field>
+
               <Field label="Supplier phone">
                 <input
                   style={inputStyle}
                   value={supplierPhone}
-                  onChange={(event) => setSupplierPhone(event.target.value)}
+                  onChange={(event) =>
+                    setSupplierPhone(event.target.value)
+                  }
                   placeholder="Phone number"
                 />
               </Field>
             </div>
 
-            <div style={{
-              marginTop: 20,
-              padding: 14,
-              border: "1px solid rgba(148,163,184,.15)",
-              borderRadius: 12,
-              background: "#0b121e",
-            }}>
+            <div
+              style={{
+                marginTop: 20,
+                padding: 14,
+                border: "1px solid rgba(148,163,184,.15)",
+                borderRadius: 12,
+                background: "#0b121e",
+              }}
+            >
               <h3 style={{ margin: "0 0 12px", fontSize: 14 }}>
                 Add product to invoice
               </h3>
@@ -844,13 +1089,15 @@ export default function Purchases() {
               </Field>
 
               {productSearch && !selectedProduct && (
-                <div style={{
-                  display: "grid",
-                  gap: 6,
-                  marginTop: 8,
-                  maxHeight: 190,
-                  overflowY: "auto",
-                }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gap: 6,
+                    marginTop: 8,
+                    maxHeight: 190,
+                    overflowY: "auto",
+                  }}
+                >
                   {filteredProducts.map((product) => (
                     <button
                       key={product.id}
@@ -870,16 +1117,25 @@ export default function Purchases() {
                       }}
                     >
                       <span>
-                        <strong style={{ display: "block", fontSize: 12 }}>
+                        <strong
+                          style={{
+                            display: "block",
+                            fontSize: 12,
+                          }}
+                        >
                           {product.name}
                         </strong>
+
                         <small style={{ color: "#8996aa" }}>
-                          {product.sku || product.id} · Stock: {product.stock || 0}
+                          {product.sku || product.id} · Stock:{" "}
+                          {product.stock || 0}
                         </small>
                       </span>
+
                       <Plus size={17} color="#27d9c3" />
                     </button>
                   ))}
+
                   {!filteredProducts.length && (
                     <p style={{ color: "#8996aa", fontSize: 12 }}>
                       Product not found. Add it first in the Products section.
@@ -889,61 +1145,94 @@ export default function Purchases() {
               )}
 
               {selectedProduct && (
-                <div style={{
-                  marginTop: 14,
-                  padding: 12,
-                  border: "1px solid rgba(39,217,195,.25)",
-                  borderRadius: 10,
-                  background: "rgba(39,217,195,.05)",
-                }}>
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 13,
-                  }}>
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: 12,
+                    border: "1px solid rgba(39,217,195,.25)",
+                    borderRadius: 10,
+                    background: "rgba(39,217,195,.05)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 13,
+                    }}
+                  >
                     {selectedProduct.image && (
                       <img
                         src={selectedProduct.image}
                         alt=""
-                        style={{ width: 46, height: 46, borderRadius: 8, objectFit: "cover" }}
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: 8,
+                          objectFit: "cover",
+                        }}
                       />
                     )}
+
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <strong>{selectedProduct.name}</strong>
-                      <div style={{ color: "#8996aa", fontSize: 11, marginTop: 4 }}>
-                        Reference: {selectedProduct.sku || selectedProduct.id}
+
+                      <div
+                        style={{
+                          color: "#8996aa",
+                          fontSize: 11,
+                          marginTop: 4,
+                        }}
+                      >
+                        Reference:{" "}
+                        {selectedProduct.sku || selectedProduct.id}
                         {" · "}Unit: {selectedProduct.unit || "piece"}
-                        {" · "}Units/carton: {selectedProduct.piecesPerCarton || 1}
+                        {" · "}Units/carton:{" "}
+                        {selectedProduct.piecesPerCarton || 1}
                       </div>
                     </div>
+
                     <button
                       onClick={() => {
                         setSelectedProduct(null);
                         setProductSearch("");
                       }}
-                      style={{ background: "transparent", border: 0, color: "#8996aa", cursor: "pointer" }}
+                      style={{
+                        background: "transparent",
+                        border: 0,
+                        color: "#8996aa",
+                        cursor: "pointer",
+                      }}
                     >
                       <X size={17} />
                     </button>
                   </div>
 
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 135px), 1fr))",
-                    gap: 11,
-                  }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(min(100%, 135px), 1fr))",
+                      gap: 11,
+                    }}
+                  >
                     <Field label="Cartons">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={cartons}
-                        onChange={(event) => updateCartons(event.target.value)}
+                        onChange={(event) =>
+                          updateCartons(event.target.value)
+                        }
                         placeholder="Optional"
                       />
                     </Field>
-                    <Field label={`Quantity (${selectedProduct.unit || "piece"})`}>
+
+                    <Field
+                      label={`Quantity (${selectedProduct.unit || "piece"})`}
+                    >
                       <input
                         style={inputStyle}
                         type="number"
@@ -955,68 +1244,90 @@ export default function Purchases() {
                         }}
                       />
                     </Field>
+
                     <Field label="Carton purchase price (DA)">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={cartonPrice}
-                        onChange={(event) => updateCartonPrice(event.target.value)}
+                        onChange={(event) =>
+                          updateCartonPrice(event.target.value)
+                        }
                         placeholder="0"
                       />
                     </Field>
+
                     <Field label="Unit purchase price (DA)">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={unitPrice}
-                        onChange={(event) => updateUnitPrice(event.target.value)}
+                        onChange={(event) =>
+                          updateUnitPrice(event.target.value)
+                        }
                         placeholder="0"
                       />
                     </Field>
+
                     <Field label="Sale price 1 (DA)">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={salePrice}
-                        onChange={(event) => setSalePrice(event.target.value)}
+                        onChange={(event) =>
+                          setSalePrice(event.target.value)
+                        }
                       />
                     </Field>
+
                     <Field label="Sale price 2 (DA)">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={wholesalePrice}
-                        onChange={(event) => setWholesalePrice(event.target.value)}
+                        onChange={(event) =>
+                          setWholesalePrice(event.target.value)
+                        }
                       />
                     </Field>
+
                     <Field label="Carton sale price (DA)">
                       <input
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={productCartonPrice}
-                        onChange={(event) => setProductCartonPrice(event.target.value)}
+                        onChange={(event) =>
+                          setProductCartonPrice(event.target.value)
+                        }
                       />
                     </Field>
                   </div>
 
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    marginTop: 14,
-                  }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 12,
+                      flexWrap: "wrap",
+                      marginTop: 14,
+                    }}
+                  >
                     <span style={{ color: "#8996aa", fontSize: 12 }}>
-                      Line total: <strong style={{ color: "#edf2fa" }}>
-                        {money(Number(quantity || 0) * Number(unitPrice || 0))}
+                      Line total:{" "}
+                      <strong style={{ color: "#edf2fa" }}>
+                        {money(
+                          Number(quantity || 0) *
+                            Number(unitPrice || 0)
+                        )}
                       </strong>
                     </span>
+
                     <button
                       className="purchases-primary-button"
                       onClick={addLine}
@@ -1036,43 +1347,78 @@ export default function Purchases() {
               {lines.length ? (
                 <div style={{ display: "grid", gap: 8 }}>
                   {lines.map((line, index) => (
-                    <div key={`${line.productId}-${index}`} style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0, 1fr) 95px 120px 36px",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: 10,
-                      border: "1px solid rgba(148,163,184,.13)",
-                      borderRadius: 10,
-                    }}>
+                    <div
+                      key={`${line.productId}-${index}`}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "minmax(0, 1fr) 95px 120px 36px",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: 10,
+                        border: "1px solid rgba(148,163,184,.13)",
+                        borderRadius: 10,
+                      }}
+                    >
                       <div style={{ minWidth: 0 }}>
-                        <strong style={{ display: "block", fontSize: 12, overflowWrap: "anywhere" }}>
+                        <strong
+                          style={{
+                            display: "block",
+                            fontSize: 12,
+                            overflowWrap: "anywhere",
+                          }}
+                        >
                           {line.name}
                         </strong>
+
                         <span style={{ color: "#8996aa", fontSize: 11 }}>
                           {money(line.quantity * line.unitPrice)}
                         </span>
                       </div>
+
                       <input
                         aria-label="Quantity"
                         style={inputStyle}
                         type="number"
                         min="1"
                         value={line.quantity}
-                        onChange={(event) => updateLine(index, "quantity", event.target.value)}
+                        onChange={(event) =>
+                          updateLine(
+                            index,
+                            "quantity",
+                            event.target.value
+                          )
+                        }
                       />
+
                       <input
                         aria-label="Unit purchase price"
                         style={inputStyle}
                         type="number"
                         min="0"
                         value={line.unitPrice}
-                        onChange={(event) => updateLine(index, "unitPrice", event.target.value)}
+                        onChange={(event) =>
+                          updateLine(
+                            index,
+                            "unitPrice",
+                            event.target.value
+                          )
+                        }
                       />
+
                       <button
                         aria-label="Remove item"
-                        onClick={() => setLines((old) => old.filter((_, i) => i !== index))}
-                        style={{ border: 0, background: "transparent", color: "#fb7185", cursor: "pointer" }}
+                        onClick={() =>
+                          setLines((old) =>
+                            old.filter((_, i) => i !== index)
+                          )
+                        }
+                        style={{
+                          border: 0,
+                          background: "transparent",
+                          color: "#fb7185",
+                          cursor: "pointer",
+                        }}
                       >
                         <Trash2 size={17} />
                       </button>
@@ -1089,33 +1435,54 @@ export default function Purchases() {
 
             <Field label="Invoice note">
               <textarea
-                style={{ ...inputStyle, minHeight: 75, resize: "vertical" }}
+                style={{
+                  ...inputStyle,
+                  minHeight: 75,
+                  resize: "vertical",
+                }}
                 value={invoiceNote}
-                onChange={(event) => setInvoiceNote(event.target.value)}
+                onChange={(event) =>
+                  setInvoiceNote(event.target.value)
+                }
                 placeholder="Optional note..."
               />
             </Field>
 
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 14,
-              flexWrap: "wrap",
-              paddingTop: 18,
-              marginTop: 18,
-              borderTop: "1px solid rgba(148,163,184,.15)",
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 14,
+                flexWrap: "wrap",
+                paddingTop: 18,
+                marginTop: 18,
+                borderTop: "1px solid rgba(148,163,184,.15)",
+              }}
+            >
               <div>
-                <span style={{ color: "#8996aa", fontSize: 12 }}>Invoice total</span>
-                <div style={{ color: "#27d9c3", fontSize: 24, fontWeight: 800 }}>
+                <span style={{ color: "#8996aa", fontSize: 12 }}>
+                  Invoice total
+                </span>
+
+                <div
+                  style={{
+                    color: "#27d9c3",
+                    fontSize: 24,
+                    fontWeight: 800,
+                  }}
+                >
                   {money(total)}
                 </div>
               </div>
+
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <ActionButton onClick={() => setShowInvoice(false)}>
+                <ActionButton
+                  onClick={() => setShowInvoice(false)}
+                >
                   Cancel
                 </ActionButton>
+
                 <button
                   className="purchases-primary-button"
                   onClick={openPaymentStep}
@@ -1130,8 +1497,14 @@ export default function Purchases() {
       )}
 
       {showPayment && (
-        <div className="purchases-modal-backdrop" onClick={() => setShowPayment(false)}>
-          <div className="purchases-modal" onClick={(event) => event.stopPropagation()}>
+        <div
+          className="purchases-modal-backdrop"
+          onClick={() => setShowPayment(false)}
+        >
+          <div
+            className="purchases-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
             <button
               className="purchases-modal-close"
               onClick={() => setShowPayment(false)}
@@ -1139,24 +1512,45 @@ export default function Purchases() {
             >
               <X size={19} />
             </button>
+
             <div className="purchases-heading-icon">
               <CreditCard size={22} />
             </div>
-            <h2>Confirm purchase invoice</h2>
-            <p>Review the amount paid. Remaining balance will be recorded for this supplier.</p>
 
-            <div style={{
-              padding: 15,
-              border: "1px solid rgba(148,163,184,.15)",
-              borderRadius: 12,
-              background: "#0b121e",
-              margin: "18px 0",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
+            <h2>Confirm purchase invoice</h2>
+
+            <p>
+              Review the amount paid. Remaining balance will be recorded for this supplier.
+            </p>
+
+            <div
+              style={{
+                padding: 15,
+                border: "1px solid rgba(148,163,184,.15)",
+                borderRadius: 12,
+                background: "#0b121e",
+                margin: "18px 0",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  marginBottom: 10,
+                }}
+              >
                 <span style={{ color: "#8996aa" }}>Supplier</span>
                 <strong>{supplier}</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                }}
+              >
                 <span style={{ color: "#8996aa" }}>Invoice total</span>
                 <strong>{money(total)}</strong>
               </div>
@@ -1169,20 +1563,27 @@ export default function Purchases() {
                 min="0"
                 max={total}
                 value={payment}
-                onChange={(event) => setPayment(event.target.value)}
+                onChange={(event) =>
+                  setPayment(event.target.value)
+                }
               />
             </Field>
 
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 12,
-              padding: "15px 0",
-              color: "#8996aa",
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                padding: "15px 0",
+                color: "#8996aa",
+              }}
+            >
               <span>Remaining balance</span>
+
               <strong style={{ color: "#fbbf24" }}>
-                {money(Math.max(0, total - Number(payment || 0)))}
+                {money(
+                  Math.max(0, total - Number(payment || 0))
+                )}
               </strong>
             </div>
 
@@ -1199,39 +1600,88 @@ export default function Purchases() {
       )}
 
       {viewInvoice && (
-        <div className="purchases-modal-backdrop" onClick={() => setViewInvoice(null)}>
-          <div className="purchases-modal" onClick={(event) => event.stopPropagation()}>
-            <button className="purchases-modal-close" onClick={() => setViewInvoice(null)}>
+        <div
+          className="purchases-modal-backdrop"
+          onClick={() => setViewInvoice(null)}
+        >
+          <div
+            className="purchases-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className="purchases-modal-close"
+              onClick={() => setViewInvoice(null)}
+            >
               <X size={19} />
             </button>
+
             <div className="purchases-heading-icon">
               <FileText size={22} />
             </div>
-            <h2>Purchase Invoice</h2>
-            <p>{viewInvoice.number} · {new Date(viewInvoice.date).toLocaleString()}</p>
 
-            <div style={{ display: "grid", gap: 9, margin: "18px 0" }}>
-              <div><span style={{ color: "#8996aa" }}>Supplier: </span>{viewInvoice.supplier}</div>
-              <div><span style={{ color: "#8996aa" }}>Status: </span>{viewInvoice.status}</div>
-              {viewInvoice.lines.map((line, index) => (
-                <div key={`${line.productId}-${index}`} style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  padding: 10,
-                  background: "#0b121e",
-                  borderRadius: 8,
-                }}>
-                  <span>{line.name} × {line.quantity}</span>
-                  <strong>{money(line.quantity * line.unitPrice)}</strong>
+            <h2>Purchase Invoice</h2>
+
+            <p>
+              {viewInvoice.number} ·{" "}
+              {new Date(viewInvoice.date).toLocaleString()}
+            </p>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 9,
+                margin: "18px 0",
+              }}
+            >
+              <div>
+                <span style={{ color: "#8996aa" }}>Supplier: </span>
+                {viewInvoice.supplier}
+              </div>
+
+              <div>
+                <span style={{ color: "#8996aa" }}>Status: </span>
+                {viewInvoice.status}
+              </div>
+
+              {(viewInvoice.lines || []).map((line, index) => (
+                <div
+                  key={`${line.productId}-${index}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: 10,
+                    background: "#0b121e",
+                    borderRadius: 8,
+                  }}
+                >
+                  <span>
+                    {line.name} × {line.quantity}
+                  </span>
+
+                  <strong>
+                    {money(line.quantity * line.unitPrice)}
+                  </strong>
                 </div>
               ))}
             </div>
 
-            <div style={{ borderTop: "1px solid rgba(148,163,184,.15)", paddingTop: 14 }}>
-              <p>Total: <strong>{money(viewInvoice.total)}</strong></p>
-              <p>Paid: <strong>{money(viewInvoice.paid)}</strong></p>
-              <p>Remaining: <strong>{money(viewInvoice.remaining)}</strong></p>
+            <div
+              style={{
+                borderTop: "1px solid rgba(148,163,184,.15)",
+                paddingTop: 14,
+              }}
+            >
+              <p>
+                Total: <strong>{money(viewInvoice.total)}</strong>
+              </p>
+              <p>
+                Paid: <strong>{money(viewInvoice.paid)}</strong>
+              </p>
+              <p>
+                Remaining:{" "}
+                <strong>{money(viewInvoice.remaining)}</strong>
+              </p>
             </div>
 
             <button
