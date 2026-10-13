@@ -1,12 +1,9 @@
 /* =========================================================
 VELTRO-PRO — SALES HISTORY
-Professional buttons, invoice editing, mobile layout
-and manager authorization
+Responsive layout, invoice editing and professional buttons
 ========================================================= */
 
-/* =========================================================
-GENERAL BUTTONS
-========================================================= */
+/* GENERAL BUTTONS */
 
 .history-page .primary-button {
 color: #061512 !important;
@@ -44,7 +41,7 @@ border-color: #35d6c2 !important;
 }
 
 /* =========================================================
-SALES HISTORY — PROFESSIONAL TOOLBAR BUTTONS
+SALES HISTORY TOOLBAR — COMPACT BUTTONS
 ========================================================= */
 
 .history-page .history-toolbar-actions {
@@ -52,26 +49,33 @@ display: flex;
 align-items: center;
 justify-content: flex-end;
 flex-wrap: wrap;
-gap: 10px;
-margin: 0;
+gap: 8px;
+width: 100%;
+min-width: 0;
+margin: 0 0 16px;
+padding: 0 0 4px;
+box-sizing: border-box;
 }
 
-.history-page .history-toolbar-actions button,
-.history-page .panel-header > .history-reset-button {
+.history-page .history-toolbar-actions button {
 display: inline-flex;
 align-items: center;
 justify-content: center;
-gap: 9px;
-min-height: 42px;
-padding: 0 16px;
-border-radius: 11px;
+gap: 6px;
+min-width: 0;
+min-height: 34px;
+height: 34px;
+padding: 0 11px;
+margin: 0;
+border-radius: 9px;
 font-family: inherit;
-font-size: 12px;
+font-size: 11px;
 font-weight: 700;
-letter-spacing: 0.15px;
+letter-spacing: 0;
 line-height: 1;
 white-space: nowrap;
 cursor: pointer;
+box-sizing: border-box;
 transition:
 background 180ms ease,
 color 180ms ease,
@@ -80,38 +84,39 @@ box-shadow 180ms ease,
 transform 180ms ease;
 }
 
-.history-page .history-toolbar-actions button svg,
-.history-page .panel-header > .history-reset-button svg {
-width: 16px;
-height: 16px;
-flex: 0 0 16px;
+.history-page .history-toolbar-actions button svg {
+display: block;
+width: 14px;
+height: 14px;
+flex: 0 0 14px;
+margin: 0;
 stroke-width: 2;
 }
 
-/* EXPORT CSV — PRIMARY ACTION */
+/* EXPORT CSV */
 
 .history-page .history-toolbar-actions .history-export-button {
 color: #061713 !important;
 background: linear-gradient(135deg, #72f4df 0%, #2bc6b5 100%) !important;
 border: 1px solid #48deca !important;
-box-shadow: 0 4px 14px rgba(43, 198, 181, 0.16);
+box-shadow: 0 2px 7px rgba(43, 198, 181, 0.13);
 }
 
 .history-page .history-toolbar-actions .history-export-button:hover {
 color: #04120f !important;
 background: linear-gradient(135deg, #91f9e9 0%, #48d9c8 100%) !important;
 border-color: #91f9e9 !important;
-box-shadow: 0 7px 20px rgba(43, 198, 181, 0.25);
+box-shadow: 0 4px 11px rgba(43, 198, 181, 0.2);
 transform: translateY(-1px);
 }
 
-/* REFRESH — DARK SECONDARY ACTION */
+/* REFRESH */
 
 .history-page .history-toolbar-actions .history-refresh-button {
 color: #e2eaf5 !important;
 background: linear-gradient(180deg, #1b293b 0%, #121d2c 100%) !important;
 border: 1px solid #304259 !important;
-box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
 }
 
 .history-page .history-toolbar-actions .history-refresh-button svg {
@@ -122,22 +127,46 @@ color: #5ce0d0;
 color: #70eada !important;
 background: #203147 !important;
 border-color: #48cbbb !important;
-box-shadow: 0 5px 16px rgba(43, 198, 181, 0.10);
+box-shadow: 0 4px 11px rgba(43, 198, 181, 0.1);
 transform: translateY(-1px);
 }
 
 /* RESET FILTERS */
 
 .history-page .panel-header > .history-reset-button {
+display: inline-flex;
+align-items: center;
+justify-content: center;
 flex: 0 0 auto;
+gap: 7px;
+min-height: 34px;
+height: 34px;
 margin-left: auto;
+padding: 0 11px;
 color: #dce6f2 !important;
 background: linear-gradient(180deg, #192638 0%, #131e2d 100%) !important;
 border: 1px solid #304258 !important;
-box-shadow: 0 3px 10px rgba(0, 0, 0, 0.10);
+border-radius: 9px;
+font-family: inherit;
+font-size: 11px;
+font-weight: 700;
+line-height: 1;
+white-space: nowrap;
+cursor: pointer;
+box-sizing: border-box;
+box-shadow: 0 2px 7px rgba(0, 0, 0, 0.1);
+transition:
+background 180ms ease,
+color 180ms ease,
+border-color 180ms ease,
+box-shadow 180ms ease,
+transform 180ms ease;
 }
 
 .history-page .panel-header > .history-reset-button svg {
+width: 14px;
+height: 14px;
+flex: 0 0 14px;
 color: #a2b4c8;
 }
 
@@ -145,7 +174,7 @@ color: #a2b4c8;
 color: #67e6d6 !important;
 background: #1d2c3e !important;
 border-color: #3fc5b7 !important;
-box-shadow: 0 5px 16px rgba(43, 198, 181, 0.09);
+box-shadow: 0 4px 11px rgba(43, 198, 181, 0.09);
 transform: translateY(-1px);
 }
 
@@ -160,7 +189,7 @@ box-shadow: none;
 .history-page .history-toolbar-actions button:focus-visible,
 .history-page .panel-header > .history-reset-button:focus-visible {
 outline: 2px solid #65e7d7;
-outline-offset: 3px;
+outline-offset: 2px;
 }
 
 .history-page .history-toolbar-actions button:disabled,
@@ -209,13 +238,13 @@ min-width: max-content;
 }
 
 .history-page .history-row-actions .icon-button {
+display: inline-flex;
 flex: 0 0 34px;
+align-items: center;
+justify-content: center;
 width: 34px;
 height: 34px;
 min-width: 34px;
-display: inline-flex;
-align-items: center;
-justify-content: center;
 padding: 0;
 }
 
@@ -708,7 +737,7 @@ border-color: #4a617b !important;
 }
 
 /* =========================================================
-RESPONSIVE — TABLETS AND PHONES
+TABLETS AND PHONES
 ========================================================= */
 
 @media (max-width: 720px) {
@@ -766,26 +795,39 @@ overflow-x: auto;
 min-width: 610px;
 }
 
-/* Toolbar buttons on mobile */
+/* Compact toolbar on mobile */
 .history-page .history-toolbar-actions {
-display: grid;
-grid-template-columns: repeat(2, minmax(0, 1fr));
-width: 100%;
-gap: 8px;
+display: flex;
+align-items: center;
+justify-content: flex-start;
+flex-wrap: wrap;
+gap: 7px;
+margin-bottom: 18px;
+padding-bottom: 5px;
 }
 
 .history-page .history-toolbar-actions button {
-width: 100%;
+width: auto;
+max-width: 100%;
 min-width: 0;
-min-height: 43px;
-padding: 0 10px;
-gap: 7px;
+min-height: 33px;
+height: 33px;
+padding: 0 9px;
+gap: 5px;
+font-size: 10.5px;
+}
+
+.history-page .history-toolbar-actions button svg {
+width: 13px;
+height: 13px;
+flex-basis: 13px;
 }
 
 .history-page .panel-header > .history-reset-button {
-min-height: 40px;
-padding: 0 11px;
-gap: 7px;
+min-height: 33px;
+height: 33px;
+padding: 0 9px;
+gap: 5px;
 }
 }
 
@@ -850,25 +892,40 @@ padding: 0 10px;
 font-size: 11px;
 }
 
-.history-page .history-toolbar-actions button,
-.history-page .panel-header > .history-reset-button {
-font-size: 11px;
+.history-page .history-toolbar-actions {
+gap: 6px;
+margin-bottom: 20px;
 }
 
 .history-page .history-toolbar-actions button {
-padding: 0 7px;
+min-height: 32px;
+height: 32px;
+padding: 0 8px;
 gap: 5px;
+font-size: 10px;
 }
 
-.history-page .history-toolbar-actions button svg,
+.history-page .history-toolbar-actions button svg {
+width: 12px;
+height: 12px;
+flex-basis: 12px;
+}
+
+.history-page .panel-header > .history-reset-button {
+min-height: 32px;
+height: 32px;
+padding: 0 8px;
+font-size: 10px;
+}
+
 .history-page .panel-header > .history-reset-button svg {
-width: 15px;
-height: 15px;
-flex-basis: 15px;
+width: 13px;
+height: 13px;
+flex-basis: 13px;
 }
 }
 
-/* Respect reduced-motion accessibility preferences */
+/* REDUCED MOTION */
 
 @media (prefers-reduced-motion: reduce) {
 .history-page .history-toolbar-actions button,
