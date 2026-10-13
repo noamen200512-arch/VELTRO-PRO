@@ -26,10 +26,10 @@ import {
 import POS from "./POS";
 import Products from "./Products.jsx";
 import SalesHistory from "./sales/SalesHistory.jsx";
+import Purchases from "./purchases/Purchases.jsx";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
-   These styles are used by SalesHistory.jsx.
 ========================================================= */
 
 function InvoiceInterfaceStyles() {
@@ -637,7 +637,7 @@ function Header({
     "Point of Sale": "Create and manage sales invoices.",
     Products: "Manage your products and inventory.",
     "Sales History": "Review, print and edit completed sales.",
-    "Purchase History": "Review purchase invoices.",
+    "Purchase History": "Create and manage purchase invoices.",
   };
 
   return (
@@ -708,26 +708,6 @@ function Header({
         </button>
       </div>
     </header>
-  );
-}
-
-/* =========================================================
-   PURCHASE HISTORY
-========================================================= */
-
-function PurchaseHistory() {
-  return (
-    <section className="panel placeholder-panel">
-      <div className="placeholder-icon">
-        <ReceiptText size={34} />
-      </div>
-
-      <h2>Purchase History</h2>
-
-      <p>
-        Purchase invoice integration will be developed with the purchasing module.
-      </p>
-    </section>
   );
 }
 
@@ -893,7 +873,7 @@ export default function App() {
           ) : activePage === "Sales History" ? (
             <SalesHistory />
           ) : activePage === "Purchase History" ? (
-            <PurchaseHistory />
+            <Purchases />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
