@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   LayoutDashboard,
@@ -27,6 +28,7 @@ import Products from "./Products.jsx";
 import SalesHistory from "./sales/SalesHistory.jsx";
 import Purchases from "./purchases/Purchases.jsx";
 import Suppliers from "./suppliers/Suppliers.jsx";
+import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -455,7 +457,11 @@ const navGroups = [
         children: [{ label: "Purchase History", icon: ReceiptText }],
       },
       { label: "Orders", icon: ShoppingCart },
-      { label: "Suppliers", icon: Truck },
+      {
+        label: "Suppliers List",
+        icon: Truck,
+        children: [{ label: "Supplier Debts", icon: Wallet }],
+      },
       { label: "Customers", icon: Users },
     ],
   },
@@ -477,6 +483,7 @@ function Sidebar({
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchase History",
+    "Suppliers List": activePage === "Supplier Debts",
   });
 
   return (
@@ -554,6 +561,12 @@ function Sidebar({
 
                         if (item.label === "Purchases") {
                           onNavigate("Purchase History");
+                          onClose();
+                          return;
+                        }
+
+                        if (item.label === "Suppliers List") {
+                          onNavigate("Suppliers List");
                           onClose();
                           return;
                         }
@@ -644,7 +657,8 @@ function Header({
     Products: "Manage your products and inventory.",
     "Sales History": "Review, print and edit completed sales.",
     "Purchase History": "Create and manage purchase invoices.",
-    Suppliers: "Manage supplier details, purchase history and balances.",
+    "Suppliers List": "Manage supplier names and phone numbers.",
+    "Supplier Debts": "Review supplier invoices and outstanding balances.",
   };
 
   return (
@@ -880,8 +894,10 @@ export default function App() {
             <SalesHistory />
           ) : activePage === "Purchase History" ? (
             <Purchases />
-          ) : activePage === "Suppliers" ? (
+          ) : activePage === "Suppliers List" ? (
             <Suppliers />
+          ) : activePage === "Supplier Debts" ? (
+            <SupplierDebts />
           ) : (
             <PlaceholderPage title={activePage} />
           )}
