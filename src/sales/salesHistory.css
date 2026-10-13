@@ -760,6 +760,9 @@
   .history-page .products-table tbody tr td:nth-child(1) {
     grid-column: 1;
     grid-row: 1;
+
+    /* FIX: Add space before the INVOICE label and invoice number */
+    padding-left: 5px;
   }
 
   .history-page .products-table tbody tr td:nth-child(2) {
