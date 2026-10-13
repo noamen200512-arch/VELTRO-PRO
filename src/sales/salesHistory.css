@@ -62,6 +62,45 @@
 }
 
 /* ---------------------------------------------------------
+   SALES HISTORY TABLE — SPACING
+--------------------------------------------------------- */
+
+/* Add breathing room between filters and invoice table */
+
+.history-page .products-panel .history-filters + .table-wrapper {
+  margin-top: 20px;
+}
+
+/* Keep row action buttons aligned and slightly to the right */
+
+.history-page .history-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-left: 8px;
+  min-width: max-content;
+}
+
+.history-page .history-row-actions .icon-button {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Give the ACTIONS column enough room */
+
+.history-page .products-panel .products-table th:last-child,
+.history-page .products-panel .products-table td:last-child {
+  min-width: 132px;
+}
+
+/* ---------------------------------------------------------
    MANAGER AUTHORIZATION — COMPACT MODAL
 --------------------------------------------------------- */
 
@@ -328,6 +367,29 @@
     color: #edf2fa !important;
     background: #151e2c !important;
     border-color: #2b394c !important;
+  }
+
+  /* Sales History table spacing on phones */
+
+  .history-page .products-panel .history-filters + .table-wrapper {
+    margin-top: 16px;
+  }
+
+  .history-page .history-row-actions {
+    gap: 6px;
+    padding-left: 6px;
+  }
+
+  .history-page .history-row-actions .icon-button {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .history-page .products-panel .products-table th:last-child,
+  .history-page .products-panel .products-table td:last-child {
+    min-width: 118px;
   }
 }
 
