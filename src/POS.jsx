@@ -1,5 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -14,6 +15,7 @@ import {
   getPendingInvoice,
   completeSale,
   getCustomerDebt,
+  getCompletedSales,
 } from "./sales/salesStore.js";
 
 import { getProducts } from "./productStore.js";
@@ -131,6 +133,9 @@ export default function POS() {
   const [messageType, setMessageType] = useState("info");
   const [busy, setBusy] = useState(false);
   const [removedItem, setRemovedItem] = useState(null);
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerRecords, setCustomerRecords] = useState([]);
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "Anonyme";
@@ -644,19 +649,71 @@ export default function POS() {
     notify(`${target.name} restored to the invoice.`, "success");
   };
 
+  const getCustomerRecords = () => {
+    const records = [];
+    const seen = new Set();
+    const addRecord = (record) => {
+      if (!record || typeof record !== "object") return;
+      const name = String(record.name ?? record.customerName ?? record.fullName ?? record.clientName ?? "").trim();
+      const id = String(record.customerId ?? record.id ?? record.code ?? record.reference ?? record.ref ?? "").trim();
+      const phone = String(record.phone ?? record.phoneNumber ?? record.mobile ?? record.telephone ?? "").trim();
+      if (!name || name.toLowerCase() === "anonyme") return;
+      const key = (id || name).toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      records.push({ ...record, name, customerId: id || name, phone, code: String(record.code ?? record.reference ?? record.ref ?? id).trim() });
+    };
+
+    // Load registered customer records when a customer module has stored them.
+    const storageKeys = ["veltro_customers", "veltro_clients", "veltro_customer_list", "customers", "clients"];
+    storageKeys.forEach((key) => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+        (Array.isArray(parsed) ? parsed : Array.isArray(parsed?.customers) ? parsed.customers : []).forEach(addRecord);
+      } catch { /* Ignore unrelated or malformed storage values. */ }
+    });
+
+    // Also make customers from previous invoices available as a fallback directory.
+    getCompletedSales().forEach((sale) => {
+      if (!sale?.customerName || !sale?.customerId) return;
+      addRecord({
+        name: sale.customerName,
+        customerId: sale.customerId,
+        phone: sale.customerPhone ?? sale.phone ?? "",
+        code: sale.customerCode ?? sale.customerReference ?? sale.customerRef ?? "",
+        reference: sale.customerReference ?? sale.customerRef ?? "",
+      });
+    });
+    return records.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
   const chooseCustomer = () => {
-    const name = window.prompt("Customer name:", customer);
+    setCustomerRecords(getCustomerRecords());
+    setCustomerSearch("");
+    setShowCustomerPicker(true);
+  };
 
-    if (name === null) return;
-
-    const selectedName = name.trim();
+  const selectCustomer = (record) => {
+    const selectedName = String(record?.name || record?.customerName || "").trim();
     const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
     updateInvoice({
       customerName: anonymous ? "Anonyme" : selectedName,
-      customerId: anonymous ? "" : selectedName,
+      customerId: anonymous ? "" : String(record.customerId ?? record.id ?? record.code ?? selectedName),
+      customerPhone: anonymous ? "" : String(record.phone ?? record.phoneNumber ?? ""),
+      customerCode: anonymous ? "" : String(record.code ?? record.reference ?? record.ref ?? ""),
       status: "Draft",
     });
+    setShowCustomerPicker(false);
   };
+
+  const filteredCustomerRecords = customerRecords.filter((record) => {
+    const query = customerSearch.trim().toLocaleLowerCase();
+    if (!query) return true;
+    return [
+      record.name, record.customerId, record.id, record.phone, record.phoneNumber,
+      record.code, record.reference, record.ref, record.customerCode,
+    ].some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
+  });
 
   const openPendingInvoice = (pendingId) => {
     const pending = getPendingInvoice(pendingId);
@@ -860,6 +917,89 @@ export default function POS() {
             </div>
           )}
         </section>
+      )}
+
+      {showCustomerPicker && (
+        <div
+          className="customer-picker-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowCustomerPicker(false);
+          }}
+        >
+          <section className="customer-picker-modal" role="dialog" aria-modal="true" aria-labelledby="customer-picker-title">
+            <header className="customer-picker-header">
+              <div className="customer-picker-heading-icon"><Users size={21} /></div>
+              <div className="customer-picker-heading-copy">
+                <h2 id="customer-picker-title">Select customer</h2>
+                <p>Search by name, phone number, customer ID or reference.</p>
+              </div>
+              <button type="button" className="customer-picker-close" onClick={() => setShowCustomerPicker(false)} aria-label="Close customer selection">
+                <X size={19} />
+              </button>
+            </header>
+
+            <div className="customer-picker-search">
+              <Search size={18} />
+              <input
+                autoFocus
+                value={customerSearch}
+                onChange={(event) => setCustomerSearch(event.target.value)}
+                placeholder="Name, phone, ID or reference..."
+                aria-label="Search customers"
+              />
+              {customerSearch && (
+                <button type="button" onClick={() => setCustomerSearch("")} aria-label="Clear search"><X size={15} /></button>
+              )}
+            </div>
+
+            <button type="button" className="customer-picker-anonymous" onClick={() => selectCustomer({ name: "Anonyme" })}>
+              <span className="customer-picker-avatar anonymous"><UserRound size={18} /></span>
+              <span className="customer-picker-record-copy">
+                <strong>Anonyme</strong>
+                <small>Walk-in customer · No customer debt tracking</small>
+              </span>
+              {String(customer).toLowerCase() === "anonyme" && <Check size={18} />}
+            </button>
+
+            <div className="customer-picker-list-heading">
+              <span>Customer list</span>
+              <span>{filteredCustomerRecords.length} {filteredCustomerRecords.length === 1 ? "customer" : "customers"}</span>
+            </div>
+
+            <div className="customer-picker-list">
+              {filteredCustomerRecords.length ? filteredCustomerRecords.map((record, index) => {
+                const recordName = String(record.name || record.customerName || "Unnamed customer");
+                const recordId = String(record.customerId ?? record.id ?? record.code ?? recordName);
+                const active = String(invoice.customerId || "") === recordId;
+                return (
+                  <button type="button" className={`customer-picker-record ${active ? "selected" : ""}`} key={`${recordId}-${index}`} onClick={() => selectCustomer(record)}>
+                    <span className="customer-picker-avatar"><UserRound size={18} /></span>
+                    <span className="customer-picker-record-copy">
+                      <strong>{recordName}</strong>
+                      <small>
+                        {record.phone || record.phoneNumber ? <><Phone size={12} /> {record.phone || record.phoneNumber}</> : <><Fingerprint size={12} /> ID: {recordId}</>}
+                        {(record.code || record.reference || record.ref) && <span className="customer-picker-reference">Ref: {record.code || record.reference || record.ref}</span>}
+                      </small>
+                    </span>
+                    {active && <Check size={18} className="customer-picker-selected-check" />}
+                  </button>
+                );
+              }) : (
+                <div className="customer-picker-empty">
+                  <span className="customer-picker-empty-icon"><UserRoundPlus size={23} /></span>
+                  <strong>{customerSearch ? "No matching customers" : "No saved customers yet"}</strong>
+                  <p>{customerSearch ? "Try another name, phone number, ID or reference." : "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale."}</p>
+                </div>
+              )}
+            </div>
+
+            <footer className="customer-picker-footer">
+              <span><Users size={14} /> Choose a customer to link this invoice to their account.</span>
+              <button type="button" onClick={() => setShowCustomerPicker(false)}>Cancel</button>
+            </footer>
+          </section>
+        </div>
       )}
 
       <div className="sales-layout">
