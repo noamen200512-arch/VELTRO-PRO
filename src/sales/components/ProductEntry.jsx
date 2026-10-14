@@ -640,19 +640,17 @@ export function ProductEntry({
                     </button>
 
                     <div className="product-search-result-actions">
-                      {cartonSize > 1 && (
-                        <button
-                          type="button"
-                          className="product-carton-button"
-                          disabled={stock < cartonSize || typeof onAddCarton !== "function"}
-                          onClick={() => onAddCarton(product)}
-                          title={`Add one carton (${cartonSize} units)`}
-                        >
-                          <Boxes size={15} />
-                          <span>Carton</span>
-                          <small>{cartonSize} pcs</small>
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        className="product-carton-button"
+                        disabled={cartonSize <= 1 || stock < cartonSize || typeof onAddCarton !== "function"}
+                        onClick={() => onAddCarton(product)}
+                        title={cartonSize <= 1 ? "Configure pieces per carton for this product" : `Add one carton (${cartonSize} units)`}
+                      >
+                        <Boxes size={15} />
+                        <span>Carton</span>
+                        <small>{cartonSize > 1 ? `${cartonSize} pcs` : "Not set"}</small>
+                      </button>
                       <button
                         type="button"
                         className="product-unit-add-button"
