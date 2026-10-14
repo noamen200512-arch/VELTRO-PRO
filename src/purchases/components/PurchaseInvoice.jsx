@@ -275,7 +275,7 @@ aria-labelledby="purchase-invoice-title"
                       className="purchase-cost-input"
                       type="number"
                       min="0"
-                      step="0.01"
+                      step="any"
                       value={item.purchasePrice}
                       onChange={(event) =>
                         updateItem(
@@ -321,7 +321,7 @@ aria-labelledby="purchase-invoice-title"
           type="number"
           min="0"
           max={total}
-          step="0.01"
+          step="any"
           value={amountPaid}
           onChange={(event) => setAmountPaid(event.target.value)}
         />
