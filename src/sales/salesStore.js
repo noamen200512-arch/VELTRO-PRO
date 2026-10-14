@@ -421,8 +421,13 @@ export function editCompletedSale(invoiceId, updatedInvoice) {
     return result;
   }
 
-  // Ensure every product referenced by either version still exists.
-  for (const productId of affectedIds) {
+  // Only products in the edited invoice must still exist.
+  // A product that was sold in the past may since have been deleted from
+  // inventory; that historical reference should not block editing the sale.
+  // Existing products still get their old quantity restored and new quantity
+  // deducted below, while a missing product kept in the edited invoice is
+  // rejected here.
+  for (const productId of newQuantities.keys()) {
     if (!products.some((product) => String(product.id) === productId)) {
       return {
         ok: false,
