@@ -449,14 +449,19 @@ const navGroups = [
         icon: ShoppingCart,
         children: [{ label: "Sales History", icon: History }],
       },
-      { label: "Products", icon: Package },
-      { label: "Categories", icon: Boxes },
       {
         label: "Purchases",
         icon: CreditCard,
         children: [{ label: "Purchase History", icon: ReceiptText }],
       },
-      { label: "Orders", icon: ShoppingCart },
+      { label: "Products", icon: Package },
+      { label: "Categories", icon: Boxes },
+      { label: "Orders", icon: ReceiptText },
+    ],
+  },
+  {
+    title: "PARTNERS",
+    items: [
       {
         label: "Suppliers List",
         icon: Truck,
@@ -466,7 +471,7 @@ const navGroups = [
     ],
   },
   {
-    title: "FINANCE",
+    title: "FINANCE & REPORTS",
     items: [
       { label: "Cash Register", icon: Wallet },
       { label: "Reports", icon: BarChart3 },
