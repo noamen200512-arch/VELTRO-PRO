@@ -578,35 +578,28 @@ export function ProductEntry({
         <div className="product-entry-footer-actions">
           <button
             type="button"
-            className="product-show-button"
+            className="product-show-button product-toggle-button"
             onClick={toggleProducts}
             aria-expanded={showProducts}
+            title={showProducts ? "Hide product list" : "Show product list"}
           >
-            {showProducts ? (
-              <>
-                <ChevronUp size={15} />
-                Hide Products
-              </>
-            ) : (
-              <>
-                <ChevronDown size={15} />
-                Show Products
-              </>
-            )}
+            {showProducts ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            <span>{showProducts ? "Hide Products" : "Show Products"}</span>
           </button>
 
           <button
             type="button"
-            className="product-show-button"
+            className="product-refresh-button"
             onClick={refreshProducts}
             disabled={refreshing}
             title="Reload inventory"
+            aria-label={refreshing ? "Refreshing inventory" : "Refresh inventory"}
           >
             <RefreshCw
-              size={15}
+              size={16}
               className={refreshing ? "product-refresh-spinning" : ""}
             />
-            {refreshing ? "Refreshing..." : "Refresh"}
+            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
           </button>
         </div>
       </div>
