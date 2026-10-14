@@ -528,10 +528,9 @@ export default function POS() {
     const cartonPrice = money(inventoryProduct.cartonPrice);
     const regularPrice = money(inventoryProduct.price);
 
-    const cartonUnitPrice =
-      cartonPrice > 0
-        ? cartonPrice / cartonSize
-        : regularPrice;
+    const cartonUnitPrice = Number(
+      (cartonPrice > 0 ? cartonPrice / cartonSize : regularPrice).toFixed(2)
+    );
 
     const cartonLine = {
       ...normalizeItem(inventoryProduct, cartonSize),
