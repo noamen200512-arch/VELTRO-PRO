@@ -94,8 +94,9 @@ export function InvoiceTable({
           <div>
             <h2>Invoice Items</h2>
             <p>
-              {items.length}{" "}
-              {items.length === 1 ? "product" : "products"} added
+              {items.length === 1
+                ? `${items.length} product added`
+                : `${items.length} products added`}
             </p>
           </div>
         </div>
@@ -207,8 +208,7 @@ export function InvoiceTable({
                           <small className="invoice-carton-details">
                             {cartons > 0 && (
                               <span>
-                                {cartons} carton
-                                {cartons !== 1 ? "s" : ""}
+                                {cartons === 1 ? "1 carton" : `${cartons} cartons`}
                               </span>
                             )}
 
@@ -218,12 +218,13 @@ export function InvoiceTable({
 
                             {looseUnits > 0 && (
                               <span>
-                                {looseUnits} loose{" "}
-                                {looseUnits === 1 ? "unit" : "units"}
+                                {looseUnits === 1
+                                  ? "1 loose unit"
+                                  : `${looseUnits} loose units`}
                               </span>
                             )}
 
-                            <span> · {quantity} total units</span>
+                            <span>{` · ${quantity} total units`}</span>
                           </small>
                         )}
                       </div>
