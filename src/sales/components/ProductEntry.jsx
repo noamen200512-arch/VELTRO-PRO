@@ -10,6 +10,8 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Boxes,
   AlertTriangle,
 } from "lucide-react";
@@ -58,6 +60,9 @@ export function ProductEntry({
   const [products, setProducts] = useState([]);
   const [barcode, setBarcode] = useState("");
   const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 15;
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [cameraSupported, setCameraSupported] = useState(true);
@@ -183,6 +188,7 @@ export function ProductEntry({
       setNotice(`${product.name} selected.`);
       setBarcode("");
       setSearch("");
+      setCurrentPage(1);
     },
     [onAddProduct]
   );
@@ -212,22 +218,30 @@ export function ProductEntry({
     [loadProducts, addFromInventory]
   );
 
+  const categories = [...new Set(
+    products.map((product) => String(product.category ?? "").trim()).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "fr"));
+
   const filteredProducts = products.filter((product) => {
     const term = normalize(search);
-
+    const matchesCategory = selectedCategory === "all" ||
+      normalize(product.category) === normalize(selectedCategory);
+    if (!matchesCategory) return false;
     if (!term) return true;
-
     return (
       normalize(product.name).includes(term) ||
       normalize(product.sku).includes(term) ||
       normalize(product.id).includes(term) ||
       normalize(product.category).includes(term) ||
       normalize(product.barcode).includes(term) ||
-      getProductBarcodes(product).some((code) =>
-        normalize(code).includes(term)
-      )
+      getProductBarcodes(product).some((code) => normalize(code).includes(term))
     );
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PRODUCTS_PER_PAGE;
+  const visibleProducts = filteredProducts.slice(pageStart, pageStart + PRODUCTS_PER_PAGE);
 
   const startCamera = async () => {
     setCameraError("");
@@ -420,7 +434,10 @@ export function ProductEntry({
               autoComplete="off"
               placeholder="Search by name, reference, category or barcode..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+              setSearch(event.target.value);
+              setCurrentPage(1);
+            }}
             />
 
             {search && (
@@ -444,13 +461,25 @@ export function ProductEntry({
             <div className="product-inventory-heading">
               <Boxes size={17} />
               <strong>
-                {search.trim() ? "Search Results" : "All Products"}
+                {search.trim() ? "Search Results" : selectedCategory === "all" ? "All Products" : selectedCategory}
               </strong>
             </div>
 
             <span>
               {filteredProducts.length} of {products.length} products
             </span>
+          </div>
+
+          <div className="product-inventory-filters">
+            <label htmlFor="product-category-filter">Category</label>
+            <select id="product-category-filter" value={selectedCategory}
+              onChange={(event) => {
+                setSelectedCategory(event.target.value);
+                setCurrentPage(1);
+              }}>
+              <option value="all">All categories</option>
+              {categories.map((category) => <option key={category} value={category}>{category}</option>)}
+            </select>
           </div>
 
           {filteredProducts.length === 0 ? (
@@ -471,7 +500,7 @@ export function ProductEntry({
             </div>
           ) : (
             <div className="product-search-list">
-              {filteredProducts.map((product) => {
+              {visibleProducts.map((product) => {
                 const stock = Math.max(
                   0,
                   Number(product.stock) || 0
@@ -548,6 +577,34 @@ export function ProductEntry({
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {filteredProducts.length > 0 && (
+            <div className="product-inventory-pagination" aria-label="Product pages">
+              <span className="product-pagination-summary">
+                Showing {pageStart + 1}–{Math.min(pageStart + PRODUCTS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length}
+              </span>
+              <div className="product-pagination-controls">
+                <button type="button" aria-label="Previous page" disabled={safePage <= 1}
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>
+                  <ChevronLeft size={16} />
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => index + 1)
+                  .filter((page) => page === 1 || page === totalPages || Math.abs(page - safePage) <= 1)
+                  .map((page, index, pages) => (
+                    <React.Fragment key={page}>
+                      {index > 0 && page - pages[index - 1] > 1 && <span className="product-pagination-ellipsis">…</span>}
+                      <button type="button" className={page === safePage ? "active" : ""}
+                        aria-current={page === safePage ? "page" : undefined}
+                        onClick={() => setCurrentPage(page)}>{page}</button>
+                    </React.Fragment>
+                  ))}
+                <button type="button" aria-label="Next page" disabled={safePage >= totalPages}
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
           )}
         </div>
