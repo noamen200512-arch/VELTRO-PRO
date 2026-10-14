@@ -2241,97 +2241,169 @@ function InvoiceTable({
   onPrint,
   onDelete
 }) {
+  const PAGE_SIZE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(invoices.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const visibleInvoices = invoices.slice(startIndex, startIndex + PAGE_SIZE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [invoices.length]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   return (
-    <div className="purchase-table-wrap">
-      <table className="purchase-table">
-        <thead>
-          <tr>
-            <th>Invoice Number</th>
-            <th>Items</th>
-            <th>Supplier</th>
-            <th>Date</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
+    <div className="purchase-history-list">
+      <div className="purchase-history-table-scroll">
+        <div className="purchase-table-wrap">
+          <table className="purchase-table">
+            <thead>
+              <tr>
+                <th>Invoice Number</th>
+                <th>Items</th>
+                <th>Supplier</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-        <tbody>
-          {invoices.map(invoice => (
-            <tr key={invoice.id}>
-              <td><strong>{invoice.number}</strong></td>
-              <td>{(invoice.lines || []).length}</td>
-              <td>{invoice.supplier}</td>
-              <td>{new Date(invoice.date).toLocaleString("en-US")}</td>
-              <td>{money(invoice.total)}</td>
-              <td>
-                <span
-                  className={`purchase-status ${
-                    String(invoice.status || "").toLowerCase().includes("paid")
-                      ? "paid"
-                      : "unpaid"
-                  }`}
-                >
-                  {invoice.status || "—"}
-                </span>
-              </td>
+            <tbody>
+              {visibleInvoices.map(invoice => (
+                <tr key={invoice.id}>
+                  <td><strong>{invoice.number}</strong></td>
+                  <td>{(invoice.lines || []).length}</td>
+                  <td>{invoice.supplier}</td>
+                  <td>{new Date(invoice.date).toLocaleString("en-US")}</td>
+                  <td>{money(invoice.total)}</td>
+                  <td>
+                    <span
+                      className={`purchase-status ${
+                        String(invoice.status || "").toLowerCase().includes("paid")
+                          ? "paid"
+                          : "unpaid"
+                      }`}
+                    >
+                      {invoice.status || "—"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="purchase-row-actions">
+                      <button
+                        type="button"
+                        title="Preview"
+                        aria-label="Preview invoice"
+                        onClick={() => onView(invoice)}
+                      >
+                        <Eye size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Edit"
+                        aria-label="Edit invoice"
+                        onClick={() => onEdit(invoice)}
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Print"
+                        aria-label="Print invoice"
+                        onClick={() => onPrint(invoice)}
+                      >
+                        <Printer size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Details"
+                        aria-label="Invoice details"
+                        onClick={() => onInfo(invoice)}
+                      >
+                        <Info size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        title="Delete invoice"
+                        aria-label="Delete invoice"
+                        className="danger"
+                        onClick={() => onDelete(invoice)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
 
-              <td>
-                <div className="purchase-row-actions">
-                  <button
-                    title="Preview"
-                    aria-label="Preview"
-                    onClick={() => onView(invoice)}
-                  >
-                    <Eye size={15} />
-                  </button>
+              {!visibleInvoices.length && (
+                <tr>
+                  <td colSpan="7" className="purchase-empty-row">
+                    No purchase invoices yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-                  <button
-                    title="Edit"
-                    aria-label="Edit"
-                    onClick={() => onEdit(invoice)}
-                  >
-                    <Pencil size={15} />
-                  </button>
+      <footer className="purchase-history-pagination">
+        <span className="purchase-history-page-summary">
+          {invoices.length
+            ? `Showing ${startIndex + 1}–${Math.min(startIndex + PAGE_SIZE, invoices.length)} of ${invoices.length} invoices`
+            : "Showing 0 invoices"}
+        </span>
 
-                  <button
-                    title="Print"
-                    aria-label="Print"
-                    onClick={() => onPrint(invoice)}
-                  >
-                    <Printer size={15} />
-                  </button>
+        <div className="purchase-history-page-controls" aria-label="Invoice pages">
+          <button
+            type="button"
+            onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+            disabled={safePage <= 1}
+          >
+            Previous
+          </button>
 
-                  <button
-                    title="Details"
-                    aria-label="Details"
-                    onClick={() => onInfo(invoice)}
-                  >
-                    <Info size={15} />
-                  </button>
+          {Array.from({ length: totalPages }, (_, index) => index + 1)
+            .filter(page =>
+              page === 1 ||
+              page === totalPages ||
+              Math.abs(page - safePage) <= 1
+            )
+            .reduce((items, page, index, pages) => {
+              if (index > 0 && page - pages[index - 1] > 1) {
+                items.push("ellipsis-" + page);
+              }
+              items.push(page);
+              return items;
+            }, [])
+            .map(page => typeof page === "number" ? (
+              <button
+                type="button"
+                key={page}
+                className={page === safePage ? "active" : ""}
+                aria-current={page === safePage ? "page" : undefined}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ) : (
+              <span className="purchase-history-page-ellipsis" key={page}>…</span>
+            ))}
 
-                  <button
-                    title="Delete"
-                    aria-label="Delete"
-                    className="danger"
-                    onClick={() => onDelete(invoice)}
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-
-          {!invoices.length && (
-            <tr>
-              <td colSpan="7" className="purchase-empty-row">
-                No purchase invoices yet.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+          <button
+            type="button"
+            onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+            disabled={safePage >= totalPages}
+          >
+            Next
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
