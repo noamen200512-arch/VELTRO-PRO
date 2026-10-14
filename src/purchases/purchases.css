@@ -1214,3 +1214,110 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Purchase history: bounded vertical list and pagination */
+.purchase-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.purchase-history-table-scroll {
+  max-height: min(62vh, 690px);
+  overflow: auto;
+  border-radius: 11px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #34465d #0b1220;
+}
+
+.purchase-history-table-scroll .purchase-table-wrap {
+  overflow: visible;
+  border-radius: 0;
+}
+
+.purchase-history-table-scroll .purchase-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.purchase-history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--purchase-border);
+}
+
+.purchase-history-page-summary {
+  color: var(--purchase-muted);
+  font-size: 12px;
+}
+
+.purchase-history-page-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.purchase-history-page-controls button {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 7px 10px;
+  color: #cbd6e5;
+  background: #172131;
+  border: 1px solid var(--purchase-border);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.purchase-history-page-controls button.active {
+  color: #061413;
+  background: var(--purchase-accent);
+  border-color: var(--purchase-accent);
+}
+
+.purchase-history-page-controls button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.purchase-history-page-ellipsis {
+  padding: 0 3px;
+  color: var(--purchase-muted);
+}
+
+.purchase-row-actions button.danger:hover {
+  color: #fff;
+  background: rgba(255, 101, 122, .18);
+  border-color: rgba(255, 101, 122, .55);
+}
+
+@media (max-width: 600px) {
+  .purchase-history-table-scroll {
+    max-height: 55vh;
+  }
+
+  .purchase-history-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .purchase-history-page-controls {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .purchase-history-page-controls button {
+    min-width: 32px;
+    padding: 7px 8px;
+  }
+}
