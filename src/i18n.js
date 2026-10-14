@@ -358,7 +358,7 @@ const dictionaries = {
     "Category":"الفئة",
     "Quantity":"الكمية",
     "Total":"الإجمالي",
-    "Outstanding":"غير مدفوع","Settled":"مسدد"
+    "Outstanding":"غير مدفوع","Settled":"مسدد",
     "Search completed invoices, inspect details, print or edit a sale.": "ابحث عن الفواتير المكتملة، واطّلع على تفاصيلها أو اطبعها أو عدّل عملية البيع.",
     "Total Sales": "إجمالي المبيعات",
     "Based on filtered invoices": "حسب الفواتير المصفّاة",
