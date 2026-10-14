@@ -886,6 +886,7 @@ export default function POS() {
         <main className="sales-workspace">
           <ProductEntry
             onAddProduct={addProduct}
+            onAddCarton={addCarton}
             showProducts={showProducts}
             onShowProducts={setShowProducts}
           />
