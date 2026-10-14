@@ -481,6 +481,47 @@ export function editCompletedSale(invoiceId, updatedInvoice) {
   return { ok: true, sale: updatedSale };
 }
 
+/**
+ * Delete a completed sale and restore its sold quantities to current stock.
+ * Customer debt is derived from completed sales, so removing the sale also
+ * removes its contribution to the calculated balance.
+ */
+export function deleteCompletedSale(invoiceId) {
+  if (!invoiceId) return { ok: false, error: "INVALID_INVOICE" };
+
+  const sales = getCompletedSales();
+  const saleIndex = findSaleIndex(sales, invoiceId);
+
+  if (saleIndex < 0) return { ok: false, error: "INVOICE_NOT_FOUND" };
+
+  const sale = sales[saleIndex];
+  const products = getProducts();
+  const quantities = getInvoiceQuantities(sale);
+
+  const restoredProducts = products.map((product) => {
+    const quantity = quantities.get(String(product.id)) || 0;
+    if (quantity <= 0) return product;
+
+    return {
+      ...product,
+      stock: Math.max(0, Number(product.stock) || 0) + quantity,
+    };
+  });
+
+  if (!saveProducts(restoredProducts)) {
+    return { ok: false, error: "STOCK_SAVE_FAILED" };
+  }
+
+  const nextSales = sales.filter((_, index) => index !== saleIndex);
+
+  if (!writeArray(SALES_KEY, nextSales)) {
+    saveProducts(products);
+    return { ok: false, error: "SALE_SAVE_FAILED" };
+  }
+
+  return { ok: true, sale };
+}
+
 export function getSalesForCustomer(customerId) {
   if (!customerId) return [];
 
