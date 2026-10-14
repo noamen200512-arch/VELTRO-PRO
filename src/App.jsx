@@ -570,16 +570,20 @@ export default function App() {
       // Storage may be unavailable in private browsing.
     }
 
-    const root = document.getElementById("root") || document.body;
+    // Use body so dynamically mounted dialogs and overlays outside #root
+    // are translated too.
+    const root = document.body;
     translatePage(locale, root);
 
-    // Translate newly rendered labels, dialogs and fields without changing
-    // React state, business data, calculations, or event handlers.
+    // Translate newly rendered text and updated field/button attributes without
+    // changing React state, business data, calculations, or event handlers.
     const observer = new MutationObserver(() => translatePage(locale, root));
     observer.observe(root, {
       childList: true,
       subtree: true,
       characterData: true,
+      attributes: true,
+      attributeFilter: ["placeholder", "title", "aria-label", "aria-description"],
     });
 
     return () => observer.disconnect();
