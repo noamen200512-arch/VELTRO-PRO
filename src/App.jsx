@@ -32,6 +32,7 @@ import SalesHistory from "./sales/SalesHistory.jsx";
 import Purchases from "./purchases/Purchases.jsx";
 import Suppliers from "./suppliers/Suppliers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
+import { translatePage } from "./i18n.js";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -558,10 +559,30 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
 
   useEffect(() => {
+    const direction = locale === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = locale;
-    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
-    document.body.dir = locale === "ar" ? "rtl" : "ltr";
-    try { window.localStorage.setItem("veltro-language", locale); } catch { /* storage may be unavailable */ }
+    document.documentElement.dir = direction;
+    document.body.dir = direction;
+    document.documentElement.dataset.locale = locale;
+    try {
+      window.localStorage.setItem("veltro-language", locale);
+    } catch {
+      // Storage may be unavailable in private browsing.
+    }
+
+    const root = document.getElementById("root") || document.body;
+    translatePage(locale, root);
+
+    // Translate newly rendered labels, dialogs and fields without changing
+    // React state, business data, calculations, or event handlers.
+    const observer = new MutationObserver(() => translatePage(locale, root));
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => observer.disconnect();
   }, [locale]);
 
   useEffect(() => {
