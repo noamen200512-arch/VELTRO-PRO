@@ -442,6 +442,10 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `${match[1]} منتجات مضافة`;
       match = trimmed.match(/^(\d+)\s+product added$/i);
       if (match) translated = `${match[1]} منتج مضاف`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)\s+filtered invoices?\s+\((\d+)\s+total\)$/i);
+      if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]} فاتورة بعد التصفية (الإجمالي ${match[4]})`;
+      match = trimmed.match(/^Showing\s+(\d+)\s+of\s+(\d+)\s+filtered invoices?\s+\((\d+)\s+total\)$/i);
+      if (match) translated = `عرض ${match[1]} من ${match[2]} فاتورة بعد التصفية (الإجمالي ${match[3]})`;
       match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
       if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]}`;
     } else if (!dictionary[trimmed] && locale === "fr") {
@@ -451,6 +455,10 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `${match[1]} produits ajoutés`;
       match = trimmed.match(/^(\d+)\s+product added$/i);
       if (match) translated = `${match[1]} produit ajouté`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)\s+filtered invoices?\s+\((\d+)\s+total\)$/i);
+      if (match) translated = `Affichage de ${match[1]}–${match[2]} sur ${match[3]} factures filtrées (${match[4]} au total)`;
+      match = trimmed.match(/^Showing\s+(\d+)\s+of\s+(\d+)\s+filtered invoices?\s+\((\d+)\s+total\)$/i);
+      if (match) translated = `Affichage de ${match[1]} sur ${match[2]} factures filtrées (${match[3]} au total)`;
       match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
       if (match) translated = `Affichage ${match[1]}–${match[2]} sur ${match[3]}`;
     }
