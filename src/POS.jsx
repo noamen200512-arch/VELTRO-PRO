@@ -138,11 +138,16 @@ export default function POS() {
   const [customerRecords, setCustomerRecords] = useState([]);
   const [showSaleReview, setShowSaleReview] = useState(false);
   const [showSaleConfirm, setShowSaleConfirm] = useState(false);
+  const [paidDraft, setPaidDraft] = useState(String(createInvoice().paid ?? 0));
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "Anonyme";
   const isAnonymousCustomer = !invoice.customerId || String(invoice.customerId).trim().toLowerCase() === "anonyme";
   const paid = money(invoice.paid);
+
+  useEffect(() => {
+    setPaidDraft(String(invoice.paid ?? 0));
+  }, [invoice.id, invoice.paid]);
   const discount = money(invoice.discount);
 
   // The store calculates debt from this customer's completed sales.
@@ -947,7 +952,7 @@ export default function POS() {
                 <div className="sale-confirm-amounts">
                   <div className="sale-confirm-amount-row"><span><WalletCards size={15} /> Previous debt</span><strong>{previousDebt.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                   <div className="sale-confirm-amount-row"><span><ReceiptText size={15} /> Invoice total</span><strong>{total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
-                  <div className="sale-confirm-amount-row"><span><Check size={15} /> Amount paid</span><strong className="paid">{paid.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row sale-confirm-paid-row"><label htmlFor="review-paid-amount"><Check size={15} /> Amount paid</label><div className="sale-confirm-paid-input-wrap"><input id="review-paid-amount" className="sale-confirm-paid-input" type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} disabled={busy} onChange={(event) => setPaidDraft(event.target.value)} onBlur={() => { const value = paidDraft.trim() === "" ? 0 : Number(paidDraft); if (Number.isFinite(value) && value >= 0) { const nextPaid = Math.min(value, total); setPaidDraft(String(nextPaid)); updateInvoice({ paid: nextPaid }); } else { setPaidDraft(String(paid)); } }} aria-label="Amount paid in DA" /><span>DA</span></div></div>
                   <div className="sale-confirm-amount-row current"><span><AlertTriangle size={15} /> Current unpaid amount</span><strong>{remaining.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                   <div className="sale-confirm-total-debt"><span>Total debt after this sale</span><strong>{(previousDebt + remaining).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                 </div>
