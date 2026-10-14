@@ -461,9 +461,14 @@ const navGroups = [
         children: [
           { label: "Product List", icon: ClipboardList, page: "Products" },
           {
-            label: "Product Purchase & Sales History",
+            label: "Product Purchase History",
+            icon: ReceiptText,
+            page: "Product Purchase History",
+          },
+          {
+            label: "Product Sales History",
             icon: History,
-            page: "Product History",
+            page: "Product Sales History",
           },
         ],
       },
@@ -501,7 +506,10 @@ function Sidebar({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchase History",
     "Suppliers List": activePage === "Supplier Debts",
-    Products: activePage === "Products" || activePage === "Product History",
+    Products:
+      activePage === "Products" ||
+      activePage === "Product Purchase History" ||
+      activePage === "Product Sales History",
   });
 
   return (
@@ -672,7 +680,8 @@ function Header({
     "Purchase History": "Create and manage purchase invoices.",
     "Suppliers List": "Manage supplier names and phone numbers.",
     "Supplier Debts": "Review supplier invoices and outstanding balances.",
-    "Product History": "Review purchase and sales movements for each product.",
+    "Product Purchase History": "Review purchase movements for each product.",
+    "Product Sales History": "Review sales movements for each product.",
   };
 
   return (
@@ -815,7 +824,8 @@ function PlaceholderPage({ title }) {
     Orders: ShoppingCart,
     Customers: Users,
     "Cash Register": Wallet,
-    "Product History": History,
+    "Product Purchase History": ReceiptText,
+    "Product Sales History": History,
     Reports: BarChart3,
     Settings,
   };
