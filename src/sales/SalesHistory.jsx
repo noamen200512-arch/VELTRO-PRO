@@ -907,6 +907,30 @@ export default function SalesHistory() {
     setPrintRequest((request) => request + 1);
   };
 
+  const deleteInvoiceFromTable = (invoice) => {
+    const number = invoice.invoiceNumber || invoice.id || "this invoice";
+    if (!window.confirm(`Delete sale ${number}? Sold quantities will be returned to stock.`)) {
+      return;
+    }
+
+    const result = deleteCompletedSale(
+      invoice.id || invoice.invoiceId || invoice.invoiceNumber
+    );
+
+    if (result?.ok) {
+      setRefreshKey((key) => key + 1);
+      setNotice("Sale deleted and stock quantities restored successfully.");
+    } else {
+      setNotice(
+        result?.error === "STOCK_SAVE_FAILED"
+          ? "Could not save the restored stock. The sale was not deleted."
+          : result?.error === "SALE_SAVE_FAILED"
+          ? "Could not delete the sale. Please try again."
+          : "Could not find this sale."
+      );
+    }
+  };
+
   return (
     <div className="history-page">
       <div className="section-heading">
