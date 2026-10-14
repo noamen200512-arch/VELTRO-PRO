@@ -21,7 +21,8 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 import POS from "./POS";
@@ -671,6 +672,8 @@ function Header({
   onMenuClick,
   search,
   onSearchChange,
+  isFullscreen,
+  onToggleFullscreen,
 }) {
   const descriptions = {
     Dashboard: "Your business performance overview.",
@@ -732,6 +735,16 @@ function Header({
             }
           />
         </label>
+
+        <button
+          className="header-icon-button fullscreen-button"
+          type="button"
+          aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
+          title={isFullscreen ? "Exit full screen (Esc)" : "Enter full screen"}
+          onClick={onToggleFullscreen}
+        >
+          {isFullscreen ? <Minimize2 size={19} /> : <Maximize2 size={19} />}
+        </button>
 
         <button
           className="header-icon-button"
@@ -856,6 +869,25 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
+
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (error) {
+      console.error("Unable to toggle full screen mode:", error);
+    }
+  };
 
   const toggleSidebar = () => {
     if (window.innerWidth <= 620) {
@@ -897,6 +929,8 @@ export default function App() {
           onMenuClick={() => setMobileOpen(true)}
           search={search}
           onSearchChange={setSearch}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
         />
 
         <div className="page-content">
