@@ -744,17 +744,6 @@ export default function POS() {
     window.print();
   };
 
-  const openInvoicesToModify = () => {
-    if (busy) return;
-
-    refreshPending();
-    setShowPending(true);
-
-    if (pendingInvoices.length === 0) {
-      notify("There are no saved invoices to modify yet.", "info");
-    }
-  };
-
   return (
     <div className="pos-page">
       <header className="pos-heading">
@@ -767,7 +756,6 @@ export default function POS() {
 
       <SalesToolbar
         onNew={createNewInvoice}
-        onModify={openInvoicesToModify}
         onPrint={printInvoice}
         onCustomer={chooseCustomer}
         onPending={() => setShowPending((current) => !current)}
