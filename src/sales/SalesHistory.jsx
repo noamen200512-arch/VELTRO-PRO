@@ -1,5 +1,5 @@
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Wallet,
   FileText,
@@ -724,6 +724,8 @@ export default function SalesHistory() {
   const [passwordInvoice, setPasswordInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [notice, setNotice] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 15;
 
   const invoices = useMemo(
     () =>
