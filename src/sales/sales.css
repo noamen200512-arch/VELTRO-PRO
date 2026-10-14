@@ -2504,3 +2504,47 @@
   .pos-page .customer-picker-footer { align-items: flex-start; }
   .pos-page .customer-picker-footer span { max-width: 70%; }
 }
+
+
+/* Sale completion review and confirmation dialogs */
+.pos-page .sale-confirm-backdrop{position:fixed;z-index:12000;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,14,.8);backdrop-filter:blur(8px)}
+.pos-page .sale-confirm-modal{display:flex;flex-direction:column;width:min(100%,490px);max-height:min(88dvh,780px);overflow-y:auto;border:1px solid rgba(148,163,184,.2);border-radius:19px;background:radial-gradient(ellipse at 100% 0%,rgba(53,214,194,.1),transparent 43%),#0e1623;color:var(--pos-text);box-shadow:0 30px 100px rgba(0,0,0,.6)}
+.pos-page .sale-confirm-header{display:flex;align-items:center;gap:12px;padding:18px;border-bottom:1px solid var(--pos-border)}
+.pos-page .sale-confirm-icon{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border-radius:12px}
+.pos-page .sale-confirm-icon.review{border:1px solid rgba(167,139,250,.28);background:rgba(167,139,250,.11);color:#c4b5fd}
+.pos-page .sale-confirm-icon.confirm{border:1px solid rgba(53,214,194,.28);background:rgba(53,214,194,.1);color:var(--pos-turquoise)}
+.pos-page .sale-confirm-heading-copy{flex:1;min-width:0}
+.pos-page .sale-confirm-heading-copy h2{margin:0 0 5px;color:var(--pos-text);font-size:15px;font-weight:800}
+.pos-page .sale-confirm-heading-copy p{margin:0;color:var(--pos-muted);font-size:10px;line-height:1.55}
+.pos-page .sale-confirm-close{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border:1px solid var(--pos-border);border-radius:9px;background:#121c2a;color:var(--pos-muted);cursor:pointer}
+.pos-page .sale-confirm-customer{display:flex;align-items:center;gap:10px;margin:15px 16px 10px;padding:12px;border:1px solid rgba(53,214,194,.22);border-radius:12px;background:rgba(53,214,194,.055)}
+.pos-page .sale-confirm-customer-avatar{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:10px;background:rgba(53,214,194,.12);color:var(--pos-turquoise)}
+.pos-page .sale-confirm-customer-name{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.pos-page .sale-confirm-customer-name small{color:var(--pos-muted);font-size:10px}
+.pos-page .sale-confirm-customer-name strong{overflow-wrap:anywhere;color:var(--pos-text);font-size:12px}
+.pos-page .sale-confirm-invoice-number{color:var(--pos-turquoise);font-size:10px;font-weight:750}
+.pos-page .sale-confirm-amounts{margin:0 16px;padding:4px 13px;border:1px solid var(--pos-border);border-radius:12px;background:rgba(7,13,22,.6)}
+.pos-page .sale-confirm-amount-row{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:44px;border-bottom:1px solid rgba(148,163,184,.1)}
+.pos-page .sale-confirm-amount-row>span{display:flex;align-items:center;gap:8px;color:var(--pos-muted);font-size:11px}
+.pos-page .sale-confirm-amount-row>span svg{flex:0 0 auto;color:#8fa2b8}
+.pos-page .sale-confirm-amount-row>strong{color:var(--pos-text);font-size:11px;text-align:right;white-space:nowrap}
+.pos-page .sale-confirm-amount-row>strong.paid{color:var(--pos-turquoise)}
+.pos-page .sale-confirm-amount-row.current>span svg,.pos-page .sale-confirm-amount-row.current>strong{color:#fbbf72}
+.pos-page .sale-confirm-total-debt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0 12px}
+.pos-page .sale-confirm-total-debt span{color:#d8dff0;font-size:11px;font-weight:700}
+.pos-page .sale-confirm-total-debt strong{color:#c4b5fd;font-size:13px;text-align:right}
+.pos-page .sale-confirm-note{margin:12px 18px 0;color:var(--pos-muted);font-size:10px;line-height:1.6}
+.pos-page .sale-confirm-message{display:flex;align-items:flex-start;gap:12px;margin:18px 17px 12px}
+.pos-page .sale-confirm-message-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:11px;background:rgba(251,191,114,.1);color:#fbbf72}
+.pos-page .sale-confirm-message>div{flex:1;min-width:0;padding-top:2px}
+.pos-page .sale-confirm-message strong{color:var(--pos-text);font-size:13px}
+.pos-page .sale-confirm-message p{margin:7px 0 0;color:var(--pos-muted);font-size:11px;line-height:1.65}
+.pos-page .sale-confirm-final-amount{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 17px 4px;padding:14px;border:1px solid rgba(53,214,194,.23);border-radius:11px;background:rgba(53,214,194,.06)}
+.pos-page .sale-confirm-final-amount span{color:var(--pos-muted);font-size:11px}
+.pos-page .sale-confirm-final-amount strong{color:var(--pos-turquoise);font-size:15px}
+.pos-page .sale-confirm-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:16px 17px 17px;margin-top:2px}
+.pos-page .sale-confirm-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:9px 13px;border-radius:10px;font-size:11px;font-weight:750;cursor:pointer}
+.pos-page .sale-confirm-secondary{border:1px solid var(--pos-border);background:#172232;color:var(--pos-text)}
+.pos-page .sale-confirm-primary{border:1px solid var(--pos-turquoise);background:var(--pos-turquoise);color:#061714}
+.pos-page .sale-confirm-actions button:disabled{opacity:.55;cursor:wait}
+@media(max-width:520px){.pos-page .sale-confirm-backdrop{align-items:flex-end;padding:7px}.pos-page .sale-confirm-modal{width:100%;max-height:92dvh;border-radius:19px 19px 12px 12px}.pos-page .sale-confirm-header{padding:15px}.pos-page .sale-confirm-heading-copy h2{font-size:13px}.pos-page .sale-confirm-amount-row{min-height:42px;gap:8px}.pos-page .sale-confirm-amount-row>span,.pos-page .sale-confirm-amount-row>strong{font-size:10px}.pos-page .sale-confirm-actions{padding:13px 14px 15px}.pos-page .sale-confirm-actions button{flex:1;padding:9px 8px}}
