@@ -517,8 +517,6 @@ function Sidebar({
             <strong>My Business</strong>
             <span>Business workspace</span>
           </div>
-
-          <ChevronDown size={16} />
         </div>
 
         <nav className="sidebar-nav">
