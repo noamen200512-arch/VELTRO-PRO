@@ -298,7 +298,7 @@ export function InvoiceTable({
                         min="0"
                         step="0.01"
                         aria-label={`Unit price for ${item.name}`}
-                        value={item.price ?? 0}
+                        value={(Number(item.price) || 0).toFixed(2)}
                         onChange={(event) =>
                           updateField(
                             item,
