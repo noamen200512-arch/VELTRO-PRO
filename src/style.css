@@ -2905,3 +2905,15 @@ button svg {
     animation-iteration-count: 1 !important;
   }
 }
+
+
+/* Desktop full-screen control */
+.fullscreen-button {
+  display: inline-flex;
+}
+
+@media (max-width: 620px) {
+  .fullscreen-button {
+    display: none !important;
+  }
+}
