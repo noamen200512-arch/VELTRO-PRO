@@ -1933,3 +1933,67 @@
 .invoice-line-total-cell small {
   line-height: 1.25;
 }
+
+
+/* PRODUCT INVENTORY LIST HEADER — consistent compact typography */
+.pos-page .product-search-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--pos-border);
+  background: #111a27;
+}
+
+.pos-page .product-inventory-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--pos-text);
+}
+
+.pos-page .product-inventory-heading > svg {
+  flex: 0 0 auto;
+  color: var(--pos-turquoise);
+}
+
+.pos-page .product-inventory-heading > strong {
+  display: block;
+  margin: 0;
+  color: var(--pos-text);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.pos-page .product-search-results-header > span {
+  flex: 0 0 auto;
+  color: var(--pos-muted);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+@media (max-width: 380px) {
+  .pos-page .product-search-results-header {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .pos-page .product-inventory-heading {
+    gap: 6px;
+  }
+
+  .pos-page .product-inventory-heading > strong {
+    font-size: 11px;
+  }
+
+  .pos-page .product-search-results-header > span {
+    font-size: 9px;
+  }
+}
