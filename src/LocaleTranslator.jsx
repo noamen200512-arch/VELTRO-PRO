@@ -9,7 +9,7 @@ const words = {
   }
 };
 
-const originalText = new WeakMap();
+const textStates = new WeakMap();
 
 export default function LocaleTranslator({ locale }) {
   useEffect(() => {
@@ -17,16 +17,19 @@ export default function LocaleTranslator({ locale }) {
     if (!dictionary) return undefined;
     const translateNode = (node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        if (!originalText.has(node)) originalText.set(node, node.nodeValue);
-        const original = originalText.get(node);
+        const current = node.nodeValue;
+        const previous = textStates.get(node);
+        const original = previous && current === previous.translated
+          ? previous.original
+          : current;
         const trimmed = original.trim();
-        if (dictionary[trimmed]) {
-          const lead = original.match(/^\\s*/)?.[0] || "";
-          const trail = original.match(/\\s*$/)?.[0] || "";
-          node.nodeValue = lead + dictionary[trimmed] + trail;
-        } else {
-          node.nodeValue = original;
-        }
+        const translated = dictionary[trimmed]
+          ? (original.match(/^\\s*/)?.[0] || "") +
+            dictionary[trimmed] +
+            (original.match(/\\s*$/)?.[0] || "")
+          : original;
+        textStates.set(node, { original, translated });
+        if (current !== translated) node.nodeValue = translated;
         return;
       }
       if (node.nodeType !== Node.ELEMENT_NODE) return;
