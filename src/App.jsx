@@ -20,7 +20,7 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  X,
+
 } from "lucide-react";
 
 import POS from "./POS";
@@ -508,14 +508,6 @@ function Sidebar({
             <span>BUSINESS SUITE</span>
           </div>
 
-          <button
-            className="mobile-close icon-button"
-            type="button"
-            onClick={onClose}
-            aria-label="Close navigation"
-          >
-            <X size={20} />
-          </button>
         </div>
 
         <div className="sidebar-workspace">
