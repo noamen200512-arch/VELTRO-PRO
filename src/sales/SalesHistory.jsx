@@ -24,6 +24,7 @@ import { getProducts } from "../productStore.js";
 import {
   getCompletedSales,
   editCompletedSale,
+  deleteCompletedSale,
 } from "./salesStore.js";
 
 import "./salesHistory.css";
@@ -569,7 +570,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
           </button>
         </div>
 
-        <div className="table-wrapper">
+        <div className="table-wrapper sales-history-table-scroll">
           <table className="products-table">
             <thead>
               <tr>
@@ -1117,7 +1118,7 @@ export default function SalesHistory() {
             </thead>
 
             <tbody>
-              {filteredInvoices.map((invoice, index) => {
+              {visibleInvoices.map((invoice, index) => {
                 const date = new Date(invoiceDate(invoice));
                 const total = Number(
                   invoice.total ?? invoiceTotal(invoice)
