@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Receipt,
   Percent,
@@ -17,6 +17,7 @@ export function InvoiceSummary({
   onDiscountChange,
   total = 0,
   paid = 0,
+  onPaidChange,
   remaining = 0,
   previousDebt = 0,
   customerName = "",
@@ -35,6 +36,11 @@ export function InvoiceSummary({
   const safeDiscount = Math.max(0, Number(discount) || 0);
   const safeTotal = Math.max(0, Number(total) || 0);
   const safePaid = Math.max(0, Number(paid) || 0);
+  const [paidDraft, setPaidDraft] = useState(String(paid ?? 0));
+
+  useEffect(() => {
+    setPaidDraft(String(paid ?? 0));
+  }, [paid]);
   const safeRemaining = Math.max(0, Number(remaining) || 0);
   const safePreviousDebt = Math.max(0, Number(previousDebt) || 0);
 
@@ -91,9 +97,31 @@ export function InvoiceSummary({
             <strong>{money(safeTotal)}</strong>
           </div>
 
-          <div className="invoice-summary-row">
-            <span>Payment Received</span>
-            <strong>{money(safePaid)}</strong>
+          <div className="invoice-summary-row invoice-summary-payment-row">
+            <label htmlFor="invoice-payment-received"><Banknote size={15} /> Payment Received (DA)</label>
+            <input
+              id="invoice-payment-received"
+              className="invoice-summary-payment-input"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              max={safeTotal}
+              step="any"
+              value={paidDraft}
+              disabled={busy}
+              onChange={(event) => setPaidDraft(event.target.value)}
+              onBlur={() => {
+                const value = paidDraft.trim() === "" ? 0 : Number(paidDraft);
+                if (Number.isFinite(value) && value >= 0) {
+                  const nextPaid = Math.min(value, safeTotal);
+                  setPaidDraft(String(nextPaid));
+                  onPaidChange?.(nextPaid);
+                } else {
+                  setPaidDraft(String(safePaid));
+                }
+              }}
+              aria-label="Payment received in DA"
+            />
           </div>
 
           <div className="invoice-summary-row">
