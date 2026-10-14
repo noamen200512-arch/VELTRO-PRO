@@ -994,3 +994,19 @@
 }
 
 /* Sales history pagination styles */
+
+.history-page .sales-history-table-scroll { max-height: 62vh; overflow: auto; }
+.history-page .sales-history-table-scroll .products-table thead { position: sticky; top: 0; z-index: 3; }
+.history-page .sales-history-pagination { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.history-page .sales-history-page-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.history-page .sales-history-page-controls button { min-width: 34px; min-height: 34px; padding: 7px 10px; color: #cbd6e5; background: #172333; border: 1px solid #33445a; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.history-page .sales-history-page-controls button.active { color: #071714; background: #43cfbf; border-color: #43cfbf; }
+.history-page .sales-history-page-controls button:disabled { opacity: .4; cursor: not-allowed; }
+.history-page .sales-history-page-ellipsis { padding: 0 3px; color: #8d9bb0; }
+.history-page .history-row-actions .icon-button.danger:hover { color: #ff8796; border-color: rgba(255, 101, 122, .55); background: rgba(255, 101, 122, .14); }
+@media (max-width: 600px) {
+  .history-page .sales-history-table-scroll { max-height: 55vh; }
+  .history-page .sales-history-pagination { align-items: flex-start; flex-direction: column; }
+  .history-page .sales-history-page-controls { justify-content: flex-start; width: 100%; }
+  .history-page .sales-history-page-controls button { min-width: 32px; padding: 7px 8px; }
+}
