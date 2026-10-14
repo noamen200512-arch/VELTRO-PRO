@@ -2290,3 +2290,22 @@
   .pos-page .product-category-modal { width: 100%; max-height: 88dvh; border-radius: 18px 18px 12px 12px; }
   .pos-page .product-category-modal-header { padding: 15px; }
 }
+
+/* Desktop: let the Invoice Items panel occupy the available vertical space.
+   Tablet and phone layouts intentionally keep their existing dimensions. */
+@media (min-width: 761px) {
+  .pos-page .invoice-table-section {
+    display: flex;
+    flex-direction: column;
+    min-height: max(420px, calc(100vh - 390px));
+  }
+
+  .pos-page .invoice-table-section > .invoice-table-scroll {
+    flex: 1 1 auto;
+  }
+
+  .pos-page .invoice-table-section .invoice-empty-state {
+    min-height: 100%;
+  }
+}
+
