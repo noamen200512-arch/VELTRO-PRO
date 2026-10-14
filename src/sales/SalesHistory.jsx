@@ -1243,11 +1243,26 @@ export default function SalesHistory() {
           </table>
         </div>
 
-        <div className="table-footer">
+        <div className="table-footer sales-history-pagination">
           <span>
-            Showing {filteredInvoices.length} of {invoices.length} invoices
+            {filteredInvoices.length
+              ? `Showing ${pageStart + 1}–${Math.min(pageStart + PAGE_SIZE, filteredInvoices.length)} of ${filteredInvoices.length} filtered invoices (${invoices.length} total)`
+              : `Showing 0 of 0 filtered invoices (${invoices.length} total)`}
           </span>
-          <span className="muted-cell">Sales History</span>
+          <div className="sales-history-page-controls" aria-label="Sales history pages">
+            <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={safePage <= 1}>Previous</button>
+            {Array.from({ length: totalPages }, (_, index) => index + 1)
+              .filter((page) => page === 1 || page === totalPages || Math.abs(page - safePage) <= 1)
+              .reduce((items, page, index, pages) => {
+                if (index > 0 && page - pages[index - 1] > 1) items.push(`ellipsis-${page}`);
+                items.push(page);
+                return items;
+              }, [])
+              .map((page) => typeof page === "number" ? (
+                <button type="button" key={page} className={page === safePage ? "active" : ""} aria-current={page === safePage ? "page" : undefined} onClick={() => setCurrentPage(page)}>{page}</button>
+              ) : <span className="sales-history-page-ellipsis" key={page}>…</span>)}
+            <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={safePage >= totalPages}>Next</button>
+          </div>
         </div>
       </section>
 
