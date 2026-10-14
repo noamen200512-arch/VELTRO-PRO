@@ -104,6 +104,42 @@ const dictionaries = {
     "Top products":"Meilleurs produits",
     "Sales overview":"Aperçu des ventes",
     "Purchase overview":"Aperçu des achats",
+    "Point of Sale":"Point de vente",
+    "Manage invoices, products and payments.":"Gérez les factures, les produits et les paiements.",
+    "Invoice Information":"Informations sur la facture",
+    "Invoice Number":"Numéro de facture",
+    "Current User":"Utilisateur actuel",
+    "Customer & Account":"Client et compte",
+    "Customer Name":"Nom du client",
+    "Previous Debt":"Dette précédente",
+    "Paid Amount":"Montant payé",
+    "Remaining Amount":"Montant restant",
+    "New Amount":"Nouveau montant",
+    "Payment Received (DA)":"Paiement reçu (DA)",
+    "SALES TERMINAL":"TERMINAL DE VENTE",
+    "Search Product":"Rechercher un produit",
+    "Selected category":"Catégorie sélectionnée",
+    "Search by name, reference, category or barcode...":"Rechercher par nom, référence, catégorie ou code-barres...",
+    "Showing":"Affichage",
+    "of":"sur",
+    "No products added yet":"Aucun produit ajouté pour le moment",
+    "Scan a barcode or search for a product above":"Scannez un code-barres ou recherchez un produit ci-dessus",
+    "to start a new invoice.":"pour commencer une nouvelle facture.",
+    "ITEMS":"ARTICLES",
+    "Global Discount (DA)":"Remise globale (DA)",
+    "Invoice Total":"Total de la facture",
+    "Remaining on Invoice":"Reste à payer sur la facture",
+    "Save Pending":"Enregistrer en attente",
+    "Complete Sale":"Finaliser la vente",
+    "Please verify the payment and total before finalizing the invoice.":"Veuillez vérifier le paiement et le total avant de finaliser la facture.",
+    "Final amount due":"Montant final dû",
+    "TOTAL AMOUNT":"MONTANT TOTAL",
+    "Search by name, reference, category or barcode...":"Rechercher par nom, référence, catégorie ou code-barres...",
+    "products added":"produits ajoutés",
+    "product added":"produit ajouté",
+    "All products":"Tous les produits",
+    "Hide Products":"Masquer les produits",
+    "2 products loaded from your inventory.":"2 produits chargés depuis votre stock.",
     "Outstanding":"Impayé","Settled":"Réglé","No products added":"Aucun produit ajouté"
   },
   ar: {
@@ -205,6 +241,41 @@ const dictionaries = {
     "Top products":"أفضل المنتجات",
     "Sales overview":"نظرة عامة على المبيعات",
     "Purchase overview":"نظرة عامة على المشتريات",
+    "Point of Sale":"نقطة البيع",
+    "Manage invoices, products and payments.":"إدارة فواتير البيع والمنتجات والمدفوعات.",
+    "Invoice Information":"معلومات الفاتورة",
+    "Invoice Number":"رقم الفاتورة",
+    "Current User":"المستخدم الحالي",
+    "Customer & Account":"الزبون والحساب",
+    "Customer Name":"اسم الزبون",
+    "Previous Debt":"الدين السابق",
+    "Paid Amount":"المبلغ المدفوع",
+    "Remaining Amount":"المبلغ المتبقي",
+    "New Amount":"المبلغ الجديد",
+    "Payment Received (DA)":"المبلغ المستلم (دج)",
+    "SALES TERMINAL":"واجهة البيع",
+    "Search Product":"البحث عن منتج",
+    "Selected category":"الفئة المحددة",
+    "Search by name, reference, category or barcode...":"ابحث بالاسم أو المرجع أو الفئة أو الباركود...",
+    "Showing":"عرض",
+    "of":"من",
+    "No products added yet":"لم تتم إضافة أي منتجات بعد",
+    "Scan a barcode or search for a product above":"امسح الباركود أو ابحث عن منتج أعلاه",
+    "to start a new invoice.":"لبدء فاتورة جديدة.",
+    "ITEMS":"عناصر",
+    "Global Discount (DA)":"التخفيض الإجمالي (دج)",
+    "Invoice Total":"إجمالي الفاتورة",
+    "Remaining on Invoice":"المتبقي من الفاتورة",
+    "Save Pending":"حفظ كمعلّقة",
+    "Complete Sale":"إتمام البيع",
+    "Please verify the payment and total before finalizing the invoice.":"يرجى التحقق من المبلغ المدفوع والإجمالي قبل إتمام الفاتورة.",
+    "Final amount due":"المبلغ النهائي المستحق",
+    "TOTAL AMOUNT":"المبلغ الإجمالي",
+    "products added":"منتجات مضافة",
+    "product added":"منتج مضاف",
+    "All products":"كل المنتجات",
+    "Hide Products":"إخفاء المنتجات",
+    "2 products loaded from your inventory.":"تم تحميل منتجين من المخزون.",
     "Outstanding":"غير مدفوع","Settled":"مسدد"
   }
 };
@@ -237,7 +308,28 @@ export function translatePage(locale, root = document.body) {
     }
     const original = record.source;
     const trimmed = original.trim();
-    const translated = dictionary[trimmed] || trimmed;
+    let translated = dictionary[trimmed] || trimmed;
+
+    // Translate common count/pagination labels whose numbers change at runtime.
+    if (!dictionary[trimmed] && locale === "ar") {
+      let match = trimmed.match(/^(\d+)\s+ITEMS$/i);
+      if (match) translated = `${match[1]} عناصر`;
+      match = trimmed.match(/^(\d+)\s+products added$/i);
+      if (match) translated = `${match[1]} منتجات مضافة`;
+      match = trimmed.match(/^(\d+)\s+product added$/i);
+      if (match) translated = `${match[1]} منتج مضاف`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
+      if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]}`;
+    } else if (!dictionary[trimmed] && locale === "fr") {
+      let match = trimmed.match(/^(\d+)\s+ITEMS$/i);
+      if (match) translated = `${match[1]} articles`;
+      match = trimmed.match(/^(\d+)\s+products added$/i);
+      if (match) translated = `${match[1]} produits ajoutés`;
+      match = trimmed.match(/^(\d+)\s+product added$/i);
+      if (match) translated = `${match[1]} produit ajouté`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
+      if (match) translated = `Affichage ${match[1]}–${match[2]} sur ${match[3]}`;
+    }
     const next = original.replace(trimmed, translated);
     if (node.nodeValue !== next) node.nodeValue = next;
     record.rendered = next;
