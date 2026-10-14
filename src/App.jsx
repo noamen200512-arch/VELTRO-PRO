@@ -15,6 +15,7 @@ import {
   ReceiptText,
   CreditCard,
   Boxes,
+  ClipboardList,
   ChevronDown,
   ChevronRight,
   Menu,
@@ -454,7 +455,18 @@ const navGroups = [
         icon: CreditCard,
         children: [{ label: "Purchase History", icon: ReceiptText }],
       },
-      { label: "Products", icon: Package },
+      {
+        label: "Products",
+        icon: Package,
+        children: [
+          { label: "Product List", icon: ClipboardList, page: "Products" },
+          {
+            label: "Product Purchase & Sales History",
+            icon: History,
+            page: "Product History",
+          },
+        ],
+      },
       { label: "Categories", icon: Boxes },
       { label: "Orders", icon: ReceiptText },
     ],
@@ -489,6 +501,7 @@ function Sidebar({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchase History",
     "Suppliers List": activePage === "Supplier Debts",
+    Products: activePage === "Products" || activePage === "Product History",
   });
 
   return (
@@ -535,7 +548,7 @@ function Sidebar({
                 const open = Boolean(expanded[item.label]);
 
                 const childActive = item.children?.some(
-                  (child) => child.label === activePage
+                  (child) => (child.page || child.label) === activePage
                 );
 
                 const active =
@@ -563,6 +576,11 @@ function Sidebar({
                         if (item.label === "Suppliers List") {
                           onNavigate("Suppliers List");
                           onClose();
+                          return;
+                        }
+
+                        if (item.label === "Products") {
+                          onNavigate("Products");
                           return;
                         }
 
@@ -598,12 +616,12 @@ function Sidebar({
                               key={child.label}
                               type="button"
                               className={`nav-item nav-sub-item ${
-                                activePage === child.label
+                                activePage === (child.page || child.label)
                                   ? "active"
                                   : ""
                               }`}
                               onClick={() => {
-                                onNavigate(child.label);
+                                onNavigate(child.page || child.label);
                                 onClose();
                               }}
                             >
@@ -654,6 +672,7 @@ function Header({
     "Purchase History": "Create and manage purchase invoices.",
     "Suppliers List": "Manage supplier names and phone numbers.",
     "Supplier Debts": "Review supplier invoices and outstanding balances.",
+    "Product History": "Review purchase and sales movements for each product.",
   };
 
   return (
@@ -796,6 +815,7 @@ function PlaceholderPage({ title }) {
     Orders: ShoppingCart,
     Customers: Users,
     "Cash Register": Wallet,
+    "Product History": History,
     Reports: BarChart3,
     Settings,
   };
