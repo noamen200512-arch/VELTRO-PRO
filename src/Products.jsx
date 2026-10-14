@@ -7,6 +7,7 @@ import ProductStats from "./products/ProductStats.jsx";
 import BarcodeScanner from "./products/BarcodeScanner.jsx";
 import ProductPrint from "./products/ProductPrint.jsx";
 import ProductNotice from "./products/ProductNotice.jsx";
+import ProductConfirm from "./products/ProductConfirm.jsx";
 import "./styles/products.css";
 
 import {
@@ -206,6 +207,7 @@ export default function Products() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [notice, setNotice] = useState("");
+  const [confirmProduct, setConfirmProduct] = useState(null);
   const [printProduct, setPrintProduct] = useState(null);
   const [showPrintRef, setShowPrintRef] = useState(true);
   const [showPrintBarcode, setShowPrintBarcode] = useState(true);
@@ -790,15 +792,16 @@ export default function Products() {
     }
   }
 
-  async function handleDelete(product) {
-    const confirmed = window.confirm(
-      `Delete "${product.name}"? This cannot be undone.`
-    );
+  function handleDelete(product) {
+    setConfirmProduct(product);
+  }
 
-    if (!confirmed) return;
+  async function confirmDelete() {
+    if (!confirmProduct) return;
 
+    const product = confirmProduct;
     const nextProducts = products.filter(
-      (p) => p.id !== product.id
+      (item) => item.id !== product.id
     );
 
     const saved = await persist(
@@ -808,6 +811,8 @@ export default function Products() {
     );
 
     if (!saved) return;
+
+    setConfirmProduct(null);
 
     try {
       await deleteProductFromCloud(product.id);
@@ -1078,6 +1083,16 @@ export default function Products() {
         onClose={() => setPrintProduct(null)}
         onPrint={printPriceCard}
         buttonStyle={buttonStyle}
+      />
+
+      <ProductConfirm
+        open={Boolean(confirmProduct)}
+        title="Delete product"
+        message={confirmProduct ? `Are you sure you want to delete "${confirmProduct.name}"? This action cannot be undone.` : ""}
+        confirmLabel="Delete product"
+        cancelLabel="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmProduct(null)}
       />
     </div>
   );
