@@ -2994,3 +2994,72 @@ html[lang="fr"] body,
 html[lang="en"] body {
   direction: ltr;
 }
+
+
+/* Mirror the application frame when Arabic RTL is selected. */
+html[lang="ar"] .sidebar {
+  left: auto;
+  right: 0;
+  border-right: 0;
+  border-left: 1px solid var(--border);
+}
+
+html[lang="ar"] .main-area,
+html[lang="ar"] .main-content {
+  margin-left: 0;
+  margin-right: var(--sidebar-width);
+  transition: width var(--transition), margin-right var(--transition);
+}
+
+html[lang="ar"] .app-shell.sidebar-hidden .main-area,
+html[lang="ar"] .app-shell.sidebar-hidden > .main-content {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+html[lang="ar"] .sidebar-toggle {
+  margin-right: 0;
+  margin-left: 9px;
+}
+
+html[lang="ar"] .sidebar .active-indicator {
+  right: auto;
+  left: -8px;
+}
+
+@media (max-width: 1250px) and (min-width: 951px) {
+  html[lang="ar"] .main-area,
+  html[lang="ar"] .main-content {
+    width: calc(100% - 225px);
+    margin-right: 225px;
+  }
+}
+
+@media (max-width: 950px) and (min-width: 621px) {
+  html[lang="ar"] .main-area,
+  html[lang="ar"] .main-content {
+    width: calc(100% - var(--sidebar-compact-width));
+    margin-right: var(--sidebar-compact-width);
+  }
+}
+
+@media (max-width: 620px) {
+  html[lang="ar"] .sidebar {
+    right: 0;
+    left: auto;
+    transform: translateX(105%);
+    border-right: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  html[lang="ar"] .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  html[lang="ar"] .main-area,
+  html[lang="ar"] .main-content {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
