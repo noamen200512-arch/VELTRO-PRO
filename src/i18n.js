@@ -140,6 +140,34 @@ const dictionaries = {
     "All products":"Tous les produits",
     "Hide Products":"Masquer les produits",
     "2 products loaded from your inventory.":"2 produits chargés depuis votre stock.",
+    "Sales Operator":"Opérateur de vente",
+    "Previous Customer Debt":"Dette précédente du client",
+    "Total Debt After Sale":"Dette totale après la vente",
+    "Add Unit":"Ajouter une unité",
+    "Add Carton":"Ajouter un carton",
+    "Add one unit":"Ajouter une unité",
+    "Carton":"Carton",
+    "carton":"carton",
+    "cartons":"cartons",
+    "pcs":"pièces",
+    "loose":"à l'unité",
+    "unit":"unité",
+    "units":"unités",
+    "total units":"unités au total",
+    "added":"ajouté",
+    "Product":"Produit",
+    "Unit Price":"Prix unitaire",
+    "Previous Customer Debt":"Dette précédente du client",
+    "Customer":"Client",
+    "Undo":"Annuler",
+    "removed":"retiré",
+    "Added one carton of ":"Un carton de ",
+    " products loaded from your inventory.":" produits chargés depuis votre stock.",
+    "Hide Products":"Masquer les produits",
+    "Show Products":"Afficher les produits",
+    "Refresh":"Actualiser",
+    "Refreshing...":"Actualisation...",
+    "SALES TERMINAL":"TERMINAL DE VENTE",
     "Outstanding":"Impayé","Settled":"Réglé","No products added":"Aucun produit ajouté"
   },
   ar: {
@@ -276,6 +304,35 @@ const dictionaries = {
     "All products":"كل المنتجات",
     "Hide Products":"إخفاء المنتجات",
     "2 products loaded from your inventory.":"تم تحميل منتجين من المخزون.",
+    "Sales Operator":"موظف المبيعات",
+    "Previous Customer Debt":"الدين السابق للزبون",
+    "Total Debt After Sale":"إجمالي الدين بعد البيع",
+    "Add Unit":"إضافة وحدة",
+    "Add Carton":"إضافة كرتون",
+    "Add one unit":"إضافة وحدة واحدة",
+    "Carton":"كرتون",
+    "carton":"كرتون",
+    "cartons":"كراتين",
+    "pcs":"قطع",
+    "loose":"مفرد",
+    "unit":"وحدة",
+    "units":"وحدات",
+    "total units":"إجمالي الوحدات",
+    "added":"مضاف",
+    "Product":"المنتج",
+    "Unit Price":"سعر الوحدة",
+    "Undo":"تراجع",
+    "removed":"تمت إزالته",
+    " products loaded from your inventory.":" منتجات تم تحميلها من المخزون.",
+    "Hide Products":"إخفاء المنتجات",
+    "Show Products":"إظهار المنتجات",
+    "Refresh":"تحديث",
+    "Refreshing...":"جارٍ التحديث...",
+    "Scan with Camera":"المسح بالكاميرا",
+    "Barcode":"الباركود",
+    "Category":"الفئة",
+    "Quantity":"الكمية",
+    "Total":"الإجمالي",
     "Outstanding":"غير مدفوع","Settled":"مسدد"
   }
 };
@@ -309,6 +366,23 @@ export function translatePage(locale, root = document.body) {
     const original = record.source;
     const trimmed = original.trim();
     let translated = dictionary[trimmed] || trimmed;
+
+    // Translate dynamic POS notices and count strings.
+    if (!dictionary[trimmed] && locale === "ar") {
+      let match = trimmed.match(/^Added one carton of (.+) at (.+)\\.$/i);
+      if (match) translated = `تمت إضافة كرتون واحد من ${match[1]} بسعر ${match[2]}.`;
+      match = trimmed.match(/^(\\d+) products loaded from your inventory\\.$/i);
+      if (match) translated = `تم تحميل ${match[1]} منتجات من المخزون.`;
+      match = trimmed.match(/^(\\d+) product loaded from your inventory\\.$/i);
+      if (match) translated = `تم تحميل ${match[1]} منتج من المخزون.`;
+    } else if (!dictionary[trimmed] && locale === "fr") {
+      let match = trimmed.match(/^Added one carton of (.+) at (.+)\\.$/i);
+      if (match) translated = `Un carton de ${match[1]} a été ajouté au prix de ${match[2]}.`;
+      match = trimmed.match(/^(\\d+) products loaded from your inventory\\.$/i);
+      if (match) translated = `${match[1]} produits chargés depuis votre stock.`;
+      match = trimmed.match(/^(\\d+) product loaded from your inventory\\.$/i);
+      if (match) translated = `${match[1]} produit chargé depuis votre stock.`;
+    }
 
     // Translate common count/pagination labels whose numbers change at runtime.
     if (!dictionary[trimmed] && locale === "ar") {
