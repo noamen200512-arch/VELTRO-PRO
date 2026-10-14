@@ -799,6 +799,19 @@ export default function SalesHistory() {
     employeeFilter,
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const visibleInvoices = filteredInvoices.slice(pageStart, pageStart + PAGE_SIZE);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, startDate, endDate, startTime, endTime, customerFilter, employeeFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
+
   const totalSales = filteredInvoices.reduce(
     (sum, invoice) =>
       sum + Number(invoice.total ?? invoiceTotal(invoice)),
