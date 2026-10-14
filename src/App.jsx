@@ -32,7 +32,6 @@ import SalesHistory from "./sales/SalesHistory.jsx";
 import Purchases from "./purchases/Purchases.jsx";
 import Suppliers from "./suppliers/Suppliers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
-import LocaleTranslator from "./LocaleTranslator.jsx";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -610,7 +609,6 @@ export default function App() {
       }`}
     >
       <InvoiceInterfaceStyles />
-      <LocaleTranslator locale={locale} />
       {sidebarVisible && (
         <Sidebar
           activePage={activePage}
