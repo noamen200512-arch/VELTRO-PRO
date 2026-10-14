@@ -1204,13 +1204,14 @@ export default function SalesHistory() {
                         </button>
 
                         <button
-                          className="icon-button danger"
+                          className="history-delete-button"
                           type="button"
-                          title="Delete sale"
-                          aria-label="Delete sale"
+                          title="Delete this sale and restore its quantities to stock"
+                          aria-label={`Delete sale ${invoice.invoiceNumber || invoice.id || ""}`}
                           onClick={() => deleteInvoiceFromTable(invoice)}
                         >
-                          <Trash2 size={17} />
+                          <Trash2 size={16} />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </td>
