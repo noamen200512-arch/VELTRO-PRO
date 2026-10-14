@@ -133,14 +133,15 @@ export default function POS() {
   const [removedItem, setRemovedItem] = useState(null);
 
   const items = invoice.items || [];
-  const customer = invoice.customerName || "";
+  const customer = invoice.customerName || "Anonyme";
+  const isAnonymousCustomer = !invoice.customerId || String(invoice.customerId).trim().toLowerCase() === "anonyme";
   const paid = money(invoice.paid);
   const discount = money(invoice.discount);
 
   // The store calculates debt from this customer's completed sales.
-  const previousDebt = getCustomerDebt(
-    invoice.customerId || customer
-  );
+  const previousDebt = isAnonymousCustomer
+    ? 0
+    : getCustomerDebt(invoice.customerId);
 
   const subtotal = useMemo(
     () => calculateSubtotal(items),
@@ -648,9 +649,11 @@ export default function POS() {
 
     if (name === null) return;
 
+    const selectedName = name.trim();
+    const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
     updateInvoice({
-      customerName: name.trim(),
-      customerId: name.trim(),
+      customerName: anonymous ? "Anonyme" : selectedName,
+      customerId: anonymous ? "" : selectedName,
       status: "Draft",
     });
   };
@@ -863,12 +866,14 @@ export default function POS() {
         <SalesSidebar
           invoiceNumber={invoice.invoiceNumber}
           customer={customer}
-          onCustomerChange={(value) =>
+          onCustomerChange={(value) => {
+            const selectedName = String(value ?? "").trim();
+            const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
             updateInvoice({
-              customerName: value,
-              customerId: value,
-            })
-          }
+              customerName: anonymous ? "Anonyme" : selectedName,
+              customerId: anonymous ? "" : selectedName,
+            });
+          }}
           paid={paid}
           onPaidChange={(value) =>
             updateInvoice({ paid: money(value) })
