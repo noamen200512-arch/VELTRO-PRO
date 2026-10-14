@@ -476,7 +476,9 @@ export function translatePage(locale, root = document.body) {
 
     // Translate common count/pagination labels whose numbers change at runtime.
     if (!dictionary[trimmed] && locale === "ar") {
-      let match = trimmed.match(/^(\d+)\s+ITEMS$/i);
+      let match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
+      if (match) translated = `عرض ${match[1]} فاتورة`;
+      match = trimmed.match(/^(\d+)\s+ITEMS$/i);
       if (match) translated = Number(match[1]) === 1 ? "عنصر واحد" : `${match[1]} عناصر`;
       match = trimmed.match(/^(\d+)\s+products added$/i);
       if (match) translated = `${match[1]} منتجات مضافة`;
@@ -489,7 +491,9 @@ export function translatePage(locale, root = document.body) {
       match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
       if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]}`;
     } else if (!dictionary[trimmed] && locale === "fr") {
-      let match = trimmed.match(/^(\d+)\s+ITEMS$/i);
+      let match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
+      if (match) translated = `Affichage de ${match[1]} factures`;
+      match = trimmed.match(/^(\d+)\s+ITEMS$/i);
       if (match) translated = Number(match[1]) === 1 ? "1 article" : `${match[1]} articles`;
       match = trimmed.match(/^(\d+)\s+products added$/i);
       if (match) translated = `${match[1]} produits ajoutés`;
