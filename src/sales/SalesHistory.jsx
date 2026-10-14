@@ -1202,6 +1202,16 @@ export default function SalesHistory() {
                         >
                           <Pencil size={17} />
                         </button>
+
+                        <button
+                          className="icon-button danger"
+                          type="button"
+                          title="Delete sale"
+                          aria-label="Delete sale"
+                          onClick={() => deleteInvoiceFromTable(invoice)}
+                        >
+                          <Trash2 size={17} />
+                        </button>
                       </div>
                     </td>
                   </tr>
