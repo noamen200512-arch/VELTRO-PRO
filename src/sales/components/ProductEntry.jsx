@@ -12,6 +12,8 @@ import {
   ChevronUp,
   ChevronLeft,
   ChevronRight,
+  Check,
+  SlidersHorizontal,
   Boxes,
   AlertTriangle,
 } from "lucide-react";
@@ -61,6 +63,8 @@ export function ProductEntry({
   const [barcode, setBarcode] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const PRODUCTS_PER_PAGE = 15;
   const [showCamera, setShowCamera] = useState(false);
@@ -471,16 +475,108 @@ export function ProductEntry({
           </div>
 
           <div className="product-inventory-filters">
-            <label htmlFor="product-category-filter">Category</label>
-            <select id="product-category-filter" value={selectedCategory}
-              onChange={(event) => {
-                setSelectedCategory(event.target.value);
-                setCurrentPage(1);
-              }}>
-              <option value="all">All categories</option>
-              {categories.map((category) => <option key={category} value={category}>{category}</option>)}
-            </select>
+            <div className="product-category-filter-label">
+              <SlidersHorizontal size={15} />
+              <span>Category</span>
+            </div>
+            <button
+              type="button"
+              className="product-category-picker-trigger"
+              aria-haspopup="dialog"
+              aria-expanded={categoryPickerOpen}
+              onClick={() => {
+                setCategorySearch("");
+                setCategoryPickerOpen(true);
+              }}
+            >
+              <span className="product-category-picker-current">
+                <small>Selected category</small>
+                <strong>{selectedCategory === "all" ? "All categories" : selectedCategory}</strong>
+              </span>
+              <ChevronDown size={17} />
+            </button>
           </div>
+
+          {categoryPickerOpen && (
+            <div className="product-category-modal-backdrop"
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) setCategoryPickerOpen(false);
+              }}>
+              <section className="product-category-modal" role="dialog" aria-modal="true" aria-labelledby="product-category-modal-title">
+                <header className="product-category-modal-header">
+                  <div className="product-category-modal-icon"><SlidersHorizontal size={20} /></div>
+                  <div>
+                    <h3 id="product-category-modal-title">Choose a category</h3>
+                    <p>Filter the product list by category</p>
+                  </div>
+                  <button type="button" className="product-category-modal-close" aria-label="Close categories" onClick={() => setCategoryPickerOpen(false)}>
+                    <X size={19} />
+                  </button>
+                </header>
+
+                <div className="product-category-modal-search">
+                  <Search size={17} />
+                  <input
+                    type="search"
+                    autoFocus
+                    placeholder="Search categories..."
+                    value={categorySearch}
+                    onChange={(event) => setCategorySearch(event.target.value)}
+                  />
+                  {categorySearch && (
+                    <button type="button" aria-label="Clear category search" onClick={() => setCategorySearch("")}><X size={15} /></button>
+                  )}
+                </div>
+
+                <div className="product-category-modal-list">
+                  {[
+                    { value: "all", label: "All categories", count: products.length },
+                    ...categories.map((category) => ({
+                      value: category,
+                      label: category,
+                      count: products.filter((product) => normalize(product.category) === normalize(category)).length
+                    }))
+                  ].filter((category) => normalize(category.label).includes(normalize(categorySearch)))
+                    .map((category) => {
+                      const selected = selectedCategory === category.value;
+                      return (
+                        <button type="button" key={category.value}
+                          className={selected ? "product-category-option selected" : "product-category-option"}
+                          onClick={() => {
+                            setSelectedCategory(category.value);
+                            setCurrentPage(1);
+                            setCategoryPickerOpen(false);
+                          }}>
+                          <span className="product-category-option-main">
+                            <span className="product-category-option-symbol"><Boxes size={16} /></span>
+                            <span><strong>{category.label}</strong><small>{category.count} products</small></span>
+                          </span>
+                          {selected ? <Check size={18} /> : <span className="product-category-option-radio" />}
+                        </button>
+                      );
+                    })}
+                  {![{ value: "all", label: "All categories" }, ...categories.map((category) => ({ value: category, label: category }))]
+                    .some((category) => normalize(category.label).includes(normalize(categorySearch))) && (
+                      <div className="product-category-no-results">
+                        <Search size={22} />
+                        <strong>No categories found</strong>
+                        <span>Try a different search.</span>
+                      </div>
+                    )}
+                </div>
+
+                <footer className="product-category-modal-footer">
+                  <span>{categories.length} categories available</span>
+                  <button type="button" onClick={() => {
+                    setSelectedCategory("all");
+                    setCurrentPage(1);
+                    setCategoryPickerOpen(false);
+                  }}>Show all products</button>
+                </footer>
+              </section>
+            </div>
+          )}
 
           {filteredProducts.length === 0 ? (
             <div className="product-search-empty">
