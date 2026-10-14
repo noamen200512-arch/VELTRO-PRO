@@ -597,7 +597,8 @@ export default function App() {
       className={`app-shell ${
         sidebarVisible ? "" : "sidebar-hidden"
       }`}
-    >\n      {sidebarVisible && (
+    >
+      {sidebarVisible && (
         <Sidebar
           activePage={activePage}
           locale={locale}
