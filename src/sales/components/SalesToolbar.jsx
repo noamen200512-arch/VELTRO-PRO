@@ -2,7 +2,6 @@
 import React from "react";
 import {
   FilePlus2,
-  FilePenLine,
   Printer,
   UserRound,
   ClipboardList,
@@ -13,11 +12,6 @@ const toolbarButtons = [
     label: "New Invoice",
     icon: FilePlus2,
     action: "new",
-  },
-  {
-    label: "Modify Invoice",
-    icon: FilePenLine,
-    action: "modify",
   },
   {
     label: "Print Invoice",
@@ -38,7 +32,6 @@ const toolbarButtons = [
 
 export function SalesToolbar({
   onNew,
-  onModify,
   onPrint,
   onCustomer,
   onPending,
@@ -48,7 +41,6 @@ export function SalesToolbar({
 }) {
   const actions = {
     new: onNew,
-    modify: onModify,
     print: onPrint,
     customer: onCustomer,
     pending: onPending,
@@ -65,7 +57,6 @@ export function SalesToolbar({
         {toolbarButtons.map((button) => {
           const Icon = button.icon;
           const isPending = button.action === "pending";
-          const isModify = button.action === "modify";
 
           return (
             <button
@@ -74,9 +65,7 @@ export function SalesToolbar({
               className={[
                 "sales-toolbar-button",
                 `sales-toolbar-${button.action}`,
-                (isPending || isModify) && showPending
-                  ? "is-active"
-                  : "",
+                isPending && showPending ? "is-active" : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -93,21 +82,13 @@ export function SalesToolbar({
                 disabled ||
                 typeof actions[button.action] !== "function"
               }
-              aria-expanded={
-                isPending || isModify
-                  ? showPending
-                  : undefined
-              }
+              aria-expanded={isPending ? showPending : undefined}
               aria-label={
                 isPending
                   ? `${button.label}: ${pendingCount} saved`
                   : button.label
               }
-              title={
-                isModify
-                  ? "Choose an invoice to modify"
-                  : button.label
-              }
+              title={button.label}
             >
               <span className="sales-toolbar-button-icon">
                 <Icon size={18} strokeWidth={1.8} />
