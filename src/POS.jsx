@@ -919,6 +919,61 @@ export default function POS() {
         </section>
       )}
 
+      {(showSaleReview || showSaleConfirm) && (
+        <div className="sale-confirm-backdrop" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !busy) {
+            setShowSaleReview(false);
+            setShowSaleConfirm(false);
+          }
+        }}>
+          <section className="sale-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="sale-confirm-title">
+            <header className="sale-confirm-header">
+              <div className={`sale-confirm-icon ${showSaleReview ? "review" : "confirm"}`}>
+                {showSaleReview ? <ReceiptText size={22} /> : <BadgeCheck size={22} />}
+              </div>
+              <div className="sale-confirm-heading-copy">
+                <h2 id="sale-confirm-title">{showSaleReview ? "Review customer account" : "Confirm sale completion"}</h2>
+                <p>{showSaleReview ? "Review the balance and invoice amounts before proceeding." : "Please confirm that you want to finalize this sale."}</p>
+              </div>
+              <button type="button" className="sale-confirm-close" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(false); }} disabled={busy} aria-label="Close"><X size={18} /></button>
+            </header>
+            {showSaleReview ? (
+              <>
+                <div className="sale-confirm-customer">
+                  <span className="sale-confirm-customer-avatar"><UserRound size={18} /></span>
+                  <span className="sale-confirm-customer-name"><small>Selected customer</small><strong>{customer}</strong></span>
+                  <span className="sale-confirm-invoice-number">{invoice.invoiceNumber}</span>
+                </div>
+                <div className="sale-confirm-amounts">
+                  <div className="sale-confirm-amount-row"><span><WalletCards size={15} /> Previous debt</span><strong>{previousDebt.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row"><span><ReceiptText size={15} /> Invoice total</span><strong>{total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row"><span><Check size={15} /> Amount paid</span><strong className="paid">{paid.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row current"><span><AlertTriangle size={15} /> Current unpaid amount</span><strong>{remaining.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-total-debt"><span>Total debt after this sale</span><strong>{(previousDebt + remaining).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                </div>
+                <p className="sale-confirm-note">The next step will ask you to confirm completion of this invoice.</p>
+                <footer className="sale-confirm-actions">
+                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleReview(false)}>Back to invoice</button>
+                  <button type="button" className="sale-confirm-primary" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(true); }}>Continue <Check size={16} /></button>
+                </footer>
+              </>
+            ) : (
+              <>
+                <div className="sale-confirm-message">
+                  <span className="sale-confirm-message-icon"><AlertTriangle size={21} /></span>
+                  <div><strong>Complete invoice {invoice.invoiceNumber}?</strong><p>{isAnonymousCustomer ? "This sale will be recorded under Anonyme. No previous customer debt will be applied." : `This sale will be recorded for ${customer}. Please verify the amounts before finalizing.`}</p></div>
+                </div>
+                <div className="sale-confirm-final-amount"><span>Invoice total</span><strong>{total.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                <footer className="sale-confirm-actions">
+                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleConfirm(false)} disabled={busy}>Cancel</button>
+                  <button type="button" className="sale-confirm-primary" onClick={confirmSaleCompletion} disabled={busy}>{busy ? "Completing..." : <> <Check size={16} /> Confirm sale </>}</button>
+                </footer>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+
       {showCustomerPicker && (
         <div
           className="customer-picker-backdrop"
