@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -136,6 +136,8 @@ export default function POS() {
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerRecords, setCustomerRecords] = useState([]);
+  const [showSaleReview, setShowSaleReview] = useState(false);
+  const [showSaleConfirm, setShowSaleConfirm] = useState(false);
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "Anonyme";
@@ -747,28 +749,28 @@ export default function POS() {
 
   const completeCurrentSale = () => {
     if (busy) return;
-
     if (items.length === 0) {
       notify("Add products before completing the sale.", "error");
       return;
     }
-
     if (paid > total) {
-      notify(
-        "The amount paid cannot exceed the invoice total in this version.",
-        "error"
-      );
+      notify("The amount paid cannot exceed the invoice total in this version.", "error");
       return;
     }
+    if (isAnonymousCustomer) {
+      setShowSaleReview(false);
+      setShowSaleConfirm(true);
+    } else {
+      setShowSaleConfirm(false);
+      setShowSaleReview(true);
+    }
+  };
 
-    const confirmed = window.confirm(
-      `Complete invoice ${invoice.invoiceNumber} for ${total.toLocaleString()} DA?`
-    );
-
-    if (!confirmed) return;
-
+  const confirmSaleCompletion = () => {
+    if (busy) return;
+    setShowSaleReview(false);
+    setShowSaleConfirm(false);
     setBusy(true);
-
     try {
       const result = completeSale({
         ...invoice,
@@ -777,18 +779,16 @@ export default function POS() {
         paid,
         remaining,
         customerName: customer,
+        customerId: isAnonymousCustomer ? "" : invoice.customerId,
         status: "Completed",
       });
-
       if (!result.ok) {
         notify(getErrorMessage(result), "error");
         return;
       }
-
       setInvoice(createInvoice());
       setRemovedItem(null);
       refreshPending();
-
       notify("Sale completed and inventory updated.", "success");
     } finally {
       setBusy(false);
