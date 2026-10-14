@@ -25,7 +25,7 @@ function StatCard({ icon: Icon, label, value, color, note }) {
         background: COLORS.panel,
         border: `1px solid ${COLORS.border}`,
         borderRadius: 14,
-        padding: 18,
+        padding: 16,
         minWidth: 0,
       }}
     >
@@ -60,10 +60,14 @@ function StatCard({ icon: Icon, label, value, color, note }) {
       <div
         style={{
           color: COLORS.text,
-          fontSize: 25,
+          fontSize: "clamp(16px, 1.55vw, 22px)",
+          lineHeight: 1.25,
+          letterSpacing: "-0.45px",
           fontWeight: 750,
-          marginTop: 15,
+          marginTop: 12,
           overflowWrap: "anywhere",
+          wordBreak: "break-word",
+          fontVariantNumeric: "tabular-nums",
         }}
       >
         {value}
