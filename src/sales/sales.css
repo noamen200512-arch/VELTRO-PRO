@@ -1997,3 +1997,86 @@
     font-size: 9px;
   }
 }
+
+
+/* Refined inventory controls on the sales page */
+.pos-page .product-entry-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pos-page .product-show-button,
+.pos-page .product-refresh-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 10px;
+  background: rgba(17, 28, 44, 0.9);
+  color: var(--pos-text);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.pos-page .product-show-button svg,
+.pos-page .product-refresh-button svg {
+  flex: 0 0 auto;
+}
+
+.pos-page .product-toggle-button {
+  border-color: rgba(53, 214, 208, 0.26);
+  background: rgba(53, 214, 208, 0.08);
+  color: #72e7df;
+}
+
+.pos-page .product-show-button:hover,
+.pos-page .product-refresh-button:hover:not(:disabled) {
+  border-color: rgba(53, 214, 208, 0.55);
+  background: rgba(53, 214, 208, 0.12);
+  transform: translateY(-1px);
+}
+
+.pos-page .product-refresh-button {
+  color: #c4cfdd;
+}
+
+.pos-page .product-refresh-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.pos-page .product-refresh-spinning {
+  animation: product-entry-refresh-spin 0.9s linear infinite;
+}
+
+@keyframes product-entry-refresh-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 520px) {
+  .pos-page .product-entry-footer-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+  }
+
+  .pos-page .product-show-button,
+  .pos-page .product-refresh-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 7px;
+    font-size: 10px;
+  }
+}
