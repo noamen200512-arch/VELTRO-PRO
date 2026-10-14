@@ -138,7 +138,7 @@ export default function POS() {
   const [customerRecords, setCustomerRecords] = useState([]);
   const [showSaleReview, setShowSaleReview] = useState(false);
   const [showSaleConfirm, setShowSaleConfirm] = useState(false);
-  const [paidDraft, setPaidDraft] = useState(String(createInvoice().paid ?? 0));
+  const [paidDraft, setPaidDraft] = useState("0");
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "Anonyme";
