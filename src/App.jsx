@@ -23,6 +23,7 @@ import {
   PanelLeftOpen,
   Maximize2,
   Minimize2,
+  Languages,
 } from "lucide-react";
 
 import POS from "./POS";
@@ -431,6 +432,61 @@ function InvoiceInterfaceStyles() {
   return null;
 }
 
+
+const translations = {
+ en: {},
+ fr: {
+ "GENERAL":"GÉNÉRAL","COMMERCE":"COMMERCE","PARTNERS":"PARTENAIRES","FINANCE & REPORTS":"FINANCES ET RAPPORTS",
+ "Dashboard":"Tableau de bord","Settings":"Paramètres","Point of Sale":"Point de vente","Sales History":"Historique des ventes",
+ "Purchases":"Achats","Purchase History":"Historique des achats","Products":"Produits","Product List":"Liste des produits",
+ "Product Purchase History":"Historique des achats par produit","Product Sales History":"Historique des ventes par produit",
+ "Categories":"Catégories","Orders":"Commandes","Suppliers List":"Liste des fournisseurs","Supplier Debts":"Dettes fournisseurs",
+ "Customers":"Clients","Cash Register":"Caisse","Reports":"Rapports","BUSINESS SUITE":"GESTION COMMERCIALE",
+ "My Business":"Mon entreprise","Business workspace":"Espace de travail","System operational":"Système opérationnel",
+ "Language":"Langue","Workspace":"Espace de travail","Your business performance overview.":"Vue d’ensemble des performances de votre entreprise.",
+ "Create and manage sales invoices.":"Créer et gérer les factures de vente.","Manage your products and inventory.":"Gérer vos produits et votre stock.",
+ "Review, print and edit completed sales.":"Consulter, imprimer et modifier les ventes terminées.",
+ "Create and manage purchase invoices.":"Créer et gérer les factures d’achat.","Manage supplier names and phone numbers.":"Gérer les noms et téléphones des fournisseurs.",
+ "Review supplier invoices and outstanding balances.":"Consulter les factures fournisseurs et les soldes dus.",
+ "Review purchase movements for each product.":"Consulter les mouvements d’achat par produit.",
+ "Review sales movements for each product.":"Consulter les mouvements de vente par produit.",
+ "Manage your business with VELTRO-PRO.":"Gérez votre entreprise avec VELTRO-PRO.",
+ "Search...":"Rechercher...","Hide sidebar":"Masquer le menu","Show sidebar":"Afficher le menu",
+ "Exit full screen":"Quitter le plein écran","Enter full screen":"Passer en plein écran","Notifications":"Notifications",
+ "{tr(locale, "YOUR BUSINESS AT A GLANCE")}":"VOTRE ENTREPRISE EN UN COUP D’ŒIL","Welcome back, Administrator":"Bon retour, Administrateur",
+ "{tr(locale, "Manage your sales and inventory from one place.")}":"Gérez vos ventes et votre stock depuis un seul endroit.",
+ "Quick access":"Accès rapide","Continue working in VELTRO-PRO.":"Continuez à travailler dans VELTRO-PRO.",
+ "Create a new sale":"Créer une vente","Review completed invoices":"Consulter les factures terminées","Manage inventory":"Gérer le stock",
+ "This module will be developed in a future VELTRO-PRO update.":"Ce module sera développé dans une prochaine mise à jour de VELTRO-PRO.",
+ "All rights reserved.":"Tous droits réservés.","All systems operational":"Tous les systèmes fonctionnent"
+ },
+ ar: {
+ "GENERAL":"عام","COMMERCE":"التجارة","PARTNERS":"الشركاء","FINANCE & REPORTS":"المالية والتقارير",
+ "Dashboard":"لوحة التحكم","Settings":"الإعدادات","Point of Sale":"نقطة البيع","Sales History":"سجل المبيعات",
+ "Purchases":"المشتريات","Purchase History":"سجل المشتريات","Products":"المنتجات","Product List":"قائمة المنتجات",
+ "Product Purchase History":"سجل مشتريات المنتج","Product Sales History":"سجل مبيعات المنتج",
+ "Categories":"الفئات","Orders":"الطلبات","Suppliers List":"قائمة الموردين","Supplier Debts":"ديون الموردين",
+ "Customers":"العملاء","Cash Register":"الصندوق","Reports":"التقارير","BUSINESS SUITE":"نظام إدارة الأعمال",
+ "My Business":"مؤسستي","Business workspace":"مساحة العمل","System operational":"النظام يعمل بشكل طبيعي",
+ "Language":"اللغة","Workspace":"مساحة العمل","Your business performance overview.":"نظرة عامة على أداء أعمالك.",
+ "Create and manage sales invoices.":"إنشاء فواتير البيع وإدارتها.","Manage your products and inventory.":"إدارة المنتجات والمخزون.",
+ "Review, print and edit completed sales.":"مراجعة المبيعات المكتملة وطباعتها وتعديلها.",
+ "Create and manage purchase invoices.":"إنشاء فواتير الشراء وإدارتها.","Manage supplier names and phone numbers.":"إدارة أسماء الموردين وأرقام هواتفهم.",
+ "Review supplier invoices and outstanding balances.":"مراجعة فواتير الموردين والأرصدة المستحقة.",
+ "Review purchase movements for each product.":"مراجعة حركات شراء كل منتج.","Review sales movements for each product.":"مراجعة حركات بيع كل منتج.",
+ "Manage your business with VELTRO-PRO.":"أدر أعمالك باستخدام VELTRO-PRO.",
+ "Search...":"بحث...","Hide sidebar":"إخفاء القائمة الجانبية","Show sidebar":"إظهار القائمة الجانبية",
+ "Exit full screen":"الخروج من ملء الشاشة","Enter full screen":"ملء الشاشة","Notifications":"الإشعارات",
+ "YOUR BUSINESS AT A GLANCE":"أعمالك في لمحة","Welcome back, Administrator":"مرحبًا بعودتك، أيها المدير",
+ "Manage your sales and inventory from one place.":"أدر المبيعات والمخزون من مكان واحد.",
+ "Quick access":"وصول سريع","Continue working in VELTRO-PRO.":"تابع العمل في VELTRO-PRO.",
+ "Create a new sale":"إنشاء عملية بيع","Review completed invoices":"مراجعة الفواتير المكتملة","Manage inventory":"إدارة المخزون",
+ "This module will be developed in a future VELTRO-PRO update.":"ستتم برمجة هذا القسم في تحديث قادم من VELTRO-PRO.",
+ "All rights reserved.":"جميع الحقوق محفوظة.","All systems operational":"جميع الأنظمة تعمل"
+ }
+};
+function tr(locale, text) { return translations[locale]?.[text] || text; }
+
 /* =========================================================
    SIDEBAR
 ========================================================= */
@@ -502,6 +558,8 @@ function Sidebar({
   onNavigate,
   mobileOpen,
   onClose,
+  locale,
+  onLocaleChange,
 }) {
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
@@ -532,7 +590,7 @@ function Sidebar({
 
           <div className="brand-text">
             <h2>VELTRO</h2>
-            <span>BUSINESS SUITE</span>
+            <span>{tr(locale, "BUSINESS SUITE")}</span>
           </div>
 
         </div>
@@ -541,15 +599,15 @@ function Sidebar({
           <div className="workspace-avatar">V</div>
 
           <div className="workspace-info">
-            <strong>My Business</strong>
-            <span>Business workspace</span>
+            <strong>{tr(locale, "My Business")}</strong>
+            <span>{tr(locale, "Business workspace")}</span>
           </div>
         </div>
 
         <nav className="sidebar-nav">
           {navGroups.map((group) => (
             <div className="nav-group" key={group.title}>
-              <p className="nav-group-title">{group.title}</p>
+              <p className="nav-group-title">{tr(locale, group.title)}</p>
 
               {group.items.map((item) => {
                 const Icon = item.icon;
@@ -603,7 +661,7 @@ function Sidebar({
                       }}
                     >
                       <Icon size={19} />
-                      <span>{item.label}</span>
+                      <span>{tr(locale, item.label)}</span>
 
                       {hasChildren && (
                         <ChevronDown
@@ -636,7 +694,7 @@ function Sidebar({
                             >
                               <ChevronRight size={15} />
                               <ChildIcon size={17} />
-                              <span>{child.label}</span>
+                              <span>{tr(locale, child.label)}</span>
                             </button>
                           );
                         })}
@@ -650,9 +708,17 @@ function Sidebar({
         </nav>
 
         <div className="sidebar-bottom">
+          <div className="sidebar-language">
+            <div className="sidebar-language-title"><Languages size={15} /><span>{tr(locale, "Language")}</span></div>
+            <div className="sidebar-language-options" role="group" aria-label={tr(locale, "Language")}>
+              {[{code:"en",short:"EN",label:"English"},{code:"fr",short:"FR",label:"Français"},{code:"ar",short:"ع",label:"العربية"}].map((language) => (
+                <button key={language.code} type="button" className={`sidebar-language-option ${locale===language.code?"active":""}`} aria-pressed={locale===language.code} title={language.label} onClick={()=>onLocaleChange(language.code)}>{language.short}</button>
+              ))}
+            </div>
+          </div>
           <div className="sidebar-footer">
             <span className="online-dot" />
-            <span>System operational</span>
+            <span>{tr(locale, "System operational")}</span>
             <span className="version">v1.0.0</span>
           </div>
         </div>
@@ -667,6 +733,7 @@ function Sidebar({
 
 function Header({
   activePage,
+  locale,
   sidebarVisible,
   onSidebarToggle,
   onMenuClick,
@@ -694,8 +761,8 @@ function Header({
           className="sidebar-toggle icon-button"
           type="button"
           onClick={onSidebarToggle}
-          title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
-          aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+          title={tr(locale, sidebarVisible ? "Hide sidebar" : "Show sidebar")}
+          aria-label={tr(locale, sidebarVisible ? "Hide sidebar" : "Show sidebar")}
         >
           {sidebarVisible ? (
             <PanelLeftClose size={21} />
@@ -706,18 +773,18 @@ function Header({
 
         <div>
           <div className="breadcrumb">
-            <span>Workspace</span>
+            <span>{tr(locale, "Workspace")}</span>
             <span>/</span>
             <span className="breadcrumb-current">
-              {activePage}
+              {tr(locale, activePage)}
             </span>
           </div>
 
-          <h1>{activePage}</h1>
+          <h1>{tr(locale, activePage)}</h1>
 
           <p className="header-description">
-            {descriptions[activePage] ||
-              "Manage your business with VELTRO-PRO."}
+            {tr(locale, descriptions[activePage] ||
+              "Manage your business with VELTRO-PRO.")}
           </p>
         </div>
       </div>
@@ -728,7 +795,7 @@ function Header({
 
           <input
             type="search"
-            placeholder="Search..."
+            placeholder={tr(locale, "Search...")}
             value={search}
             onChange={(event) =>
               onSearchChange(event.target.value)
@@ -739,8 +806,8 @@ function Header({
         <button
           className="header-icon-button fullscreen-button"
           type="button"
-          aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
-          title={isFullscreen ? "Exit full screen (Ctrl+S)" : "Enter full screen (Ctrl+S to toggle)"}
+          aria-label={tr(locale, isFullscreen ? "Exit full screen" : "Enter full screen")}
+          title={tr(locale, isFullscreen ? "Exit full screen" : "Enter full screen")}
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize2 size={19} /> : <Maximize2 size={19} />}
@@ -749,7 +816,7 @@ function Header({
         <button
           className="header-icon-button"
           type="button"
-          aria-label="Notifications"
+          aria-label={tr(locale, "Notifications")}
           onClick={() => alert("Notifications coming soon.")}
         >
           <Bell size={20} />
@@ -763,7 +830,7 @@ function Header({
    DASHBOARD
 ========================================================= */
 
-function Dashboard({ onNavigate }) {
+function Dashboard({ onNavigate, locale }) {
   return (
     <>
       <div className="welcome-banner">
@@ -772,7 +839,7 @@ function Dashboard({ onNavigate }) {
             YOUR BUSINESS AT A GLANCE
           </div>
 
-          <h2>Welcome back, Administrator</h2>
+          <h2>{tr(locale, "Welcome back, Administrator")}</h2>
 
           <p>
             Manage your sales and inventory from one place.
@@ -786,8 +853,8 @@ function Dashboard({ onNavigate }) {
 
       <div className="section-heading">
         <div>
-          <h2>Quick access</h2>
-          <p>Continue working in VELTRO-PRO.</p>
+          <h2>{tr(locale, "Quick access")}</h2>
+          <p>{tr(locale, "Continue working in VELTRO-PRO.")}</p>
         </div>
       </div>
 
@@ -798,8 +865,8 @@ function Dashboard({ onNavigate }) {
           onClick={() => onNavigate("Point of Sale")}
         >
           <ShoppingCart size={25} />
-          <strong>Point of Sale</strong>
-          <span>Create a new sale</span>
+          <strong>{tr(locale, "Point of Sale")}</strong>
+          <span>{tr(locale, "Create a new sale")}</span>
         </button>
 
         <button
@@ -808,8 +875,8 @@ function Dashboard({ onNavigate }) {
           onClick={() => onNavigate("Sales History")}
         >
           <History size={25} />
-          <strong>Sales History</strong>
-          <span>Review completed invoices</span>
+          <strong>{tr(locale, "Sales History")}</strong>
+          <span>{tr(locale, "Review completed invoices")}</span>
         </button>
 
         <button
@@ -818,8 +885,8 @@ function Dashboard({ onNavigate }) {
           onClick={() => onNavigate("Products")}
         >
           <Package size={25} />
-          <strong>Products</strong>
-          <span>Manage inventory</span>
+          <strong>{tr(locale, "Products")}</strong>
+          <span>{tr(locale, "Manage inventory")}</span>
         </button>
       </div>
     </>
@@ -830,7 +897,7 @@ function Dashboard({ onNavigate }) {
    PLACEHOLDER PAGES
 ========================================================= */
 
-function PlaceholderPage({ title }) {
+function PlaceholderPage({ title, locale }) {
   const icons = {
     Categories: Boxes,
     Purchases: CreditCard,
@@ -851,10 +918,10 @@ function PlaceholderPage({ title }) {
         <Icon size={34} />
       </div>
 
-      <h2>{title}</h2>
+      <h2>{tr(locale, title)}</h2>
 
       <p>
-        This module will be developed in a future VELTRO-PRO update.
+        {tr(locale, "This module will be developed in a future VELTRO-PRO update.")}
       </p>
     </section>
   );
@@ -866,10 +933,21 @@ function PlaceholderPage({ title }) {
 
 export default function App() {
   const [activePage, setActivePage] = useState("Dashboard");
+  const [locale, setLocale] = useState(() => {
+    try { const saved = window.localStorage.getItem("veltro-language"); return ["en","fr","ar"].includes(saved) ? saved : "en"; }
+    catch { return "en"; }
+  });
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+    document.body.dir = locale === "ar" ? "rtl" : "ltr";
+    try { window.localStorage.setItem("veltro-language", locale); } catch { /* storage may be unavailable */ }
+  }, [locale]);
 
   useEffect(() => {
     const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -920,6 +998,8 @@ export default function App() {
       {sidebarVisible && (
         <Sidebar
           activePage={activePage}
+          locale={locale}
+          onLocaleChange={setLocale}
           onNavigate={setActivePage}
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
@@ -936,6 +1016,7 @@ export default function App() {
       >
         <Header
           activePage={activePage}
+          locale={locale}
           sidebarVisible={sidebarVisible}
           onSidebarToggle={toggleSidebar}
           onMenuClick={() => setMobileOpen(true)}
@@ -947,7 +1028,7 @@ export default function App() {
 
         <div className="page-content">
           {activePage === "Dashboard" ? (
-            <Dashboard onNavigate={setActivePage} />
+            <Dashboard onNavigate={setActivePage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
             <POS />
           ) : activePage === "Products" ? (
@@ -961,18 +1042,18 @@ export default function App() {
           ) : activePage === "Supplier Debts" ? (
             <SupplierDebts />
           ) : (
-            <PlaceholderPage title={activePage} />
+            <PlaceholderPage title={activePage} locale={locale} />
           )}
         </div>
 
         <footer className="app-footer">
           <span>
-            © {new Date().getFullYear()} VELTRO. All rights reserved.
+            © {new Date().getFullYear()} VELTRO. {tr(locale, "All rights reserved.")}
           </span>
 
           <span className="footer-status">
             <span />
-            All systems operational
+            {tr(locale, "All systems operational")}
           </span>
         </footer>
       </main>
