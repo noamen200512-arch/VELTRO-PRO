@@ -678,15 +678,6 @@ function Header({
           )}
         </button>
 
-        <button
-          className="mobile-menu icon-button"
-          type="button"
-          onClick={onMenuClick}
-          aria-label="Open navigation"
-        >
-          <Menu size={22} />
-        </button>
-
         <div>
           <div className="breadcrumb">
             <span>Workspace</span>
