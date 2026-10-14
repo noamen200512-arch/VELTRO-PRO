@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -864,59 +864,96 @@ export default function POS() {
       )}
 
       {showPending && (
-        <section className="pos-pending-panel">
-          <div className="pos-pending-header">
-            <div>
-              <h2>Pending Invoices</h2>
-              <p>{pendingInvoices.length} saved invoice(s)</p>
-            </div>
+        <div
+          className="pending-invoices-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowPending(false);
+          }}
+        >
+          <section
+            className="pending-invoices-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pending-invoices-title"
+          >
+            <header className="pending-invoices-modal-header">
+              <div className="pending-invoices-heading-icon">
+                <ReceiptText size={21} />
+              </div>
+              <div className="pending-invoices-heading-copy">
+                <h2 id="pending-invoices-title">Pending Invoices</h2>
+                <p>Choose a saved invoice to continue working on it.</p>
+              </div>
+              <span className="pending-invoices-count">{pendingInvoices.length}</span>
+              <button
+                type="button"
+                className="pending-invoices-close"
+                onClick={() => setShowPending(false)}
+                aria-label="Close pending invoices"
+              >
+                <X size={18} />
+              </button>
+            </header>
 
-            <button
-              type="button"
-              onClick={() => setShowPending(false)}
-            >
-              Close
-            </button>
-          </div>
+            {pendingInvoices.length === 0 ? (
+              <div className="pending-invoices-empty">
+                <span className="pending-invoices-empty-icon"><ClipboardList size={25} /></span>
+                <strong>No pending invoices yet</strong>
+                <p>Invoices saved for later will appear here.</p>
+              </div>
+            ) : (
+              <div className="pending-invoices-table-wrap">
+                <div className="pending-invoices-list-heading">
+                  <span>INVOICE DETAILS</span>
+                  <span>AMOUNT</span>
+                </div>
+                <div className="pending-invoices-list">
+                  {pendingInvoices.map((pending) => {
+                    const dateValue = pending.createdAt || pending.updatedAt;
+                    const date = dateValue ? new Date(dateValue) : null;
+                    const validDate = date && !Number.isNaN(date.getTime());
+                    const reference = pending.reference || pending.invoiceReference || pending.ref || pending.id || "—";
+                    const invoiceTotal = money(
+                      pending.total ?? calculateSubtotal(pending.items || [])
+                    );
 
-          {pendingInvoices.length === 0 ? (
-            <p>No pending invoices yet.</p>
-          ) : (
-            <div className="pos-pending-list">
-              {pendingInvoices.map((pending) => (
-                <button
-                  type="button"
-                  key={pending.id}
-                  className="pos-pending-item"
-                  onClick={() => openPendingInvoice(pending.id)}
-                >
-                  <span>
-                    <strong>{pending.invoiceNumber}</strong>
-
-                    <small>
-                      {pending.customerName || "Walk-in customer"}
-                    </small>
-                  </span>
-
-                  <span>
-                    <strong>
-                      {money(
-                        pending.total ??
-                          calculateSubtotal(pending.items || [])
-                      ).toLocaleString()} DA
-                    </strong>
-
-                    <small>
-                      {new Date(
-                        pending.updatedAt || pending.createdAt
-                      ).toLocaleString()}
-                    </small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
+                    return (
+                      <button
+                        type="button"
+                        key={pending.id}
+                        className="pending-invoices-row"
+                        onClick={() => openPendingInvoice(pending.id)}
+                      >
+                        <span className="pending-invoices-main">
+                          <span className="pending-invoices-number">
+                            <ReceiptText size={15} />
+                            <strong>{pending.invoiceNumber || "—"}</strong>
+                          </span>
+                          <span className="pending-invoices-meta">
+                            <span><Hash size={13} /> Ref: {reference}</span>
+                            <span><UserRound size={13} /> {pending.customerName || "Anonyme"}</span>
+                            <span><CalendarClock size={13} /> {validDate ? date.toLocaleDateString() : "—"}</span>
+                            <span><Clock size={13} /> {validDate ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}</span>
+                          </span>
+                        </span>
+                        <span className="pending-invoices-amount">
+                          <strong>{invoiceTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong>
+                          <small>{(pending.items || []).length} item line(s)</small>
+                        </span>
+                        <span className="pending-invoices-open"><ChevronRight size={17} /></span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <footer className="pending-invoices-modal-footer">
+              <span>{pendingInvoices.length} saved invoice{pendingInvoices.length === 1 ? "" : "s"}</span>
+              <button type="button" onClick={() => setShowPending(false)}>Close</button>
+            </footer>
+          </section>
+        </div>
       )}
 
       {(showSaleReview || showSaleConfirm) && (
