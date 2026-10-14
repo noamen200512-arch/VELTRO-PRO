@@ -622,20 +622,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 10px 13px;
-  border: 1px solid rgba(167, 139, 250, 0.35);
-  border-radius: 9px;
-  background: rgba(167, 139, 250, 0.09);
-  color: var(--pos-violet);
-  font-size: 11px;
-  font-weight: 700;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid rgba(167, 139, 250, 0.42);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.16), rgba(167, 139, 250, 0.07));
+  color: #c4b5fd;
+  font-size: 12px;
+  font-weight: 750;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.1);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
 }
 
 .product-camera-button:hover {
-  background: rgba(167, 139, 250, 0.16);
+  background: rgba(167, 139, 250, 0.22);
+  border-color: rgba(196, 181, 253, 0.72);
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.17);
+  transform: translateY(-1px);
+}
+
+.product-camera-button:active {
+  transform: translateY(0);
+}
+
+.product-camera-button svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .product-entry-label {
@@ -729,21 +744,38 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 10px 15px;
-  border: 1px solid var(--pos-turquoise);
-  border-radius: 9px;
-  background: var(--pos-turquoise);
-  color: #061412;
-  font-size: 11px;
-  font-weight: 800;
+  gap: 9px;
+  min-width: 104px;
+  min-height: 48px;
+  padding: 12px 21px;
+  border: 1px solid #35d6c2;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #48e2ce, #28c6b5);
+  color: #041815;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  box-shadow: 0 7px 18px rgba(53, 214, 194, 0.17);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   cursor: pointer;
 }
 
 .product-add-button:hover {
-  background: #70eadb;
+  background: linear-gradient(135deg, #70eadb, #35d6c2);
+  box-shadow: 0 9px 22px rgba(53, 214, 194, 0.25);
+  transform: translateY(-1px);
+}
+
+.product-add-button:active {
+  transform: translateY(0);
+}
+
+.product-add-button svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.4;
+  flex-shrink: 0;
 }
 
 .product-entry-footer {
