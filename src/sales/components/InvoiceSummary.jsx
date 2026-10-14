@@ -107,6 +107,9 @@ export function InvoiceSummary({
               step="any"
               value={paidDraft}
               disabled={busy}
+              onFocus={() => {
+                if (paidDraft === "0" || paidDraft === "0.00") setPaidDraft("");
+              }}
               onChange={(event) => setPaidDraft(event.target.value)}
               onBlur={() => {
                 const value = paidDraft.trim() === "" ? 0 : Number(paidDraft);
