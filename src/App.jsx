@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ChevronRight,
   Menu,
-
+  PanelLeftClose,
+  PanelLeftOpen,
   X,
 } from "lucide-react";
 
@@ -644,6 +645,8 @@ function Sidebar({
 
 function Header({
   activePage,
+  sidebarVisible,
+  onSidebarToggle,
   onMenuClick,
   search,
   onSearchChange,
@@ -661,6 +664,20 @@ function Header({
   return (
     <header className="dashboard-header">
       <div className="header-heading">
+        <button
+          className="sidebar-toggle icon-button"
+          type="button"
+          onClick={onSidebarToggle}
+          title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+          aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+        >
+          {sidebarVisible ? (
+            <PanelLeftClose size={21} />
+          ) : (
+            <PanelLeftOpen size={21} />
+          )}
+        </button>
+
         <button
           className="mobile-menu icon-button"
           type="button"
@@ -859,6 +876,8 @@ export default function App() {
       >
         <Header
           activePage={activePage}
+          sidebarVisible={sidebarVisible}
+          onSidebarToggle={toggleSidebar}
           onMenuClick={() => setMobileOpen(true)}
           search={search}
           onSearchChange={setSearch}
