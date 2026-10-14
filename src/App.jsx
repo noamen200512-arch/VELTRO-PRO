@@ -740,7 +740,7 @@ function Header({
           className="header-icon-button fullscreen-button"
           type="button"
           aria-label={isFullscreen ? "Exit full screen" : "Enter full screen"}
-          title={isFullscreen ? "Exit full screen (Esc)" : "Enter full screen"}
+          title={isFullscreen ? "Exit full screen (Ctrl+S)" : "Enter full screen (Ctrl+S to toggle)"}
           onClick={onToggleFullscreen}
         >
           {isFullscreen ? <Minimize2 size={19} /> : <Maximize2 size={19} />}
@@ -888,6 +888,18 @@ export default function App() {
       console.error("Unable to toggle full screen mode:", error);
     }
   };
+
+  useEffect(() => {
+    const handleFullscreenShortcut = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        void toggleFullscreen();
+      }
+    };
+
+    window.addEventListener("keydown", handleFullscreenShortcut);
+    return () => window.removeEventListener("keydown", handleFullscreenShortcut);
+  }, []);
 
   const toggleSidebar = () => {
     if (window.innerWidth <= 620) {
