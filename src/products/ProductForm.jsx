@@ -385,7 +385,7 @@ export default function ProductForm({
                 style={inputStyle}
                 type="number"
                 min="0"
-                step="0.01"
+                step="any"
                 value={form.purchasePrice}
                 onChange={(event) =>
                   updateField("purchasePrice", event.target.value)
@@ -401,7 +401,7 @@ export default function ProductForm({
                 style={inputStyle}
                 type="number"
                 min="0"
-                step="0.01"
+                step="any"
                 value={form.price}
                 onChange={(event) =>
                   updateField("price", event.target.value)
@@ -421,7 +421,7 @@ export default function ProductForm({
                     paddingRight: 36,
                   }}
                   type="number"
-                  step="0.01"
+                  step="any"
                   value={form.retailProfit}
                   onChange={(event) =>
                     updateField(
@@ -452,7 +452,7 @@ export default function ProductForm({
                 style={inputStyle}
                 type="number"
                 min="0"
-                step="0.01"
+                step="any"
                 value={form.wholesalePrice}
                 onChange={(event) =>
                   updateField(
@@ -474,7 +474,7 @@ export default function ProductForm({
                     paddingRight: 36,
                   }}
                   type="number"
-                  step="0.01"
+                  step="any"
                   value={form.wholesaleProfit}
                   onChange={(event) =>
                     updateField(
@@ -505,7 +505,7 @@ export default function ProductForm({
                 style={inputStyle}
                 type="number"
                 min="0"
-                step="0.01"
+                step="any"
                 value={form.cartonPrice}
                 onChange={(event) =>
                   updateField("cartonPrice", event.target.value)
@@ -524,7 +524,7 @@ export default function ProductForm({
                     paddingRight: 36,
                   }}
                   type="number"
-                  step="0.01"
+                  step="any"
                   value={form.cartonProfit}
                   onChange={(event) =>
                     updateField(
