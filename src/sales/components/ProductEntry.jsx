@@ -56,6 +56,7 @@ function formatMoney(value) {
 
 export function ProductEntry({
   onAddProduct,
+  onAddCarton,
   showProducts = true,
   onShowProducts,
 }) {
@@ -606,71 +607,64 @@ export function ProductEntry({
                   stock > 0 &&
                   stock <= Math.max(0, Number(product.minStock) || 0);
 
+                const cartonSize = Math.max(1, Math.floor(Number(product.piecesPerCarton) || 1));
                 return (
-                  <button
-                    type="button"
-                    className="product-search-result"
-                    key={product.id}
-                    disabled={stock <= 0}
-                    onClick={() => addFromInventory(product, 1)}
-                    title={
-                      stock <= 0
-                        ? "This product is out of stock"
-                        : `Add ${product.name} to invoice`
-                    }
-                  >
+                  <div className="product-search-result" key={product.id}>
                     <span className="product-search-result-icon">
                       {product.image ? (
-                        <img
-                          src={product.image}
-                          alt=""
-                          className="product-search-product-image"
-                        />
+                        <img src={product.image} alt="" className="product-search-product-image" />
                       ) : (
                         <Package size={19} />
                       )}
                     </span>
 
-                    <span className="product-search-result-info">
-                      <strong>{product.name || "Unnamed product"}</strong>
+                    <button
+                      type="button"
+                      className="product-search-result-main"
+                      disabled={stock <= 0}
+                      onClick={() => addFromInventory(product, 1)}
+                      title={stock <= 0 ? "This product is out of stock" : `Add ${product.name} to invoice`}
+                    >
+                      <span className="product-search-result-info">
+                        <strong>{product.name || "Unnamed product"}</strong>
+                        <small>Ref: {product.sku || product.id || "—"}{product.category ? ` · ${product.category}` : ""}</small>
+                        {product.barcode && <small>Barcode: {product.barcode}</small>}
+                      </span>
 
-                      <small>
-                        Ref: {product.sku || product.id || "—"}
-                        {product.category ? ` · ${product.category}` : ""}
-                      </small>
+                      <span className="product-search-result-stock">
+                        <strong>{formatMoney(product.price)}</strong>
+                        <small className={stock <= 0 ? "product-stock-out" : lowStock ? "product-stock-low" : ""}>
+                          {stock <= 0 ? "Out of stock" : `${stock} in stock`}
+                        </small>
+                      </span>
+                    </button>
 
-                      {product.barcode && (
-                        <small>Barcode: {product.barcode}</small>
+                    <div className="product-search-result-actions">
+                      {cartonSize > 1 && (
+                        <button
+                          type="button"
+                          className="product-carton-button"
+                          disabled={stock < cartonSize || typeof onAddCarton !== "function"}
+                          onClick={() => onAddCarton(product)}
+                          title={`Add one carton (${cartonSize} units)`}
+                        >
+                          <Boxes size={15} />
+                          <span>Carton</span>
+                          <small>{cartonSize} pcs</small>
+                        </button>
                       )}
-                    </span>
-
-                    <span className="product-search-result-stock">
-                      <strong>{formatMoney(product.price)}</strong>
-
-                      <small
-                        className={
-                          stock <= 0
-                            ? "product-stock-out"
-                            : lowStock
-                              ? "product-stock-low"
-                              : ""
-                        }
+                      <button
+                        type="button"
+                        className="product-unit-add-button"
+                        disabled={stock <= 0}
+                        onClick={() => addFromInventory(product, 1)}
+                        title={stock <= 0 ? "Out of stock" : "Add one unit"}
+                        aria-label={`Add one unit of ${product.name}`}
                       >
-                        {stock <= 0
-                          ? "Out of stock"
-                          : `${stock} in stock`}
-                      </small>
-                    </span>
-
-                    {stock > 0 ? (
-                      <Plus size={18} className="product-result-add-icon" />
-                    ) : (
-                      <AlertTriangle
-                        size={17}
-                        className="product-result-out-icon"
-                      />
-                    )}
-                  </button>
+                        <Plus size={17} />
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
