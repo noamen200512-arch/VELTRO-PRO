@@ -35,7 +35,7 @@ export function InvoiceSummary({
 
   const safeDiscount = Math.max(0, Number(discount) || 0);
   const safeTotal = Math.max(0, Number(total) || 0);
-  const safePaid = Math.max(0, Number(paid) || 0);
+  const safePaid = Number.isFinite(Number(paid)) ? Number(paid) : 0;
   const [paidDraft, setPaidDraft] = useState(String(paid ?? 0));
 
   useEffect(() => {
@@ -104,18 +104,15 @@ export function InvoiceSummary({
               className="invoice-summary-payment-input"
               type="number"
               inputMode="decimal"
-              min="0"
-              max={safeTotal}
               step="any"
               value={paidDraft}
               disabled={busy}
               onChange={(event) => setPaidDraft(event.target.value)}
               onBlur={() => {
                 const value = paidDraft.trim() === "" ? 0 : Number(paidDraft);
-                if (Number.isFinite(value) && value >= 0) {
-                  const nextPaid = Math.min(value, safeTotal);
-                  setPaidDraft(String(nextPaid));
-                  onPaidChange?.(nextPaid);
+                if (Number.isFinite(value)) {
+                  setPaidDraft(String(value));
+                  onPaidChange?.(value);
                 } else {
                   setPaidDraft(String(safePaid));
                 }
