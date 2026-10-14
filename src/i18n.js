@@ -29,23 +29,33 @@ export function translatePage(locale, root = document.body) {
   while (walker.nextNode()) nodes.push(walker.currentNode);
 
   nodes.forEach((node) => {
-    if (!originalText.has(node)) originalText.set(node, node.nodeValue);
-    const original = originalText.get(node);
+    let record = originalText.get(node);
+    if (!record || node.nodeValue !== record.rendered) {
+      record = { source: node.nodeValue, rendered: node.nodeValue };
+      originalText.set(node, record);
+    }
+    const original = record.source;
     const trimmed = original.trim();
     const translated = dictionary[trimmed] || trimmed;
     const next = original.replace(trimmed, translated);
     if (node.nodeValue !== next) node.nodeValue = next;
+    record.rendered = next;
   });
 
   root.querySelectorAll("*").forEach((element) => {
     if (!originalAttributes.has(element)) originalAttributes.set(element, {});
     const saved = originalAttributes.get(element);
     attributes.forEach((attribute) => {
-      if (!(attribute in saved)) saved[attribute] = element.getAttribute(attribute);
-      const value = saved[attribute];
-      if (value === null) return;
-      const translated = dictionary[value] || value;
-      if (element.getAttribute(attribute) !== translated) element.setAttribute(attribute, translated);
+      const current = element.getAttribute(attribute);
+      let record = saved[attribute];
+      if (!record || current !== record.rendered) {
+        record = { source: current, rendered: current };
+        saved[attribute] = record;
+      }
+      if (record.source === null) return;
+      const translated = dictionary[record.source] || record.source;
+      if (current !== translated) element.setAttribute(attribute, translated);
+      record.rendered = translated;
     });
   });
 }
