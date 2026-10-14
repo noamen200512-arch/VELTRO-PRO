@@ -1,74 +1,79 @@
+
 const COLUMNS = [
-["name", "Product Name"],
-["sku", "Reference"],
-["barcode", "Barcode"],
-["category", "Category"],
-["purchasePrice", "Purchase Price"],
-["price", "Retail Price"],
-["wholesalePrice", "Wholesale Price"],
-["cartonPrice", "Carton Price"],
-["retailProfit", "Retail Profit (%)"],
-["wholesaleProfit", "Wholesale Profit (%)"],
-["cartonProfit", "Carton Profit (%)"],
-["piecesPerCarton", "Pieces Per Carton"],
-["stock", "Stock"],
-["minStock", "Minimum Stock"],
-["unit", "Unit"],
-["barcodeAliases", "Additional Barcodes"],
+  ["name", "Product Name"],
+  ["sku", "Reference"],
+  ["barcode", "Barcode"],
+  ["category", "Category"],
+  ["purchasePrice", "Purchase Price"],
+  ["price", "Retail Price"],
+  ["wholesalePrice", "Wholesale Price"],
+  ["cartonPrice", "Carton Price"],
+  ["retailProfit", "Retail Profit (%)"],
+  ["wholesaleProfit", "Wholesale Profit (%)"],
+  ["cartonProfit", "Carton Profit (%)"],
+  ["piecesPerCarton", "Pieces Per Carton"],
+  ["stock", "Stock"],
+  ["minStock", "Minimum Stock"],
+  ["unit", "Unit"],
+  ["barcodeAliases", "Additional Barcodes"],
 ];
 
 function escapeCsv(value) {
-let text = "";
+  let text = "";
 
-if (Array.isArray(value)) {
-text = value.join(" | ");
-} else if (value !== null && value !== undefined) {
-text = String(value);
-}
+  if (Array.isArray(value)) {
+    text = value.join(" | ");
+  } else if (value !== null && value !== undefined) {
+    text = String(value);
+  }
 
-// Reduce the risk of spreadsheet formula injection.
-if (/^[\t\r ]*[=+-@]/.test(text)) {
-text = "'${text}";
-}
+  // Protect against spreadsheet formula injection.
+  if (/^[\t\r ]*[=+\-@]/.test(text)) {
+    text = `'${text}`;
+  }
 
-return ""${text.replace(/"/g, '""')}"";
+  return `"${text.replace(/"/g, '""')}"`;
 }
 
 export function productsToCsv(products = []) {
-const header = COLUMNS.map(([, label]) => escapeCsv(label)).join(",");
+  const header = COLUMNS
+    .map(([, label]) => escapeCsv(label))
+    .join(",");
 
-const rows = products.map((product) =>
-COLUMNS.map(([key]) => escapeCsv(product?.[key])).join(",")
-);
+  const rows = products.map((product) =>
+    COLUMNS
+      .map(([key]) => escapeCsv(product?.[key]))
+      .join(",")
+  );
 
-// UTF-8 BOM improves Arabic/French text compatibility in Excel.
-return "\uFEFF" + [header, ...rows].join("\r\n");
+  // Help Excel display Arabic and French text correctly.
+  return "\uFEFF" + [header, ...rows].join("\r\n");
 }
 
 export function downloadProductsCsv(
-products = [],
-filename = "veltro-products.csv"
+  products = [],
+  filename = "veltro-products.csv"
 ) {
-if (typeof document === "undefined" || typeof URL === "undefined") {
-throw new Error("CSV export is only available in a browser.");
-}
+  if (typeof document === "undefined" || typeof URL === "undefined") {
+    throw new Error("CSV export is only available in a browser.");
+  }
 
-const csv = productsToCsv(products);
-const blob = new Blob([csv], {
-type: "text/csv;charset=utf-8;",
-});
+  const csv = productsToCsv(products);
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;",
+  });
 
-const url = URL.createObjectURL(blob);
-const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-link.href = url;
-link.download = filename.toLowerCase().endsWith(".csv")
-? filename
-: "${filename}.csv";
+  link.href = url;
+  link.download = filename.toLowerCase().endsWith(".csv")
+    ? filename
+    : `${filename}.csv`;
 
-document.body.appendChild(link);
-link.click();
-link.remove();
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 
-URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }
