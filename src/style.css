@@ -2937,3 +2937,60 @@ html[dir="rtl"] .sidebar-language-title { flex-direction:row-reverse; }
  .sidebar-language-options { grid-template-columns:1fr; gap:4px; }
  .sidebar-language-option { min-height:29px; }
 }
+
+
+/* =====================================================
+   INTERNATIONALIZATION — RTL SUPPORT
+===================================================== */
+
+html[lang="ar"] body,
+html[lang="ar"] button,
+html[lang="ar"] input,
+html[lang="ar"] select,
+html[lang="ar"] textarea {
+  font-family: "Noto Sans Arabic", "Tahoma", "Arial", sans-serif;
+}
+
+html[lang="ar"] .main-content,
+html[lang="ar"] .page-content,
+html[lang="ar"] .panel,
+html[lang="ar"] .dashboard-header,
+html[lang="ar"] .section-heading,
+html[lang="ar"] .placeholder-panel {
+  direction: rtl;
+}
+
+html[lang="ar"] .breadcrumb,
+html[lang="ar"] .header-heading,
+html[lang="ar"] .header-actions,
+html[lang="ar"] .sidebar-language-options {
+  direction: rtl;
+}
+
+html[lang="ar"] input,
+html[lang="ar"] textarea,
+html[lang="ar"] select {
+  text-align: right;
+}
+
+html[lang="ar"] input[type="number"],
+html[lang="ar"] input[type="date"],
+html[lang="ar"] input[type="time"],
+html[lang="ar"] .version,
+html[lang="ar"] .online-dot {
+  direction: ltr;
+}
+
+html[lang="ar"] #invoice-print-area {
+  direction: rtl;
+}
+
+html[lang="ar"] #invoice-print-area .products-table th,
+html[lang="ar"] #invoice-print-area .products-table td {
+  text-align: right;
+}
+
+html[lang="fr"] body,
+html[lang="en"] body {
+  direction: ltr;
+}
