@@ -9,15 +9,16 @@ const words = {
   }
 };
 
+const originalText = new WeakMap();
+
 export default function LocaleTranslator({ locale }) {
   useEffect(() => {
     const dictionary = words[locale];
     if (!dictionary) return undefined;
-    const originals = new WeakMap();
     const translateNode = (node) => {
       if (node.nodeType === Node.TEXT_NODE) {
-        if (!originals.has(node)) originals.set(node, node.nodeValue);
-        const original = originals.get(node);
+        if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+        const original = originalText.get(node);
         const trimmed = original.trim();
         if (dictionary[trimmed]) {
           const lead = original.match(/^\\s*/)?.[0] || "";
