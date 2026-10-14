@@ -369,18 +369,18 @@ export function translatePage(locale, root = document.body) {
 
     // Translate dynamic POS notices and count strings.
     if (!dictionary[trimmed] && locale === "ar") {
-      let match = trimmed.match(/^Added one carton of (.+) at (.+)\\.$/i);
+      let match = trimmed.match(/^Added one carton of (.+) at (.+)\.$/i);
       if (match) translated = `تمت إضافة كرتون واحد من ${match[1]} بسعر ${match[2]}.`;
-      match = trimmed.match(/^(\\d+) products loaded from your inventory\\.$/i);
+      match = trimmed.match(/^(\d+) products loaded from your inventory\.$/i);
       if (match) translated = `تم تحميل ${match[1]} منتجات من المخزون.`;
-      match = trimmed.match(/^(\\d+) product loaded from your inventory\\.$/i);
+      match = trimmed.match(/^(\d+) product loaded from your inventory\.$/i);
       if (match) translated = `تم تحميل ${match[1]} منتج من المخزون.`;
     } else if (!dictionary[trimmed] && locale === "fr") {
-      let match = trimmed.match(/^Added one carton of (.+) at (.+)\\.$/i);
+      let match = trimmed.match(/^Added one carton of (.+) at (.+)\.$/i);
       if (match) translated = `Un carton de ${match[1]} a été ajouté au prix de ${match[2]}.`;
-      match = trimmed.match(/^(\\d+) products loaded from your inventory\\.$/i);
+      match = trimmed.match(/^(\d+) products loaded from your inventory\.$/i);
       if (match) translated = `${match[1]} produits chargés depuis votre stock.`;
-      match = trimmed.match(/^(\\d+) product loaded from your inventory\\.$/i);
+      match = trimmed.match(/^(\d+) product loaded from your inventory\.$/i);
       if (match) translated = `${match[1]} produit chargé depuis votre stock.`;
     }
 
