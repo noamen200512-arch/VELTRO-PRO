@@ -471,7 +471,7 @@ export function ProductEntry({
             </div>
 
             <span>
-              {filteredProducts.length} of {products.length} products
+              {`${filteredProducts.length} of ${products.length} products`}
             </span>
           </div>
 
@@ -671,7 +671,7 @@ export function ProductEntry({
           {filteredProducts.length > 0 && (
             <div className="product-inventory-pagination" aria-label="Product pages">
               <span className="product-pagination-summary">
-                Showing {pageStart + 1}–{Math.min(pageStart + PRODUCTS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length}
+                {`Showing ${pageStart + 1}–${Math.min(pageStart + PRODUCTS_PER_PAGE, filteredProducts.length)} of ${filteredProducts.length}`}
               </span>
               <div className="product-pagination-controls">
                 <button type="button" aria-label="Previous page" disabled={safePage <= 1}
@@ -716,7 +716,7 @@ export function ProductEntry({
         <div className="product-entry-hint">
           <Package size={16} />
           <span>
-            {products.length} products loaded from your inventory.
+            {`${products.length} products loaded from your inventory.`}
           </span>
         </div>
 
