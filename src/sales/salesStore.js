@@ -93,7 +93,7 @@ export function createInvoice() {
     updatedAt: now.toISOString(),
     status: "Draft",
     customerId: "",
-    customerName: "",
+    customerName: "Anonyme",
     items: [],
     discount: 0,
     paid: 0,
