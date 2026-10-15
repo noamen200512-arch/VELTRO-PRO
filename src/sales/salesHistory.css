@@ -3633,3 +3633,143 @@
     align-items: flex-start;
   }
 }
+
+
+/* Language-aware layout and table stability for Sales History */
+.history-page .sales-history-main-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto !important;
+  overflow-y: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #53657b #111a27;
+}
+.history-page .sales-history-main-table .products-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.history-page .sales-history-main-table .products-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+.history-page .sales-history-main-table .products-table tbody td {
+  vertical-align: middle;
+}
+.history-page .sales-history-pagination > span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.history-page .history-filters,
+.history-page .history-filters-extended,
+.history-page .history-search-actions,
+.history-page .sales-history-pagination {
+  min-width: 0;
+}
+.history-page .history-filters-extended > *,
+.history-page .history-filter-field,
+.history-page .history-filter-field select,
+.history-page .history-filter-field input {
+  min-width: 0;
+  max-width: 100%;
+}
+.history-page .invoice-detail-modal .invoice-print-area {
+  background: #fbfcfe;
+  color: #202b3c;
+}
+.history-page .invoice-detail-modal .invoice-paper-heading {
+  background: #f7f8fa;
+  border-color: #e2e6ec;
+}
+.history-page .invoice-detail-modal .invoice-paper-meta > div,
+.history-page .invoice-detail-modal .invoice-paper-totals > div,
+.history-page .invoice-detail-modal .invoice-note {
+  background: #f8fafc;
+  border-color: #e3e8ef;
+}
+.history-page .invoice-detail-modal .products-table thead th {
+  background: #edf1f5;
+  color: #39465a;
+  border-color: #dce2ea;
+}
+.history-page .invoice-detail-modal .products-table tbody td {
+  color: #202b3c;
+  border-color: #e6eaf0;
+}
+.history-page .invoice-detail-modal .products-table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+.history-page .invoice-detail-modal .invoice-paper-totals > .invoice-grand-total {
+  background: #eef8f6;
+  border-color: #c5e4de;
+}
+.history-page .invoice-detail-modal .invoice-paper-totals > .invoice-grand-total > span,
+.history-page .invoice-detail-modal .invoice-paper-totals > .invoice-grand-total > strong {
+  color: #175e56;
+}
+html[dir="rtl"] .history-page .history-filters,
+html[dir="rtl"] .history-page .history-filters-extended,
+html[dir="rtl"] .history-page .history-search-actions,
+html[dir="rtl"] .history-page .sales-history-pagination {
+  direction: rtl;
+}
+html[dir="rtl"] .history-page .products-table th,
+html[dir="rtl"] .history-page .products-table td {
+  text-align: right;
+}
+html[dir="rtl"] .history-page .history-row-actions {
+  direction: ltr;
+}
+html[dir="rtl"] .history-page .invoice-detail-modal .invoice-paper-number {
+  align-items: flex-start;
+  text-align: left;
+}
+html[dir="rtl"] #invoice-print-area .products-table th,
+html[dir="rtl"] #invoice-print-area .products-table td {
+  text-align: right !important;
+}
+html[dir="rtl"] #invoice-print-area .invoice-paper-totals > div {
+  direction: rtl;
+}
+html[dir="rtl"] #invoice-print-area .invoice-paper-totals > div > strong {
+  text-align: left;
+}
+@media (max-width: 720px) {
+  .history-page .sales-history-main-table {
+    max-height: 62vh;
+  }
+  .history-page .sales-history-main-table .products-table {
+    min-width: 980px;
+  }
+}
+@media (max-width: 560px) {
+  .history-page .sales-history-main-table {
+    max-height: 55vh;
+    border: 1px solid #253348;
+  }
+  .history-page .sales-history-main-table .products-table {
+    width: 940px;
+    min-width: 940px;
+    table-layout: fixed;
+  }
+  .history-page .sales-history-main-table .products-table thead th {
+    font-size: 8px;
+    padding: 9px 7px;
+  }
+  .history-page .sales-history-main-table .products-table tbody td {
+    font-size: 10px;
+    padding: 8px 7px;
+  }
+  .history-page .invoice-detail-modal .invoice-paper-totals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .history-page .invoice-detail-modal .products-table {
+    min-width: 500px;
+  }
+}
