@@ -1292,6 +1292,14 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]} فاتورة`;
       match = trimmed.match(/^Delete invoice\s+(.+)\? Inventory movements will not be reversed automatically\.$/i);
       if (match) translated = `حذف الفاتورة ${match[1]}؟ لن يتم عكس حركات المخزون تلقائيًا.`;
+      match = trimmed.match(/^Showing\\s+(\\d+)–(\\d+)\\s+of\\s+(\\d+)\\s+suppliers$/i);
+      if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]} موردًا`;
+      match = trimmed.match(/^(\\d+) product line\\(s\\) in this voucher\\.$/i);
+      if (match) translated = Number(match[1]) === 1 ? "منتج واحد في هذا البون." : `${match[1]} منتجات في هذا البون.`;
+      match = trimmed.match(/^Product preview:\\s*(.+)$/i);
+      if (match) translated = `معاينة المنتج: ${match[1]}`;
+      match = trimmed.match(/^Ref:\\s*(.+?)\\s*·\\s*Barcode:\\s*(.+)$/i);
+      if (match) translated = `المرجع: ${match[1]} · الباركود: ${match[2]}`;
     } else if (!dictionary[trimmed] && locale === "fr") {
       let match = trimmed.match(/^Print Selected \((\d+)\)$/i);
       if (match) translated = `Imprimer la sélection (${match[1]})`;
@@ -1301,6 +1309,14 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `Affichage de ${match[1]}–${match[2]} sur ${match[3]} factures`;
       match = trimmed.match(/^Delete invoice\s+(.+)\? Inventory movements will not be reversed automatically\.$/i);
       if (match) translated = `Supprimer la facture ${match[1]} ? Les mouvements de stock ne seront pas annulés automatiquement.`;
+      match = trimmed.match(/^Showing\\s+(\\d+)–(\\d+)\\s+of\\s+(\\d+)\\s+suppliers$/i);
+      if (match) translated = `Affichage de ${match[1]}–${match[2]} sur ${match[3]} fournisseurs`;
+      match = trimmed.match(/^(\\d+) product line\\(s\\) in this voucher\\.$/i);
+      if (match) translated = Number(match[1]) === 1 ? "1 ligne de produit dans ce bon." : `${match[1]} lignes de produits dans ce bon.`;
+      match = trimmed.match(/^Product preview:\\s*(.+)$/i);
+      if (match) translated = `Aperçu du produit : ${match[1]}`;
+      match = trimmed.match(/^Ref:\\s*(.+?)\\s*·\\s*Barcode:\\s*(.+)$/i);
+      if (match) translated = `Réf. : ${match[1]} · Code-barres : ${match[2]}`;
     }
 
     // Translate dynamic POS notices and count strings.
