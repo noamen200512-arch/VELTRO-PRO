@@ -371,7 +371,22 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       setUserMessage(t.workerCreated);
     } catch (err) {
       console.error("Could not create worker:", err);
-      setUserError(err?.message || t.workerCreateError);
+      let message = err?.message || t.workerCreateError;
+      // Supabase FunctionsHttpError stores the actual HTTP response in err.context.
+      // Read its JSON body so the interface shows the server's actionable error
+      // instead of only "Edge Function returned a non-2xx status code".
+      try {
+        const response = err?.context;
+        if (response && typeof response.clone === "function") {
+          const payload = await response.clone().json();
+          if (payload?.error || payload?.message) {
+            message = String(payload.error || payload.message);
+          }
+        }
+      } catch {
+        // Keep the original error if the response body is empty or not JSON.
+      }
+      setUserError(message);
     } finally {
       setSavingUser(false);
     }
