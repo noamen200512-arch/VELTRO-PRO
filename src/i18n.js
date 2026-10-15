@@ -341,6 +341,11 @@ const dictionaries = {
     "Try another name, phone number, ID or reference.":"Essayez un autre nom, numéro de téléphone, identifiant ou référence.",
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"Les clients des factures précédentes apparaîtront ici. Vous pouvez toujours choisir Anonyme pour une vente rapide.",
     "Choose a customer to link this invoice to their account.":"Choisissez un client pour associer cette facture à son compte.",
+    "Manager authorization":"Autorisation du responsable",
+    "Enter the manager password to edit this completed invoice.":"Saisissez le mot de passe du responsable pour modifier cette facture terminée.",
+    "Manager password":"Mot de passe du responsable",
+    "Enter password":"Saisir le mot de passe",
+    "Authorize":"Autoriser",
 
     "Choose a saved invoice to continue working on it.":"Choisissez une facture enregistrée pour continuer à travailler dessus.",
     "INVOICE DETAILS":"DÉTAILS DE LA FACTURE",
@@ -693,6 +698,11 @@ const dictionaries = {
     "Try another name, phone number, ID or reference.":"جرّب اسمًا أو رقم هاتف أو معرّفًا أو مرجعًا آخر.",
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"سيظهر هنا الزبائن من الفواتير السابقة. يمكنك أيضًا استخدام «Anonyme» لإتمام بيع سريع.",
     "Choose a customer to link this invoice to their account.":"اختر زبونًا لربط هذه الفاتورة بحسابه.",
+    "Manager authorization":"مصادقة المسؤول",
+    "Enter the manager password to edit this completed invoice.":"أدخل كلمة مرور المسؤول لتعديل هذه الفاتورة المكتملة.",
+    "Manager password":"كلمة مرور المسؤول",
+    "Enter password":"أدخل كلمة المرور",
+    "Authorize":"تأكيد الصلاحية",
 
     "Choose a saved invoice to continue working on it.":"اختر فاتورة محفوظة لمواصلة العمل عليها.",
     "INVOICE DETAILS":"تفاصيل الفاتورة",
