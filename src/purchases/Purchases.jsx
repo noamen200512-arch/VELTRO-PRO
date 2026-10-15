@@ -946,7 +946,7 @@ function CameraScannerModal({ onClose, onDetected }) {
   );
 }
 
-export default function Purchases() {
+export default function Purchases({ currentUser = null }) {
   const [products, setProducts] = useState(() => getProducts());
   const [invoices, setInvoices] = useState(() => getPurchaseInvoices());
   const [suppliers, setSuppliers] = useState(() => getPurchaseSuppliers());
@@ -1051,6 +1051,9 @@ export default function Purchases() {
   const visibleSuppliers = filteredPickerSuppliers.slice((safeSupplierPage - 1) * SUPPLIER_PAGE_SIZE, safeSupplierPage * SUPPLIER_PAGE_SIZE);
 
   const getCurrentUserName = () => {
+    const metadata = currentUser?.user_metadata || {};
+    const authenticatedName = metadata.full_name || metadata.fullName || metadata.name || metadata.username || currentUser?.email;
+    if (authenticatedName) return String(authenticatedName);
     const keys = ["veltro-current-user", "currentUser", "current_user", "veltro-user", "auth-user", "user"];
     for (const key of keys) {
       try {
@@ -1060,8 +1063,10 @@ export default function Purchases() {
         const candidate = typeof value === "string" ? value : value?.fullName || value?.name || value?.username || value?.email || value?.user?.fullName || value?.user?.name || value?.user?.email;
         if (candidate) return String(candidate);
       } catch {
-        const raw = localStorage.getItem(key);
-        if (raw && raw.length < 120 && !raw.startsWith("{")) return raw;
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw && raw.length < 120 && !raw.startsWith("{")) return raw;
+        } catch { /* Ignore unavailable browser storage. */ }
       }
     }
     return "Current user";
