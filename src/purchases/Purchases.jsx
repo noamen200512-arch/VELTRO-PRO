@@ -1401,7 +1401,7 @@ export default function Purchases() {
       <h1>VELTRO-PRO — Purchase Invoice</h1>
       <p>Invoice Number: ${escapeHtml(invoice.number)}</p>
       <p>Supplier: ${escapeHtml(invoice.supplier)}</p>
-      <p>Date: ${new Date(invoice.date).toLocaleString("en-US")}</p>
+      <p>Date: ${new Date(invoice.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</p>
       <table>
         <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
         <tbody>${rows}</tbody>
@@ -2150,7 +2150,7 @@ export default function Purchases() {
               label="Opened At"
               value={
                 showInfo.openedAt
-                  ? new Date(showInfo.openedAt).toLocaleString("en-US")
+                  ? new Date(showInfo.openedAt).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")
                   : "—"
               }
             />
@@ -2158,7 +2158,7 @@ export default function Purchases() {
               label="Closed At"
               value={
                 showInfo.closedAt
-                  ? new Date(showInfo.closedAt).toLocaleString("en-US")
+                  ? new Date(showInfo.closedAt).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")
                   : "—"
               }
             />
@@ -2184,7 +2184,7 @@ export default function Purchases() {
               <div>
                 <strong>{viewInvoice.number}</strong>
                 <small>
-                  {new Date(viewInvoice.date).toLocaleString("en-US")}
+                  {new Date(viewInvoice.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}
                 </small>
               </div>
             </div>
