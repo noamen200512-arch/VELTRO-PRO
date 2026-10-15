@@ -51,10 +51,13 @@ const EMPTY_FORM = {
   wholesaleProfit: "",
   cartonProfit: "",
   piecesPerCarton: "1",
-  stock: "",
+  cartonsReceived: "0",
+  purchaseCartonPrice: "",
+  stock: "0",
   minStock: "5",
   unit: "piece",
   image: "",
+  expiryDate: "",
 };
 
 const money = (value) =>
@@ -217,6 +220,7 @@ export default function Products() {
   const [scanSupported, setScanSupported] = useState(true);
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   // Load cloud products when the page opens.
   // Local products remain available if the cloud cannot be reached.
@@ -473,12 +477,19 @@ export default function Products() {
 
   function openAddModal() {
     setEditingId(null);
-    setForm({ ...EMPTY_FORM, barcodeAliases: [] });
+    setForm({
+      ...EMPTY_FORM,
+      sku: generateSku(products),
+      barcodeAliases: [],
+      cartonsReceived: "0",
+      stock: "0",
+    });
     setModalOpen(true);
   }
 
   function openEditModal(product) {
     setEditingId(product.id);
+    const piecesPerCarton = Math.max(1, Number(product.piecesPerCarton || 1));
 
     setForm({
       ...EMPTY_FORM,
@@ -487,24 +498,22 @@ export default function Products() {
         ? product.barcodeAliases
         : [],
       purchasePrice: String(product.purchasePrice ?? ""),
+      purchaseCartonPrice: String(
+        Number(product.purchasePrice || 0) * piecesPerCarton
+      ),
       price: String(product.price ?? ""),
       cartonPrice: String(product.cartonPrice ?? ""),
       wholesalePrice: String(product.wholesalePrice ?? ""),
-      piecesPerCarton: String(product.piecesPerCarton ?? 1),
+      piecesPerCarton: String(piecesPerCarton),
+      cartonsReceived: "0",
       stock: String(product.stock ?? ""),
       minStock: String(product.minStock ?? 5),
-      retailProfit: getProfitPercent(
-        product.price,
-        product.purchasePrice
-      ),
-      wholesaleProfit: getProfitPercent(
-        product.wholesalePrice,
-        product.purchasePrice
-      ),
+      expiryDate: product.expiryDate || "",
+      retailProfit: getProfitPercent(product.price, product.purchasePrice),
+      wholesaleProfit: getProfitPercent(product.wholesalePrice, product.purchasePrice),
       cartonProfit: getProfitPercent(
         product.cartonPrice,
-        Number(product.purchasePrice || 0) *
-          Number(product.piecesPerCarton || 1)
+        Number(product.purchasePrice || 0) * piecesPerCarton
       ),
       newBarcode: "",
     });
@@ -515,56 +524,43 @@ export default function Products() {
   function updateField(key, value) {
     setForm((previous) => {
       const next = { ...previous, [key]: value };
+      const cartonQty = Math.max(1, Number(next.piecesPerCarton) || 1);
+      const round2 = (number) => Number(Number(number || 0).toFixed(2));
+
+      if (key === "purchaseCartonPrice") {
+        next.purchasePrice = value === ""
+          ? ""
+          : String(round2(Number(value) / cartonQty));
+      } else if (key === "purchasePrice") {
+        next.purchaseCartonPrice = value === ""
+          ? ""
+          : String(round2(Number(value) * cartonQty));
+      } else if (key === "piecesPerCarton") {
+        if (next.purchaseCartonPrice !== "") {
+          next.purchasePrice = String(round2(Number(next.purchaseCartonPrice) / cartonQty));
+        } else if (next.purchasePrice !== "") {
+          next.purchaseCartonPrice = String(round2(Number(next.purchasePrice) * cartonQty));
+        }
+      }
+
+      if (!editingId && (key === "cartonsReceived" || key === "piecesPerCarton")) {
+        next.stock = String(round2(
+          Math.max(0, Number(next.cartonsReceived) || 0) * cartonQty
+        ));
+      }
+
       const purchase = numberValue(next.purchasePrice);
-      const cartonQty = Math.max(
-        1,
-        Number(next.piecesPerCarton) || 1
-      );
-
-      if (key === "purchasePrice" || key === "piecesPerCarton") {
+      if (["purchasePrice", "purchaseCartonPrice", "piecesPerCarton"].includes(key)) {
         next.retailProfit = getProfitPercent(next.price, purchase);
-
-        next.wholesaleProfit = getProfitPercent(
-          next.wholesalePrice,
-          purchase
-        );
-
-        next.cartonProfit = getProfitPercent(
-          next.cartonPrice,
-          purchase * cartonQty
-        );
+        next.wholesaleProfit = getProfitPercent(next.wholesalePrice, purchase);
+        next.cartonProfit = getProfitPercent(next.cartonPrice, purchase * cartonQty);
       }
-
-      if (key === "price") {
-        next.retailProfit = getProfitPercent(value, purchase);
-      }
-
-      if (key === "wholesalePrice") {
-        next.wholesaleProfit = getProfitPercent(value, purchase);
-      }
-
-      if (key === "cartonPrice") {
-        next.cartonProfit = getProfitPercent(
-          value,
-          purchase * cartonQty
-        );
-      }
-
-      if (key === "retailProfit") {
-        next.price = priceFromProfit(purchase, value);
-      }
-
-      if (key === "wholesaleProfit") {
-        next.wholesalePrice = priceFromProfit(purchase, value);
-      }
-
-      if (key === "cartonProfit") {
-        next.cartonPrice = priceFromProfit(
-          purchase * cartonQty,
-          value
-        );
-      }
-
+      if (key === "price") next.retailProfit = getProfitPercent(value, purchase);
+      if (key === "wholesalePrice") next.wholesaleProfit = getProfitPercent(value, purchase);
+      if (key === "cartonPrice") next.cartonProfit = getProfitPercent(value, purchase * cartonQty);
+      if (key === "retailProfit") next.price = priceFromProfit(purchase, value);
+      if (key === "wholesaleProfit") next.wholesalePrice = priceFromProfit(purchase, value);
+      if (key === "cartonProfit") next.cartonPrice = priceFromProfit(purchase * cartonQty, value);
       return next;
     });
   }
@@ -768,10 +764,14 @@ export default function Products() {
         1,
         Number(form.piecesPerCarton) || 1
       ),
-      stock: numberValue(form.stock),
+      stock: editingId
+        ? numberValue(form.stock)
+        : numberValue(form.cartonsReceived) *
+          Math.max(1, Number(form.piecesPerCarton) || 1),
       minStock: numberValue(form.minStock),
       unit: form.unit || "piece",
       image: form.image || "",
+      expiryDate: form.expiryDate || "",
     };
 
     const nextProducts = editingId
@@ -1051,6 +1051,7 @@ export default function Products() {
         categories={categories.filter((item) => item !== "All")}
         buttonStyle={buttonStyle}
         fileInputRef={fileInputRef}
+        cameraInputRef={cameraInputRef}
         onClose={() => setModalOpen(false)}
         onSubmit={handleSubmit}
         updateField={updateField}
@@ -1062,6 +1063,7 @@ export default function Products() {
         onRemoveImage={() => {
           setForm((previous) => ({ ...previous, image: "" }));
           if (fileInputRef.current) fileInputRef.current.value = "";
+          if (cameraInputRef.current) cameraInputRef.current.value = "";
         }}
         onOpenScanner={(target) => {
           setScanTarget(target || "primary");
