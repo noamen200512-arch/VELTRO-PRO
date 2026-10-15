@@ -92,7 +92,7 @@ export default function ProductForm({
               <span style={{ color: C.cyan, display: "grid", placeItems: "center" }}><Barcode size={18} /></span>
               <div style={{ flex: "1 1 180px", minWidth: 0 }}>
                 <div style={{ fontSize: 12, fontWeight: 700 }}>Secondary Barcodes</div>
-                <div style={{ color: C.muted, fontSize: 11, marginTop: 4 }}>{(form.barcodeAliases || []).length} barcode(s) added</div>
+                <div style={{ color: C.muted, fontSize: 11, marginTop: 4 }}>Manage additional barcodes here.</div>
               </div>
               <button type="button" onClick={() => setBarcodeModalOpen(true)} style={{ ...actionButton, color: C.cyan }}><Plus size={15} /> Manage Barcodes</button>
             </div>
@@ -142,7 +142,6 @@ export default function ProductForm({
               <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.cartonProfit} onChange={(e) => updateField("cartonProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
             </Field>
           </div>
-          <div style={{ color: C.muted, fontSize: 11, marginTop: 10 }}>Unit margin: {profit(form.price, form.purchasePrice)}% · Carton margin: {profit(form.cartonPrice, Number(form.purchasePrice || 0) * qty)}%</div>
         </Section>
 
         <Section icon={Tag} title="Additional Details">
