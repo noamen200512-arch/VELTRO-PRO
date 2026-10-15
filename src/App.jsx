@@ -38,6 +38,7 @@ import Suppliers from "./suppliers/Suppliers.jsx";
 import Customers from "./customers/Customers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
+import SettingsPage from "./Settings.jsx";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -797,7 +798,9 @@ export default function App({ onLogout, currentUser }) {
         />
 
         <div className="page-content">
-          {activePage === "Dashboard" ? (
+          {activePage === "Settings" ? (
+            <SettingsPage locale={locale} onLocaleChange={setLocale} currentUser={currentUser} />
+          ) : activePage === "Dashboard" ? (
             <Dashboard onNavigate={setActivePage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
             <POS />
