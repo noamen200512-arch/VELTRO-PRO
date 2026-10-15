@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Plus, Search, X, Trash2, Package, Truck, CalendarDays,
   CreditCard, Eye, Printer, Pencil, Barcode, Camera, Images,
   Save, History, CheckCircle2, AlertTriangle, Info, RotateCcw,
-  FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign, ReceiptText, Wallet
+  FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign, ReceiptText, Wallet,
+  UserRound, Hash, Clock3, ScanBarcode, ListFilter, Edit3
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
 import {
@@ -194,6 +195,7 @@ function Modal({ title, subtitle, onClose, children, wide = false }) {
 function ProductModal({
   product,
   products,
+  initialPurchase = null,
   onCancel,
   onSave,
   onNotice
@@ -219,14 +221,13 @@ function ProductModal({
     image: product?.image || ""
   }));
 
-  const [cartons, setCartons] = useState("1");
-  const [quantity, setQuantity] = useState("1");
-  const [buyUnit, setBuyUnit] = useState(String(product?.purchasePrice ?? ""));
+  const [cartons, setCartons] = useState(String(initialPurchase?.cartons ?? "1"));
+  const [quantity, setQuantity] = useState(String(initialPurchase?.quantity ?? "1"));
+  const [buyUnit, setBuyUnit] = useState(String(initialPurchase?.unitPrice ?? product?.purchasePrice ?? ""));
   const [buyCarton, setBuyCarton] = useState(
-    String(
-      Number(product?.purchasePrice || 0) *
-      Number(product?.piecesPerCarton || 1)
-    )
+    String(initialPurchase?.cartonPrice ?? (
+      Number(product?.purchasePrice || 0) * Number(product?.piecesPerCarton || 1)
+    ))
   );
   const [newAlias, setNewAlias] = useState("");
   const [showAliases, setShowAliases] = useState(false);
@@ -477,6 +478,7 @@ function ProductModal({
         stock: Number(form.stock || 0)
       },
       purchase: {
+        ...(initialPurchase?.lineId ? { lineId: initialPurchase.lineId } : {}),
         productId: form.id,
         name: form.name.trim(),
         sku: form.sku.trim() || form.id,
@@ -827,6 +829,122 @@ function ProductModal({
   );
 }
 
+
+function CameraScannerModal({ onClose, onDetected }) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const [cameraError, setCameraError] = useState("");
+  const [manualCode, setManualCode] = useState("");
+  const [scanning, setScanning] = useState(true);
+
+  useEffect(() => {
+    let stopped = false;
+    let timer = null;
+    let detector = null;
+
+    const stopCamera = () => {
+      if (timer) window.clearTimeout(timer);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+
+    const start = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError("Camera access is unavailable in this browser. Enter the barcode below.");
+        return;
+      }
+      if (!("BarcodeDetector" in window)) {
+        setCameraError("Automatic barcode detection is not supported by this browser. Enter the barcode below.");
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false
+        });
+        if (stopped) {
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+        }
+        if (!("BarcodeDetector" in window)) return;
+        detector = new window.BarcodeDetector({
+          formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "qr_code"]
+        });
+        const scan = async () => {
+          if (stopped || !videoRef.current || videoRef.current.readyState < 2) {
+            timer = window.setTimeout(scan, 300);
+            return;
+          }
+          try {
+            const results = await detector.detect(videoRef.current);
+            const value = results?.[0]?.rawValue;
+            if (value) {
+              stopped = true;
+              stopCamera();
+              onDetected(value);
+              return;
+            }
+          } catch {
+            // Continue scanning while the camera feed is active.
+          }
+          timer = window.setTimeout(scan, 250);
+        };
+        scan();
+      } catch {
+        setCameraError("Could not open the camera. Check browser camera permission or enter the barcode below.");
+      }
+    };
+
+    start();
+    return () => {
+      stopped = true;
+      stopCamera();
+    };
+  }, [onDetected]);
+
+  return (
+    <Modal
+      title="Scan Product Barcode"
+      subtitle="Point the rear camera at the product barcode."
+      onClose={onClose}
+      wide
+    >
+      <div className="purchase-scanner-layout">
+        <video ref={videoRef} className="purchase-scanner-video" playsInline muted />
+        {cameraError && <div className="purchase-alert warning">{cameraError}</div>}
+        <Field label="Enter barcode manually">
+          <input
+            value={manualCode}
+            onChange={event => setManualCode(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === "Enter" && manualCode.trim()) onDetected(manualCode.trim());
+            }}
+            placeholder="Barcode number"
+            inputMode="numeric"
+            autoFocus
+          />
+        </Field>
+        <footer className="purchase-modal-footer">
+          <Button onClick={onClose}>Cancel</Button>
+          <Button
+            variant="primary"
+            disabled={!manualCode.trim()}
+            onClick={() => onDetected(manualCode.trim())}
+          >
+            <ScanBarcode size={16} /> Use Barcode
+          </Button>
+        </footer>
+      </div>
+    </Modal>
+  );
+}
+
 export default function Purchases() {
   const [products, setProducts] = useState(() => getProducts());
   const [invoices, setInvoices] = useState(() => getPurchaseInvoices());
@@ -857,6 +975,17 @@ export default function Purchases() {
   const [chartMode, setChartMode] = useState("7d");
   const [customSupplier, setCustomSupplier] = useState("");
   const [showSupplierList, setShowSupplierList] = useState(false);
+  const [showSupplierPicker, setShowSupplierPicker] = useState(false);
+  const [supplierPickerSearch, setSupplierPickerSearch] = useState("");
+  const [supplierPage, setSupplierPage] = useState(1);
+  const [showProductPicker, setShowProductPicker] = useState(false);
+  const [productPickerSearch, setProductPickerSearch] = useState("");
+  const [showScanner, setShowScanner] = useState(false);
+  const [barcodeInput, setBarcodeInput] = useState("");
+  const [editingPurchaseLine, setEditingPurchaseLine] = useState(null);
+  const [viewPurchaseLine, setViewPurchaseLine] = useState(null);
+  const [draftInvoiceNumber, setDraftInvoiceNumber] = useState("");
+  const [draftCreatedBy, setDraftCreatedBy] = useState("");
   const [draftCreatedAt, setDraftCreatedAt] = useState(null);
   const [clockNow, setClockNow] = useState(() => new Date());
 
@@ -902,7 +1031,44 @@ export default function Purchases() {
       [product.name, product.sku, product.id, ...codes]
         .some(value => normalize(value).includes(q))
     );
-  }).slice(0, 10);
+  });
+
+  const filteredPickerProducts = products.filter(product => {
+    const q = normalize(productPickerSearch);
+    return !q || [product.name, product.sku, product.id, product.barcode, ...(product.barcodeAliases || [])]
+      .some(value => normalize(value).includes(q));
+  });
+
+  const filteredPickerSuppliers = suppliers.filter(item => {
+    const q = normalize(supplierPickerSearch);
+    return !q || [item.name, item.phone, item.id, item.reference, item.sku]
+      .some(value => normalize(value).includes(q));
+  });
+  const SUPPLIER_PAGE_SIZE = 10;
+  const supplierPageCount = Math.max(1, Math.ceil(filteredPickerSuppliers.length / SUPPLIER_PAGE_SIZE));
+  const safeSupplierPage = Math.min(supplierPage, supplierPageCount);
+  const visibleSuppliers = filteredPickerSuppliers.slice((safeSupplierPage - 1) * SUPPLIER_PAGE_SIZE, safeSupplierPage * SUPPLIER_PAGE_SIZE);
+
+  const getCurrentUserName = () => {
+    const keys = ["veltro-current-user", "currentUser", "current_user", "veltro-user", "auth-user", "user"];
+    for (const key of keys) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const value = JSON.parse(raw);
+        const candidate = typeof value === "string" ? value : value?.fullName || value?.name || value?.username || value?.email || value?.user?.fullName || value?.user?.name || value?.user?.email;
+        if (candidate) return String(candidate);
+      } catch {
+        const raw = localStorage.getItem(key);
+        if (raw && raw.length < 120 && !raw.startsWith("{")) return raw;
+      }
+    }
+    return "Current user";
+  };
+
+  const findProductByBarcode = code => products.find(item =>
+    [item.barcode, ...(item.barcodeAliases || [])].some(value => String(value || "").trim() === String(code || "").trim())
+  );
 
   const filteredInvoices = invoices.filter(invoice => {
     const q = normalize(search);
@@ -989,6 +1155,8 @@ export default function Purchases() {
     setLines(draft.lines || []);
     setDraftProductChanges(draft.draftProductChanges || {});
     setEditingInvoice(draft.editingInvoice || null);
+    setDraftInvoiceNumber(draft.number || `PUR-${Date.now()}`);
+    setDraftCreatedBy(draft.createdBy || getCurrentUserName());
     setDraftCreatedAt(draft.createdAt || nowISO());
     setShowInvoice(true);
   }, []);
@@ -1003,6 +1171,8 @@ export default function Purchases() {
       lines,
       draftProductChanges,
       editingInvoice,
+      number: draftInvoiceNumber || `PUR-${Date.now()}`,
+      createdBy: draftCreatedBy || getCurrentUserName(),
       createdAt: draftCreatedAt || nowISO(),
       savedAt: nowISO()
     };
@@ -1021,6 +1191,8 @@ export default function Purchases() {
     lines,
     draftProductChanges,
     editingInvoice,
+    draftInvoiceNumber,
+    draftCreatedBy,
     draftCreatedAt
   ]);
 
@@ -1031,6 +1203,9 @@ export default function Purchases() {
     setLines([]);
     setDraftProductChanges({});
     setEditingInvoice(null);
+    setDraftInvoiceNumber("");
+    setDraftCreatedBy("");
+    setEditingPurchaseLine(null);
     setPayment("0");
     setUseCredit(false);
     setCreditToUse("0");
@@ -1043,25 +1218,52 @@ export default function Purchases() {
 
   const openNewInvoice = () => {
     resetDraft(false);
+    setDraftInvoiceNumber(`PUR-${Date.now()}`);
+    setDraftCreatedBy(getCurrentUserName());
+    setDraftCreatedAt(nowISO());
+    setSupplier("Unknown Supplier");
     setShowInvoice(true);
     setShowHistory(false);
     setNotice("");
   };
 
   const selectSupplier = name => {
-    const found = suppliers.find(
-      item => normalize(item.name) === normalize(name)
-    );
-
+    const found = suppliers.find(item => normalize(item.name) === normalize(name));
     setSupplier(name);
     setSupplierPhone(found?.phone || "");
+    setSupplierSearch("");
     setShowSupplierList(false);
+    setShowSupplierPicker(false);
   };
 
   const openProductForPurchase = product => {
+    setEditingPurchaseLine(null);
     setEditProduct(product || null);
+    setShowProductPicker(false);
+    setProductPickerSearch("");
     setShowProductModal(true);
     setProductSearch(product?.name || productSearch);
+  };
+
+  const openNewProductWithBarcode = () => {
+    const existingCodes = new Set(products.flatMap(item => [item.barcode, ...(item.barcodeAliases || [])]).filter(Boolean).map(String));
+    setEditingPurchaseLine(null);
+    setEditProduct({ barcode: makeEan13(existingCodes) });
+    setShowProductModal(true);
+  };
+
+  const handleBarcodeLookup = codeValue => {
+    const code = String(codeValue || "").trim();
+    if (!code) return;
+    const match = findProductByBarcode(code);
+    setBarcodeInput("");
+    if (match) {
+      openProductForPurchase(match);
+    } else {
+      setProductPickerSearch(code);
+      setShowProductPicker(true);
+      setNotice("Barcode not found. Search for the product or create a new one.");
+    }
   };
 
   const addProductToDraft = (result, wasExisting) => {
@@ -1077,26 +1279,29 @@ export default function Purchases() {
     }));
 
     setLines(previous => {
-      const existingIndex = previous.findIndex(
-        line => line.productId === product.id
-      );
+      const existingIndex = purchase.lineId
+        ? previous.findIndex(line => line.lineId === purchase.lineId)
+        : previous.findIndex(line => line.productId === product.id);
 
       const newLine = {
         ...purchase,
-        lineId: makeId("LINE"),
+        lineId: purchase.lineId || makeId("LINE"),
         quantity: Number(purchase.quantity || 0),
         unitPrice: Number(purchase.unitPrice || 0),
         productSnapshot: { ...product }
       };
 
       if (existingIndex < 0) return [...previous, newLine];
+      if (purchase.lineId) return previous.map((line, index) => index === existingIndex ? newLine : line);
 
       return previous.map((line, index) =>
         index === existingIndex
           ? {
               ...line,
               quantity: Number(line.quantity || 0) + newLine.quantity,
+              cartons: Number(line.cartons || 0) + Number(newLine.cartons || 0),
               unitPrice: newLine.unitPrice,
+              cartonPrice: newLine.cartonPrice,
               productSnapshot: { ...product }
             }
           : line
@@ -1105,6 +1310,7 @@ export default function Purchases() {
 
     setShowProductModal(false);
     setEditProduct(null);
+    setEditingPurchaseLine(null);
     setProductSearch("");
 
     setNotice(
@@ -1129,11 +1335,22 @@ export default function Purchases() {
     }));
   };
 
-  const removeLine = lineId =>
-    setLines(previous => previous.filter(line => line.lineId !== lineId));
+  const removeLine = lineId => setLines(previous => previous.filter(line => line.lineId !== lineId));
+
+  const editPurchaseLine = line => {
+    const product = line.productSnapshot || products.find(item => item.id === line.productId) || {
+      id: line.productId, name: line.name, sku: line.sku, barcode: line.barcode,
+      purchasePrice: line.unitPrice, piecesPerCarton: line.piecesPerCarton || 1
+    };
+    setEditingPurchaseLine(line);
+    setEditProduct({ ...product });
+    setShowProductModal(true);
+  };
 
   const startEditInvoice = invoice => {
     setEditingInvoice(invoice.id);
+    setDraftInvoiceNumber(invoice.number || "");
+    setDraftCreatedBy(invoice.createdBy || getCurrentUserName());
     setSupplier(invoice.supplier || "");
     setSupplierPhone(invoice.phone || "");
     setInvoiceNote(invoice.note || "");
@@ -1248,7 +1465,7 @@ export default function Purchases() {
 
     const invoice = {
       id: existing?.id || makeId("PUR"),
-      number: existing?.number || `PUR-${Date.now()}`,
+      number: existing?.number || draftInvoiceNumber || `PUR-${Date.now()}`,
       supplier: supplier.trim(),
       phone: supplierPhone.trim(),
       date: existing?.date || timestamp,
@@ -1279,14 +1496,15 @@ export default function Purchases() {
       previousCredit,
       currentDebt: newDebt,
       currentCredit: newCredit,
-      createdBy: "Current user",
-      closedBy: "Current user"
+      createdBy: existing?.createdBy || draftCreatedBy || getCurrentUserName(),
+      closedBy: getCurrentUserName()
     };
 
     const previousSupplier = suppliers.find(
       item => normalize(item.name) === normalize(supplier)
     );
 
+    const isUnknownSupplier = normalize(supplier) === normalize("Unknown Supplier");
     const nextSupplier = {
       id: previousSupplier?.id || makeId("SUP"),
       name: supplier.trim(),
@@ -1297,13 +1515,11 @@ export default function Purchases() {
       note: invoiceNote.trim()
     };
 
-    const nextSuppliers = previousSupplier
-      ? suppliers.map(item =>
-          normalize(item.name) === normalize(supplier)
-            ? nextSupplier
-            : item
-        )
-      : [...suppliers, nextSupplier];
+    const nextSuppliers = isUnknownSupplier
+      ? suppliers
+      : previousSupplier
+        ? suppliers.map(item => normalize(item.name) === normalize(supplier) ? nextSupplier : item)
+        : [...suppliers, nextSupplier];
 
     const nextInvoices = existing
       ? invoices.map(item => item.id === invoice.id ? invoice : item)
@@ -1744,241 +1960,189 @@ export default function Purchases() {
       {showInvoice && (
         <Modal
           title={editingInvoice ? "Edit Purchase Invoice" : "New Purchase Invoice"}
-          subtitle="Changes remain temporary until you confirm the invoice."
+          subtitle="Purchase voucher workspace — all changes stay temporary until confirmed."
           onClose={() => setShowInvoice(false)}
           wide
         >
-          <div className="purchase-form-grid">
-            <Field label="Supplier">
-              <div className="purchase-input-actions">
-                <input
-                  value={supplierSearch || supplier}
-                  onFocus={() => setShowSupplierList(true)}
-                  onChange={e => {
-                    setSupplierSearch(e.target.value);
-                    setSupplier(e.target.value);
-                    setShowSupplierList(true);
-                  }}
-                  placeholder="Search for a supplier or enter a new name"
-                />
+          <div className="purchase-voucher-page">
+            <section className="purchase-voucher-meta" aria-label="Purchase voucher information">
+              <div className="purchase-voucher-meta-item">
+                <span><CalendarDays size={15} /> Date and time</span>
+                <strong>{new Intl.DateTimeFormat(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { dateStyle: "medium", timeStyle: "medium" }).format(new Date(draftCreatedAt || clockNow))}</strong>
+              </div>
+              <div className="purchase-voucher-meta-item">
+                <span><UserRound size={15} /> Current user</span>
+                <strong>{getCurrentUserName()}</strong>
+              </div>
+              <div className="purchase-voucher-meta-item">
+                <span><UserRound size={15} /> Created by</span>
+                <strong>{draftCreatedBy || getCurrentUserName()}</strong>
+              </div>
+              <div className="purchase-voucher-meta-item">
+                <span><Hash size={15} /> Voucher ID</span>
+                <strong>{draftInvoiceNumber || "—"}</strong>
+              </div>
+            </section>
 
-                <Button onClick={() => setShowSupplierList(v => !v)}>
-                  <ChevronDown size={16} />
+            <section className="purchase-voucher-section">
+              <div className="purchase-voucher-section-heading">
+                <div><span className="purchase-voucher-step">01</span><div><h3>Supplier</h3><p>Choose a supplier or continue with an unknown supplier.</p></div></div>
+                <Button onClick={() => { setSupplierPickerSearch(""); setSupplierPage(1); setShowSupplierPicker(true); }}>
+                  <ListFilter size={16} /> Choose supplier
                 </Button>
               </div>
+              <button type="button" className="purchase-selected-supplier" onClick={() => { setSupplierPickerSearch(""); setSupplierPage(1); setShowSupplierPicker(true); }}>
+                <span className="purchase-selected-supplier-icon"><Truck size={20} /></span>
+                <span className="purchase-selected-supplier-copy"><strong>{supplier || "No supplier selected"}</strong><small>{supplierPhone || (normalize(supplier) === normalize("Unknown Supplier") ? "Supplier details are not recorded" : "Click to select a supplier")}</small></span>
+                <ChevronDown size={18} />
+              </button>
+            </section>
 
-              {showSupplierList && (
-                <div className="purchase-supplier-options">
-                  {suppliers
-                    .filter(item =>
-                      !supplierSearch ||
-                      normalize(item.name).includes(normalize(supplierSearch))
-                    )
-                    .map(item => (
-                      <button
-                        key={item.id || item.name}
-                        onClick={() => {
-                          selectSupplier(item.name);
-                          setSupplierSearch("");
-                        }}
-                      >
-                        <Truck size={15} />
-                        {item.name}
-                        <small>
-                          Debt: {money(item.debt)} · Credit: {money(item.credit)}
-                        </small>
-                      </button>
-                    ))}
-                </div>
-              )}
-            </Field>
-
-            <Field label="Supplier Phone">
-              <input
-                value={supplierPhone}
-                onChange={e => setSupplierPhone(e.target.value)}
-                placeholder="Phone number"
-              />
-            </Field>
-
-            <div className="purchase-section-title full">
-              <ScanLine size={18} /> Search Products or Barcodes
-            </div>
-
-            <Field label="Search by Name, Reference, or Barcode">
-              <input
-                value={productSearch}
-                onChange={e => setProductSearch(e.target.value)}
-                placeholder="Enter barcode or product name..."
-              />
-
-              {productSearch && (
-                <div className="purchase-product-results">
-                  {filteredProducts.map(product => (
-                    <button
-                      key={product.id}
-                      onClick={() => openProductForPurchase(product)}
-                    >
-                      <span>
-                        <strong>{product.name}</strong>
-                        <small>{product.barcode || product.sku || product.id}</small>
-                      </span>
-                      <span>
-                        {money(product.purchasePrice)} <Plus size={16} />
-                      </span>
-                    </button>
-                  ))}
-
-                  {!filteredProducts.length && (
-                    <p>Product not found. You can create a new product.</p>
-                  )}
-                </div>
-              )}
-
-              <div className="purchase-inline-actions">
-                <Button onClick={() => openProductForPurchase(null)}>
-                  <Plus size={16} /> New Product
-                </Button>
-
-                <Button onClick={() => {
-                  const code = window.prompt(
-                    purchaseText("Enter the barcode scanned by the scanner or camera:", "Saisissez le code-barres lu par le scanner ou la caméra :", "أدخل الباركود الذي مسحه الماسح أو الكاميرا:")
-                  );
-
-                  if (!code) return;
-
-                  const match = products.find(item =>
-                    [item.barcode, ...(item.barcodeAliases || [])]
-                      .some(value => String(value || "") === code.trim())
-                  );
-
-                  if (match) {
-                    openProductForPurchase(match);
-                  } else {
-                    setProductSearch(code.trim());
-                    setNotice(
-                      "Barcode not found. Create a new product to add it."
-                    );
-                  }
-                }}>
-                  <Camera size={16} /> Enter Scanned Barcode
-                </Button>
+            <section className="purchase-voucher-section">
+              <div className="purchase-voucher-section-heading">
+                <div><span className="purchase-voucher-step">02</span><div><h3>Find or add a product</h3><p>Use a barcode, camera scan, generated code, or the product catalogue.</p></div></div>
               </div>
-            </Field>
+              <div className="purchase-product-entry-row">
+                <label className="purchase-product-entry-field">
+                  <span>Search by barcode</span>
+                  <input
+                    value={barcodeInput}
+                    onChange={event => setBarcodeInput(event.target.value)}
+                    onKeyDown={event => { if (event.key === "Enter") handleBarcodeLookup(barcodeInput); }}
+                    placeholder="Scan or type a product barcode"
+                    inputMode="numeric"
+                  />
+                </label>
+                <Button onClick={() => setShowScanner(true)}><Camera size={16} /> Scan with camera</Button>
+                <Button onClick={openNewProductWithBarcode}><Barcode size={16} /> Generate code / New product</Button>
+                <Button variant="primary" onClick={() => { setProductPickerSearch(""); setShowProductPicker(true); }}><Search size={16} /> Search products</Button>
+              </div>
+            </section>
 
-            <div className="purchase-section-title full">
-              <FileText size={18} /> Purchase Items
-            </div>
+            <section className="purchase-voucher-section purchase-voucher-lines-section">
+              <div className="purchase-voucher-section-heading">
+                <div><span className="purchase-voucher-step">03</span><div><h3>Purchased products</h3><p>{lines.length} product line(s) in this voucher.</p></div></div>
+              </div>
+              <div className="purchase-table-wrap purchase-voucher-lines-wrap">
+                <table className="purchase-table purchase-voucher-lines-table">
+                  <thead><tr>
+                    <th>Product</th><th>Quantity (units)</th><th>Unit price</th><th>Carton price</th><th>Cartons</th><th>Units / carton</th><th>Line total</th><th>Actions</th>
+                  </tr></thead>
+                  <tbody>
+                    {lines.map(line => {
+                      const snapshot = line.productSnapshot || products.find(item => item.id === line.productId) || {};
+                      const lineProduct = { ...snapshot, name: line.name, sku: line.sku || snapshot.sku || line.productId, barcode: line.barcode || snapshot.barcode, price: line.salePrice ?? snapshot.price };
+                      return <tr key={line.lineId}>
+                        <td><strong>{line.name}</strong><small>{line.sku || line.barcode || line.productId}</small></td>
+                        <td><input className="purchase-cell-input" type="number" min="0" value={line.quantity} onChange={event => updateLine(line.lineId, "quantity", event.target.value)} aria-label={`Quantity for ${line.name}`} /></td>
+                        <td><input className="purchase-cell-input" type="number" min="0" step="0.01" value={line.unitPrice} onChange={event => updateLine(line.lineId, "unitPrice", event.target.value)} aria-label={`Unit price for ${line.name}`} /></td>
+                        <td>{money(line.cartonPrice ?? Number(line.unitPrice || 0) * Number(line.piecesPerCarton || 1))}</td>
+                        <td>{Number(line.cartons || 0).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</td>
+                        <td>{Number(line.piecesPerCarton || 1).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</td>
+                        <td><strong>{money(Number(line.quantity || 0) * Number(line.unitPrice || 0))}</strong></td>
+                        <td><div className="purchase-row-actions">
+                          <button type="button" title="Preview product" aria-label={`Preview ${line.name}`} onClick={() => setViewPurchaseLine({ ...line, productSnapshot: snapshot })}><Eye size={15} /></button>
+                          <button type="button" title="Edit product line" aria-label={`Edit ${line.name}`} onClick={() => editPurchaseLine(line)}><Pencil size={15} /></button>
+                          <button type="button" title="Print price label" aria-label={`Print price label for ${line.name}`} onClick={() => printPriceLabels(lineProduct)}><Printer size={15} /></button>
+                          <button type="button" title="Delete product line" aria-label={`Delete ${line.name}`} className="danger" onClick={() => removeLine(line.lineId)}><Trash2 size={15} /></button>
+                        </div></td>
+                      </tr>;
+                    })}
+                    {!lines.length && <tr><td colSpan="8" className="purchase-empty-row">No products have been added yet. Search for a product to begin.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </section>
 
-            <div className="purchase-table-wrap full">
-              <table className="purchase-table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Total</th>
-                    <th>Remove</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {lines.map(line => (
-                    <tr key={line.lineId}>
-                      <td>
-                        <strong>{line.name}</strong>
-                        <small>{line.barcode || line.sku}</small>
-                      </td>
-
-                      <td>
-                        <input
-                          className="purchase-cell-input"
-                          type="number"
-                          min="0"
-                          value={line.quantity}
-                          onChange={e =>
-                            updateLine(line.lineId, "quantity", e.target.value)
-                          }
-                        />
-                      </td>
-
-                      <td>
-                        <input
-                          className="purchase-cell-input"
-                          type="number"
-                          min="0"
-                          value={line.unitPrice}
-                          onChange={e =>
-                            updateLine(line.lineId, "unitPrice", e.target.value)
-                          }
-                        />
-                      </td>
-
-                      <td>
-                        {money(
-                          Number(line.quantity || 0) *
-                          Number(line.unitPrice || 0)
-                        )}
-                      </td>
-
-                      <td>
-                        <button
-                          className="purchase-icon-button danger"
-                          onClick={() => removeLine(line.lineId)}
-                          aria-label="Remove item"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {!lines.length && (
-                    <tr>
-                      <td colSpan="5" className="purchase-empty-row">
-                        No products have been added yet.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="purchase-total-card full">
-              <span>Total Purchase Value</span>
+            <div className="purchase-voucher-total-row">
+              <div><span>Voucher total</span><small>{lines.length} product line(s)</small></div>
               <strong>{money(total)}</strong>
             </div>
-
             <Field label="Invoice Notes (Optional)">
-              <textarea
-                rows="3"
-                value={invoiceNote}
-                onChange={e => setInvoiceNote(e.target.value)}
-                placeholder="Temporary purchase notes..."
-              />
+              <textarea rows="2" value={invoiceNote} onChange={event => setInvoiceNote(event.target.value)} placeholder="Optional notes for this purchase voucher..." />
             </Field>
+            <footer className="purchase-modal-footer purchase-voucher-footer">
+              <Button variant="danger" onClick={cancelDraft}><Trash2 size={16} /> Cancel voucher</Button>
+              <Button onClick={() => { setShowInvoice(false); setNotice("Purchase voucher saved as a draft and can be resumed later."); }}><Save size={16} /> Save draft</Button>
+              <Button onClick={() => { setShowInvoice(false); setNotice("Purchase voucher saved as pending confirmation. Inventory has not been updated."); }}><Clock3 size={16} /> Save as pending confirmation</Button>
+              <Button variant="primary" onClick={openAccount}><CheckCircle2 size={16} /> Review and confirm</Button>
+            </footer>
           </div>
+        </Modal>
+      )}
 
+      {showSupplierPicker && (
+        <Modal title="Choose supplier" subtitle="Search by supplier name, phone number, or supplier ID." onClose={() => setShowSupplierPicker(false)} wide>
+          <div className="purchase-picker-search"><Search size={17} /><input autoFocus value={supplierPickerSearch} onChange={event => { setSupplierPickerSearch(event.target.value); setSupplierPage(1); }} placeholder="Name, phone number, or supplier ID..." /></div>
+          <div className="purchase-table-wrap purchase-picker-table-wrap">
+            <table className="purchase-table purchase-supplier-picker-table">
+              <thead><tr><th>Supplier name</th><th>Phone number</th><th>Supplier ID / Reference</th><th>Debt</th><th>Credit</th><th>Choose</th></tr></thead>
+              <tbody>
+                {visibleSuppliers.map(item => <tr key={item.id || item.name}>
+                  <td><strong>{item.name}</strong></td><td>{item.phone || "—"}</td><td>{item.reference || item.id || "—"}</td><td>{money(item.debt)}</td><td>{money(item.credit)}</td>
+                  <td><Button variant="primary" onClick={() => selectSupplier(item.name)}><CheckCircle2 size={15} /> Select</Button></td>
+                </tr>)}
+                {!visibleSuppliers.length && <tr><td colSpan="6" className="purchase-empty-row">No suppliers match your search.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+          <div className="purchase-picker-footer">
+            <span>{filteredPickerSuppliers.length ? `Showing ${(safeSupplierPage - 1) * SUPPLIER_PAGE_SIZE + 1}–${Math.min(safeSupplierPage * SUPPLIER_PAGE_SIZE, filteredPickerSuppliers.length)} of ${filteredPickerSuppliers.length} suppliers` : "0 suppliers"}</span>
+            <div><Button disabled={safeSupplierPage <= 1} onClick={() => setSupplierPage(page => Math.max(1, page - 1))}>Previous</Button><span>{safeSupplierPage} / {supplierPageCount}</span><Button disabled={safeSupplierPage >= supplierPageCount} onClick={() => setSupplierPage(page => Math.min(supplierPageCount, page + 1))}>Next</Button></div>
+          </div>
+          <div className="purchase-unknown-supplier">
+            <div><strong>Unknown supplier</strong><small>Use this when the supplier is not recorded. No supplier account will be created.</small></div>
+            <Button onClick={() => selectSupplier("Unknown Supplier")}><UserRound size={16} /> Select unknown supplier</Button>
+          </div>
+        </Modal>
+      )}
+
+      {showProductPicker && (
+        <Modal title="Search products" subtitle="Products appear as you type. Select one to add it to this purchase voucher." onClose={() => setShowProductPicker(false)} wide>
+          <div className="purchase-picker-search"><Search size={17} /><input autoFocus value={productPickerSearch} onChange={event => setProductPickerSearch(event.target.value)} placeholder="Type a product name, reference, or barcode..." /></div>
+          <div className="purchase-product-picker-list">
+            {filteredPickerProducts.map(product => <button type="button" key={product.id} onClick={() => openProductForPurchase(product)}>
+              <span className="purchase-product-picker-icon"><Package size={18} /></span>
+              <span className="purchase-product-picker-copy"><strong>{product.name}</strong><small>Ref: {product.sku || product.id} · Barcode: {product.barcode || "—"}</small></span>
+              <span className="purchase-product-picker-price">{money(product.purchasePrice)} <Plus size={16} /></span>
+            </button>)}
+            {!filteredPickerProducts.length && <div className="purchase-empty-row">No products found. Use “Generate code / New product” to create one.</div>}
+          </div>
+        </Modal>
+      )}
+
+      {showScanner && (
+        <CameraScannerModal
+          onClose={() => setShowScanner(false)}
+          onDetected={code => { setShowScanner(false); handleBarcodeLookup(code); }}
+        />
+      )}
+
+      {viewPurchaseLine && (
+        <Modal title={`Product preview: ${viewPurchaseLine.name}`} subtitle="Purchase line details." onClose={() => setViewPurchaseLine(null)}>
+          <div className="purchase-info-list">
+            <InfoRow label="Product name" value={viewPurchaseLine.name} />
+            <InfoRow label="Reference" value={viewPurchaseLine.sku || viewPurchaseLine.productId || "—"} />
+            <InfoRow label="Barcode" value={viewPurchaseLine.barcode || "—"} />
+            <InfoRow label="Quantity (units)" value={String(viewPurchaseLine.quantity || 0)} />
+            <InfoRow label="Unit price" value={money(viewPurchaseLine.unitPrice)} />
+            <InfoRow label="Carton price" value={money(viewPurchaseLine.cartonPrice ?? Number(viewPurchaseLine.unitPrice || 0) * Number(viewPurchaseLine.piecesPerCarton || 1))} />
+            <InfoRow label="Cartons" value={String(viewPurchaseLine.cartons || 0)} />
+            <InfoRow label="Units per carton" value={String(viewPurchaseLine.piecesPerCarton || 1)} />
+            <InfoRow label="Line total" value={money(Number(viewPurchaseLine.quantity || 0) * Number(viewPurchaseLine.unitPrice || 0))} />
+          </div>
           <footer className="purchase-modal-footer">
-            <Button variant="danger" onClick={cancelDraft}>
-              <Trash2 size={16} /> Cancel Invoice
-            </Button>
-
-            <Button onClick={() => setShowInvoice(false)}>
-              <Save size={16} /> Save Draft and Exit
-            </Button>
-
-            <Button variant="primary" onClick={openAccount}>
-              <CheckCircle2 size={16} /> Close Invoice and Review Account
-            </Button>
+            <Button onClick={() => { const snapshot = viewPurchaseLine.productSnapshot || {}; setViewPurchaseLine(null); printPriceLabels({ ...snapshot, name: viewPurchaseLine.name, price: viewPurchaseLine.salePrice ?? snapshot.price, sku: viewPurchaseLine.sku || snapshot.sku, barcode: viewPurchaseLine.barcode || snapshot.barcode }); }}><Printer size={16} /> Print price label</Button>
+            <Button variant="primary" onClick={() => setViewPurchaseLine(null)}>Close</Button>
           </footer>
         </Modal>
       )}
 
       {showProductModal && (
         <ProductModal
-          key={editProduct?.id || "new"}
+          key={editingPurchaseLine?.lineId || editProduct?.id || "new"}
           product={editProduct}
+          initialPurchase={editingPurchaseLine}
           products={[
             ...products,
             ...Object.values(draftProductChanges).map(item => item.product)
@@ -1986,6 +2150,7 @@ export default function Purchases() {
           onCancel={() => {
             setShowProductModal(false);
             setEditProduct(null);
+            setEditingPurchaseLine(null);
           }}
           onNotice={setNotice}
           onSave={addProductToDraft}
