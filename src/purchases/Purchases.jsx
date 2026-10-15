@@ -849,7 +849,7 @@ export default function Purchases() {
   const [useCredit, setUseCredit] = useState(false);
   const [creditToUse, setCreditToUse] = useState("0");
   const [dateRange, setDateRange] = useState("all");
-  const [chartMode, setChartMode] = useState("daily");
+  const [chartMode, setChartMode] = useState("7d");
   const [customSupplier, setCustomSupplier] = useState("");
   const [showSupplierList, setShowSupplierList] = useState(false);
   const [draftCreatedAt, setDraftCreatedAt] = useState(null);
@@ -926,27 +926,48 @@ export default function Purchases() {
   );
 
   const chartData = useMemo(() => {
-    const groups = new Map();
+    const locale = document.documentElement.lang === "ar"
+      ? "ar-DZ"
+      : document.documentElement.lang === "fr"
+        ? "fr-DZ"
+        : "en-DZ";
+    const dayCount = chartMode === "30d" ? 30 : 7;
+    const dayKey = date => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+    const grouped = new Map();
 
     invoices.forEach(invoice => {
       const date = new Date(invoice.date);
-
-      const key = chartMode === "daily"
-        ? date.toLocaleDateString("en-CA")
-        : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
-
-      const old = groups.get(key) || { key, total: 0, paid: 0 };
-
-      old.total += Number(invoice.total || 0);
-      old.paid += Number(invoice.paid || 0);
-
-      groups.set(key, old);
+      if (Number.isNaN(date.getTime())) return;
+      const key = dayKey(date);
+      const previous = grouped.get(key) || { total: 0, paid: 0 };
+      previous.total += Math.max(0, Number(invoice.total || 0));
+      previous.paid += Math.max(0, Number(invoice.paid || 0));
+      grouped.set(key, previous);
     });
 
-    return [...groups.values()]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .slice(-12);
+    const today = new Date();
+    return Array.from({ length: dayCount }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (dayCount - index - 1));
+      const key = dayKey(date);
+      const values = grouped.get(key) || { total: 0, paid: 0 };
+      return {
+        key,
+        label: new Intl.DateTimeFormat(locale, {
+          day: "2-digit",
+          month: chartMode === "30d" ? "short" : undefined
+        }).format(date),
+        total: values.total,
+        paid: values.paid
+      };
+    });
   }, [invoices, chartMode]);
+
+  const chartMax = Math.max(1, ...chartData.flatMap(item => [item.total, item.paid]));
 
   useEffect(() => {
     const draft = safeRead(DRAFT_KEY, null);
@@ -1495,6 +1516,52 @@ export default function Purchases() {
             </div>
             <div className="purchase-hero-orb purchase-hero-orb-one" />
             <div className="purchase-hero-orb purchase-hero-orb-two" />
+          </section>
+
+          <section className="purchase-panel purchase-daily-comparison">
+            <div className="purchase-panel-heading">
+              <div>
+                <h2>Daily Purchase Comparison</h2>
+                <p>Compare the value of purchase vouchers with payments made each day.</p>
+              </div>
+              <div className="purchase-segmented" role="group" aria-label="Chart period">
+                <button
+                  type="button"
+                  className={chartMode === "7d" ? "active" : ""}
+                  aria-pressed={chartMode === "7d"}
+                  onClick={() => setChartMode("7d")}
+                >7 Days</button>
+                <button
+                  type="button"
+                  className={chartMode === "30d" ? "active" : ""}
+                  aria-pressed={chartMode === "30d"}
+                  onClick={() => setChartMode("30d")}
+                >30 Days</button>
+              </div>
+            </div>
+            <div className="purchase-chart" role="img" aria-label={`Daily purchases and payments for the last ${chartMode === "30d" ? 30 : 7} days`}>
+              {chartData.map(item => (
+                <div className="purchase-chart-column" key={item.key}>
+                  <div className="purchase-chart-bars">
+                    <div
+                      className="purchase-chart-bar total"
+                      style={{ height: `${Math.max(3, (item.total / chartMax) * 135)}px` }}
+                      title={`Purchases: ${money(item.total)}`}
+                    />
+                    <div
+                      className="purchase-chart-bar paid"
+                      style={{ height: `${Math.max(3, (item.paid / chartMax) * 135)}px` }}
+                      title={`Payments: ${money(item.paid)}`}
+                    />
+                  </div>
+                  <small>{item.label}</small>
+                </div>
+              ))}
+            </div>
+            <div className="purchase-chart-legend">
+              <span><i className="total" /> Purchase value</span>
+              <span><i className="paid" /> Payments made</span>
+            </div>
           </section>
 
           <section className="purchase-metric-grid" aria-label="Purchase statistics">
