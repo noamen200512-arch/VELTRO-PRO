@@ -963,6 +963,10 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
   const [showHistory, setShowHistory] = useState(false);
   const [showPendingVouchers, setShowPendingVouchers] = useState(false);
   const [pendingVouchers, setPendingVouchers] = useState(() => safeRead("veltro_purchase_pending_drafts_v1", []));
+  const [savedDraftAvailable, setSavedDraftAvailable] = useState(() => {
+    const draft = safeRead(DRAFT_KEY, null);
+    return Boolean(draft && Array.isArray(draft.lines) && draft.lines.length);
+  });
   const [showInfo, setShowInfo] = useState(null);
   const [viewInvoice, setViewInvoice] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
@@ -1155,23 +1159,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
   useEffect(() => {
     const draft = safeRead(DRAFT_KEY, null);
-
-    if (!draft || !Array.isArray(draft.lines) || !draft.lines.length) return;
-
-    if (!window.confirm(purchaseText("An unfinished purchase invoice was found. Would you like to restore it?", "Une facture d’achat inachevée a été trouvée. Voulez-vous la restaurer ?", "تم العثور على فاتورة شراء غير مكتملة. هل تريد استعادتها؟"))) {
-      return;
-    }
-
-    setSupplier(draft.supplier || "");
-    setSupplierPhone(draft.supplierPhone || "");
-    setInvoiceNote(draft.invoiceNote || "");
-    setLines(draft.lines || []);
-    setDraftProductChanges(draft.draftProductChanges || {});
-    setEditingInvoice(draft.editingInvoice || null);
-    setDraftInvoiceNumber(draft.number || `PUR-${Date.now()}`);
-    setDraftCreatedBy(draft.createdBy || getCurrentUserName());
-    setDraftCreatedAt(draft.createdAt || nowISO());
-    setShowInvoice(true);
+    setSavedDraftAvailable(Boolean(draft && Array.isArray(draft.lines) && draft.lines.length));
   }, []);
 
   useEffect(() => {
@@ -1192,6 +1180,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
     try {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setSavedDraftAvailable(Boolean(draft.lines.length));
     } catch {
       setNotice("Could not save the draft automatically. Storage may be full.");
     }
@@ -1226,10 +1215,41 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     setSupplierSearch("");
     setDraftCreatedAt(null);
 
-    if (removeSaved) localStorage.removeItem(DRAFT_KEY);
+    if (removeSaved) {
+      localStorage.removeItem(DRAFT_KEY);
+      setSavedDraftAvailable(false);
+    }
+  };
+
+  const restoreSavedDraft = () => {
+    const draft = safeRead(DRAFT_KEY, null);
+    if (!draft || !Array.isArray(draft.lines) || !draft.lines.length) {
+      setSavedDraftAvailable(false);
+      setNotice("No unfinished purchase invoice is available to restore.");
+      return;
+    }
+
+    setSupplier(draft.supplier || "");
+    setSupplierPhone(draft.supplierPhone || "");
+    setInvoiceNote(draft.invoiceNote || "");
+    setLines(draft.lines || []);
+    setDraftProductChanges(draft.draftProductChanges || {});
+    setEditingInvoice(draft.editingInvoice || null);
+    setDraftInvoiceNumber(draft.number || `PUR-${Date.now()}`);
+    setDraftCreatedBy(draft.createdBy || getCurrentUserName());
+    setDraftCreatedAt(draft.createdAt || nowISO());
+    setShowInvoice(true);
+    setShowHistory(false);
+    setNotice("");
   };
 
   const openNewInvoice = () => {
+    const savedDraft = safeRead(DRAFT_KEY, null);
+    if (savedDraft && Array.isArray(savedDraft.lines) && savedDraft.lines.length) {
+      setSavedDraftAvailable(true);
+      setNotice("An unfinished purchase invoice is saved. Restore it before starting another invoice.");
+      return;
+    }
     resetDraft(false);
     setDraftInvoiceNumber(`PUR-${Date.now()}`);
     setDraftCreatedBy(getCurrentUserName());
@@ -1836,6 +1856,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
             <div className="purchase-overview-hero-actions">
               <span className="purchase-overview-live"><i /> Live overview</span>
               <Button onClick={() => { setPendingVouchers(safeRead("veltro_purchase_pending_drafts_v1", [])); setShowPendingVouchers(true); }}><Clock3 size={16} /> {"Pending Vouchers (" + pendingVouchers.length + ")"}</Button>
+              {savedDraftAvailable && <Button onClick={restoreSavedDraft}><RotateCcw size={16} /> Restore Draft</Button>}
               <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> New Purchase Voucher</Button>
             </div>
             <div className="purchase-hero-orb purchase-hero-orb-one" />
