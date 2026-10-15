@@ -946,7 +946,7 @@ function CameraScannerModal({ onClose, onDetected }) {
   );
 }
 
-export default function Purchases({ currentUser = null }) {
+export default function Purchases({ currentUser = null, view = "dashboard" }) {
   const [products, setProducts] = useState(() => getProducts());
   const [invoices, setInvoices] = useState(() => getPurchaseInvoices());
   const [suppliers, setSuppliers] = useState(() => getPurchaseSuppliers());
@@ -1771,9 +1771,9 @@ export default function Purchases({ currentUser = null }) {
     <section className="purchase-layout" dir={document.documentElement.dir || "ltr"}>
       <header className="purchase-page-header">
         <div className="purchase-header-info">
-          <span className="purchase-eyebrow">VELTRO-PRO / COMMERCE</span>
-          <h1>Purchases</h1>
-          <p>Manage purchase invoices, supplier accounts, and incoming inventory.</p>
+          <span className="purchase-eyebrow">{view === "history" ? "VELTRO-PRO / PROCUREMENT / HISTORY" : "VELTRO-PRO / COMMERCE"}</span>
+          <h1>{view === "history" ? "Purchase History" : "Purchases"}</h1>
+          <p>{view === "history" ? "Search, review, edit, print, and manage all purchase invoices." : "Manage purchase invoices, supplier accounts, and incoming inventory."}</p>
         </div>
       </header>
 
@@ -1787,7 +1787,37 @@ export default function Purchases({ currentUser = null }) {
         </div>
       )}
 
-      {activeTab === "dashboard" && (
+      {view === "history" && (
+        <main className="purchase-panel purchase-history-page">
+          <div className="purchase-panel-heading">
+            <div>
+              <h2>Purchase History</h2>
+              <p>Search and review purchase invoices across all dates.</p>
+            </div>
+            <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> New Purchase Voucher</Button>
+          </div>
+          <div className="purchase-filter-row purchase-history-search">
+            <Search size={17} />
+            <input
+              value={search}
+              onChange={event => setSearch(event.target.value)}
+              placeholder="Search by invoice number or supplier..."
+              aria-label="Search purchase history"
+            />
+            {search && <button type="button" onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}
+          </div>
+          <InvoiceTable
+            invoices={[...filteredInvoices].sort((a, b) => new Date(b.date || b.openedAt || 0) - new Date(a.date || a.openedAt || 0))}
+            onView={setViewInvoice}
+            onInfo={setShowInfo}
+            onEdit={startEditInvoice}
+            onPrint={printInvoice}
+            onDelete={deleteInvoice}
+          />
+        </main>
+      )}
+
+      {view !== "history" && activeTab === "dashboard" && (
         <main className="purchase-dashboard">
           <section className="purchase-overview-hero">
             <div className="purchase-overview-copy">
