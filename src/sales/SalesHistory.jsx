@@ -286,10 +286,15 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const customer = String(invoice.customerName || "Anonyme").trim() || "Anonyme";
-  const anonymous = !invoice.customerId || String(invoice.customerId).trim().toLowerCase() === "anonyme" || customer.toLowerCase() === "anonyme";
+  const anonymous = String(invoice.customerId || "").trim().toLowerCase() === "anonyme" || customer.toLowerCase() === "anonyme";
   const paid = Math.max(0, Number(paidDraft) || 0);
   const remaining = Math.max(0, total - paid);
-  const previousDebt = anonymous ? 0 : Math.max(0, getCustomerDebt(invoice.customerId) - Math.max(0, total - (Number(invoice.paid) || 0)));
+  const previousDebt = anonymous ? 0 : Math.max(0, invoice.customerId
+    ? getCustomerDebt(invoice.customerId) - Math.max(0, total - (Number(invoice.paid) || 0))
+    : getCompletedSales()
+        .filter((sale) => String(sale.customerName || "").trim().toLowerCase() === customer.toLowerCase()
+          && (sale.id || sale.invoiceId || sale.invoiceNumber) !== (invoice.id || invoice.invoiceId || invoice.invoiceNumber))
+        .reduce((sum, sale) => sum + Math.max(0, (Number(sale.total) || invoiceTotal(sale)) - (Number(sale.paid) || 0)), 0));
   const totalDebt = previousDebt + remaining;
 
   const submit = () => {
@@ -345,7 +350,6 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
               <span>DA</span>
             </label>
             <div className="account-update-remaining"><span>Remaining on this invoice</span><strong>{money(remaining)}</strong></div>
-            {!anonymous && <div className="account-update-updated-debt"><span>Customer debt after update</span><strong>{money(totalDebt)}</strong></div>}
           </div>
           {error && <p className="account-update-error" role="alert">{error}</p>}
         </div>
