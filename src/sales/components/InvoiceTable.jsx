@@ -65,6 +65,57 @@ function EditablePriceInput({ item, value, onCommit }) {
   );
 }
 
+
+function EditableQuantityInput({ item, value, onCommit }) {
+  const formatQuantity = (quantity) => {
+    const numeric = Number(quantity);
+    return Number.isFinite(numeric) && numeric >= 1
+      ? String(Math.floor(numeric))
+      : "1";
+  };
+
+  const [draft, setDraft] = useState(() => formatQuantity(value));
+
+  useEffect(() => {
+    setDraft(formatQuantity(value));
+  }, [value]);
+
+  const commit = () => {
+    const normalized = String(draft).trim();
+    const numeric = normalized === "" ? NaN : Number(normalized);
+
+    if (!Number.isFinite(numeric) || numeric < 1) {
+      setDraft(formatQuantity(value));
+      return;
+    }
+
+    const quantity = Math.floor(numeric);
+    onCommit(item, "quantity", quantity);
+    setDraft(String(quantity));
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      autoComplete="off"
+      aria-label={`Quantity of ${item.name}`}
+      value={draft}
+      onFocus={(event) => event.currentTarget.select()}
+      onChange={(event) => setDraft(event.target.value.replace(/[^0-9]/g, ""))}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+        if (event.key === "Escape") {
+          setDraft(formatQuantity(value));
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+
 export function InvoiceTable({
   items = [],
   onUpdate,
@@ -299,19 +350,10 @@ export function InvoiceTable({
                             <Minus size={13} />
                           </button>
 
-                          <input
-                            type="number"
-                            min="1"
-                            step="1"
-                            aria-label={`Quantity of ${item.name}`}
+                          <EditableQuantityInput
+                            item={item}
                             value={quantity}
-                            onChange={(event) => {
-                              const value = event.target.value;
-
-                              if (value === "") return;
-
-                              updateQuantity(item, value);
-                            }}
+                            onCommit={updateField}
                           />
 
                           <button
