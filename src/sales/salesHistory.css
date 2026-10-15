@@ -1108,12 +1108,14 @@
 }
 
 
-/* Explicit search action for Sales History */
+/* Explicit search action for Sales History — compact and consistent */
 .history-page .history-search-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-top: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 .history-page .history-search-actions .primary-button {
@@ -1121,21 +1123,54 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-width: 112px;
-  min-height: 36px;
-  padding: 0 16px;
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 13px;
+  color: #071713 !important;
+  background: linear-gradient(135deg, #72f4df 0%, #2bc6b5 100%) !important;
+  border: 1px solid #48deca !important;
   border-radius: 9px;
-  font-size: 12px;
+  box-shadow: 0 2px 7px rgba(43, 198, 181, 0.12);
+  font-family: inherit;
+  font-size: 11px;
   font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.history-page .history-search-actions .primary-button svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  margin: 0;
+}
+
+.history-page .history-search-actions .primary-button:hover {
+  background: linear-gradient(135deg, #91f9e9 0%, #48d9c8 100%) !important;
+  border-color: #91f9e9 !important;
+  box-shadow: 0 4px 11px rgba(43, 198, 181, 0.18);
+  transform: translateY(-1px);
+}
+
+.history-page .history-search-actions .primary-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.history-page .history-search-actions .primary-button:focus-visible {
+  outline: 2px solid #65e7d7;
+  outline-offset: 2px;
 }
 
 @media (max-width: 560px) {
   .history-page .history-search-actions {
-    justify-content: stretch;
+    justify-content: flex-end;
   }
 
   .history-page .history-search-actions .primary-button {
-    width: 100%;
+    width: auto;
   }
 }
