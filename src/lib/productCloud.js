@@ -23,6 +23,7 @@ stock: Math.max(0, Number(product.stock || 0)),
 min_stock: Math.max(0, Number(product.minStock || 0)),
 unit: String(product.unit || "piece"),
 image: String(product.image || ""),
+expiry_date: product.expiryDate || null,
 created_by: userId,
 updated_at: new Date().toISOString(),
 };
@@ -45,6 +46,7 @@ stock: Number(row.stock || 0),
 minStock: Number(row.min_stock || 0),
 unit: row.unit || "piece",
 image: row.image || "",
+expiryDate: row.expiry_date || "",
 };
 }
 
