@@ -1,5 +1,8 @@
 
 import React, { useEffect, useState } from "react";
+import { ResponsiveContainer, BarChart, Bar, AreaChart, Area, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
+import { CalendarDays, TrendingUp, RefreshCw, AlertTriangle } from "lucide-react";
+
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -454,66 +457,184 @@ function Header({
    DASHBOARD
 ========================================================= */
 
+function readDashboardArray(key) {
+  try {
+    const value = JSON.parse(window.localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
+}
+
+function dashboardDate(record) {
+  const value = record?.completedAt || record?.closedAt || record?.date || record?.createdAt || record?.updatedAt;
+  const parsed = value ? new Date(value) : null;
+  return parsed && Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function dashboardTotal(record) {
+  const direct = Number(record?.total ?? record?.grandTotal ?? record?.amount);
+  if (Number.isFinite(direct) && direct >= 0) return direct;
+  const lines = Array.isArray(record?.items) ? record.items : Array.isArray(record?.lines) ? record.lines : [];
+  return lines.reduce((sum, line) => sum + Math.max(0, Number(line.lineTotal ?? line.total ?? (Number(line.qty ?? line.quantity ?? 0) * Number(line.price ?? line.unitPrice ?? 0))) || 0), 0);
+}
+
 function Dashboard({ onNavigate, locale }) {
+  const [dashboardData, setDashboardData] = useState(() => ({
+    sales: readDashboardArray("veltro_completed_sales"),
+    purchases: readDashboardArray("veltro_purchase_invoices"),
+    products: readDashboardArray("veltro_products"),
+  }));
+  const [period, setPeriod] = useState("7d");
+  const [refreshedAt, setRefreshedAt] = useState(new Date());
+
+  useEffect(() => {
+    const refresh = () => {
+      setDashboardData({
+        sales: readDashboardArray("veltro_completed_sales"),
+        purchases: readDashboardArray("veltro_purchase_invoices"),
+        products: readDashboardArray("veltro_products"),
+      });
+      setRefreshedAt(new Date());
+    };
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
+  const now = new Date();
+  const dayKey = date => date ? [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-") : "";
+  const monthKey = date => date ? [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0")].join("-") : "";
+  const todayKey = dayKey(now);
+  const thisMonthKey = monthKey(now);
+  const sales = dashboardData.sales.filter(sale => String(sale.status || "Completed").toLowerCase() !== "cancelled");
+  const purchases = dashboardData.purchases.filter(purchase => !["pending","draft","cancelled"].includes(String(purchase.status || "posted").toLowerCase()));
+  const totalForSale = sale => dashboardTotal(sale);
+  const paidForSale = sale => Math.max(0, Number(sale.paid ?? sale.amountPaid ?? 0) || 0);
+  const remainingForSale = sale => Math.max(0, Number(sale.remaining ?? (totalForSale(sale) - paidForSale(sale))) || 0);
+  const profitForSale = sale => {
+    const products = dashboardData.products;
+    const lines = Array.isArray(sale.items) ? sale.items : [];
+    return lines.reduce((sum, line) => {
+      const productId = String(line.productId ?? line.id ?? "");
+      const product = products.find(item => String(item.id) === productId || (line.sku && item.sku === line.sku));
+      const qty = Math.max(0, Number(line.qty ?? line.quantity ?? 0) || 0);
+      const price = Math.max(0, Number(line.price ?? line.unitPrice ?? product?.price ?? 0) || 0);
+      const cost = Math.max(0, Number(line.purchasePrice ?? line.costPrice ?? product?.purchasePrice ?? 0) || 0);
+      return sum + (price - cost) * qty;
+    }, 0);
+  };
+  const inToday = record => dayKey(dashboardDate(record)) === todayKey;
+  const inThisMonth = record => monthKey(dashboardDate(record)) === thisMonthKey;
+  const sum = (records, getter) => records.reduce((total, record) => total + getter(record), 0);
+  const salesToday = sales.filter(inToday);
+  const salesMonth = sales.filter(inThisMonth);
+  const purchasesToday = purchases.filter(inToday);
+  const purchasesMonth = purchases.filter(inThisMonth);
+  const salesTodayTotal = sum(salesToday, totalForSale);
+  const salesMonthTotal = sum(salesMonth, totalForSale);
+  const paidToday = sum(salesToday, paidForSale);
+  const paidMonth = sum(salesMonth, paidForSale);
+  const profitToday = sum(salesToday, profitForSale);
+  const profitMonth = sum(salesMonth, profitForSale);
+  const stockUnits = sum(dashboardData.products, item => Math.max(0, Number(item.stock) || 0));
+  const stockValue = sum(dashboardData.products, item => Math.max(0, Number(item.stock) || 0) * Math.max(0, Number(item.purchasePrice) || 0));
+  const lowStock = dashboardData.products.filter(item => Number(item.stock) <= Number(item.minStock ?? item.minimumStock ?? 0)).length;
+  const receivables = sum(sales, remainingForSale);
+  const purchaseSpendToday = sum(purchasesToday, dashboardTotal);
+  const purchaseSpendMonth = sum(purchasesMonth, dashboardTotal);
+  const money = value => new Intl.NumberFormat(locale === "fr" ? "fr-FR" : locale === "ar" ? "ar-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(value) ? value : 0) + " DA";
+  const number = value => new Intl.NumberFormat(locale === "fr" ? "fr-FR" : locale === "ar" ? "ar-DZ" : "en-US", { maximumFractionDigits: 0 }).format(value);
+  const label = (en, fr, ar) => locale === "ar" ? ar : locale === "fr" ? fr : en;
+  const lastDays = Array.from({length: period === "30d" ? 30 : 7}, (_, index, array) => {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (array.length - 1 - index));
+    const key = dayKey(date);
+    const matches = sales.filter(sale => dayKey(dashboardDate(sale)) === key);
+    const purchaseMatches = purchases.filter(purchase => dayKey(dashboardDate(purchase)) === key);
+    return {
+      label: date.toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-FR" : "en-US", { day: "2-digit", month: "short" }),
+      sales: sum(matches, totalForSale),
+      collected: sum(matches, paidForSale),
+      profit: sum(matches, profitForSale),
+      purchases: sum(purchaseMatches, dashboardTotal),
+      invoices: matches.length,
+    };
+  });
+  const lastMonths = Array.from({length: 6}, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth() - 5 + index, 1);
+    const key = monthKey(date);
+    const matches = sales.filter(sale => monthKey(dashboardDate(sale)) === key);
+    const purchaseMatches = purchases.filter(purchase => monthKey(dashboardDate(purchase)) === key);
+    return {
+      label: date.toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-FR" : "en-US", { month: "short" }),
+      sales: sum(matches, totalForSale),
+      collected: sum(matches, paidForSale),
+      profit: sum(matches, profitForSale),
+      purchases: sum(purchaseMatches, dashboardTotal),
+      invoices: matches.length,
+    };
+  });
+  const topProducts = dashboardData.products.map(product => {
+    const sold = sales.reduce((total, sale) => total + (sale.items || []).reduce((lineTotal, line) => {
+      const same = String(line.productId ?? line.id ?? "") === String(product.id) || (line.sku && line.sku === product.sku);
+      return lineTotal + (same ? Math.max(0, Number(line.qty ?? line.quantity ?? 0) || 0) : 0);
+    }, 0), 0);
+    return { ...product, sold };
+  }).filter(product => product.sold > 0).sort((a,b) => b.sold-a.sold).slice(0,5);
+  const tooltipStyle = { background: "#101827", border: "1px solid rgba(148,163,184,.2)", borderRadius: 12, color: "#edf4ff", fontSize: 12 };
+  const cards = [
+    { title: label("Sales today","Ventes du jour","مبيعات اليوم"), value: money(salesTodayTotal), note: label(salesToday.length + " invoices today", salesToday.length + " factures aujourd’hui", salesToday.length + " فاتورة اليوم"), icon: ShoppingCart, tone: "teal", onClick: "Sales History" },
+    { title: label("Sales this month","Ventes du mois","مبيعات الشهر"), value: money(salesMonthTotal), note: label(salesMonth.length + " completed invoices", salesMonth.length + " factures terminées", salesMonth.length + " فاتورة مكتملة"), icon: BarChart3, tone: "violet", onClick: "Sales History" },
+    { title: label("Collected today","Encaissements du jour","المقبوضات اليوم"), value: money(paidToday), note: label("Payments received", "Paiements reçus", "المبالغ المقبوضة"), icon: Wallet, tone: "blue", onClick: "Cash Register" },
+    { title: label("Collected this month","Encaissements du mois","المقبوضات هذا الشهر"), value: money(paidMonth), note: label("Payments received", "Paiements reçus", "المبالغ المقبوضة"), icon: CreditCard, tone: "green", onClick: "Cash Register" },
+    { title: label("Estimated profit today","Profit estimé du jour","الربح التقديري اليوم"), value: money(profitToday), note: label("Sales minus estimated item cost", "Ventes moins coût estimé", "المبيعات ناقص تكلفة الشراء التقديرية"), icon: Wallet, tone: "green", onClick: "Reports" },
+    { title: label("Estimated profit this month","Profit estimé du mois","الربح التقديري هذا الشهر"), value: money(profitMonth), note: label("Uses current product purchase costs", "Basé sur les coûts d’achat actuels", "يعتمد على أسعار الشراء الحالية للمنتجات"), icon: BarChart3, tone: "violet", onClick: "Reports" },
+    { title: label("Purchases today","Achats du jour","مشتريات اليوم"), value: money(purchaseSpendToday), note: label(purchasesToday.length + " purchase vouchers", purchasesToday.length + " bons d’achat", purchasesToday.length + " بون شراء"), icon: ReceiptText, tone: "orange", onClick: "Purchase History" },
+    { title: label("Purchases this month","Achats du mois","مشتريات الشهر"), value: money(purchaseSpendMonth), note: label(purchasesMonth.length + " purchase vouchers", purchasesMonth.length + " bons d’achat", purchasesMonth.length + " بون شراء"), icon: Boxes, tone: "orange", onClick: "Purchase History" },
+  ];
+  const metricLabels = [
+    { title: label("Inventory cost value","Valeur du stock au coût d’achat","قيمة المخزون بسعر الشراء"), value: money(stockValue), note: number(stockUnits) + " " + label("units in stock","unités en stock","وحدة في المخزون"), icon: Package, onClick: "Products" },
+    { title: label("Customer receivables","Créances clients","ديون العملاء"), value: money(receivables), note: label("Outstanding balance on sales", "Solde restant sur les ventes", "المبالغ المتبقية على المبيعات"), icon: Users, onClick: "Sales History" },
+    { title: label("Products at low stock","Produits en stock faible","منتجات منخفضة المخزون"), value: number(lowStock), note: label("At or below minimum stock", "Au seuil minimum ou en dessous", "بلغت الحد الأدنى أو أقل"), icon: AlertTriangle, onClick: "Products" },
+    { title: label("Completed invoices","Factures terminées","الفواتير المكتملة"), value: number(sales.length), note: label("All recorded sales", "Toutes les ventes enregistrées", "كل عمليات البيع المسجلة"), icon: ReceiptText, onClick: "Sales History" },
+  ];
   return (
-    <>
-      <div className="welcome-banner">
-        <div className="welcome-content">
-          <div className="welcome-eyebrow">
-            YOUR BUSINESS AT A GLANCE
-          </div>
-
-          <h2>{tr(locale, "Welcome back, Administrator")}</h2>
-
-          <p>
-            Manage your sales and inventory from one place.
-          </p>
-
-          <div className="welcome-date">
-            {new Date().toLocaleDateString()}
-          </div>
+    <div className="dashboard-page">
+      <section className="dashboard-welcome">
+        <div className="dashboard-welcome-copy">
+          <span className="dashboard-eyebrow">{label("BUSINESS PERFORMANCE CENTER","CENTRE DE PERFORMANCE","مركز أداء الأعمال")}</span>
+          <h1>{label("Business overview","Vue d’ensemble","نظرة عامة على الأعمال")}</h1>
+          <p>{label("Daily sales, monthly performance, cash flow and inventory — all in one place.","Ventes quotidiennes, performances mensuelles, trésorerie et stock au même endroit.","المبيعات اليومية والأداء الشهري والتدفقات النقدية والمخزون في مكان واحد.")}</p>
+          <div className="dashboard-welcome-bottom"><span><CalendarDays size={15} /> {now.toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-FR" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</span><span className="dashboard-live-dot">{label("Live local data","Données locales en direct","بيانات محلية مباشرة")}</span></div>
         </div>
-      </div>
+        <div className="dashboard-welcome-art"><div className="dashboard-art-ring ring-one"></div><div className="dashboard-art-ring ring-two"></div><div className="dashboard-art-center"><BarChart3 size={36} /></div><div className="dashboard-art-mini mini-one"><TrendingUp size={17}/><span>{label("Sales","Ventes","المبيعات")}</span></div><div className="dashboard-art-mini mini-two"><Wallet size={17}/><span>{label("Cash flow","Trésorerie","التدفق النقدي")}</span></div></div>
+      </section>
 
-      <div className="section-heading">
-        <div>
-          <h2>{tr(locale, "Quick access")}</h2>
-          <p>{tr(locale, "Continue working in VELTRO-PRO.")}</p>
+      <section className="dashboard-section">
+        <div className="dashboard-section-head"><div><h2>{label("Performance indicators","Indicateurs de performance","مؤشرات الأداء")}</h2><p>{label("Actual figures from recorded invoices and inventory.","Chiffres réels des factures et du stock enregistrés.","أرقام فعلية من الفواتير والمخزون المسجل.")}</p></div><button className="dashboard-refresh" onClick={() => { setDashboardData({sales:readDashboardArray("veltro_completed_sales"),purchases:readDashboardArray("veltro_purchase_invoices"),products:readDashboardArray("veltro_products")}); setRefreshedAt(new Date()); }}><RefreshCw size={15}/>{label("Refresh","Actualiser","تحديث")}</button></div>
+        <div className="dashboard-kpi-grid">{cards.map((card,index) => { const Icon=card.icon; return <button type="button" key={card.title} className={"dashboard-kpi-card tone-"+card.tone} onClick={() => onNavigate(card.onClick)}><span className="dashboard-kpi-icon"><Icon size={19}/></span><span className="dashboard-kpi-title">{card.title}</span><strong className="dashboard-kpi-value">{card.value}</strong><span className="dashboard-kpi-note">{card.note}</span></button>; })}</div>
+        <div className="dashboard-secondary-grid">{metricLabels.map(card=>{const Icon=card.icon;return <button type="button" className="dashboard-secondary-card" key={card.title} onClick={()=>onNavigate(card.onClick)}><span className="dashboard-secondary-icon"><Icon size={18}/></span><span><small>{card.title}</small><strong>{card.value}</strong><em>{card.note}</em></span><ChevronRight size={17}/></button>;})}</div>
+      </section>
+
+      <section className="dashboard-section">
+        <div className="dashboard-section-head"><div><h2>{label("Sales and revenue analytics","Analyse des ventes et revenus","تحليلات المبيعات والإيرادات")}</h2><p>{label("Compare sales totals, collected payments and estimated profit.","Comparez le chiffre d’affaires, les encaissements et le bénéfice estimé.","قارن إجمالي المبيعات والمبالغ المقبوضة والربح التقديري.")}</p></div><div className="dashboard-period-switch"><button className={period==="7d"?"active":""} onClick={()=>setPeriod("7d")}>{label("7 days","7 jours","7 أيام")}</button><button className={period==="30d"?"active":""} onClick={()=>setPeriod("30d")}>{label("30 days","30 jours","30 يومًا")}</button></div></div>
+        <div className="dashboard-chart-grid">
+          <article className="dashboard-chart-card dashboard-chart-wide"><div className="dashboard-chart-heading"><div><h3>{label("Daily sales & collections","Ventes et encaissements quotidiens","المبيعات والمقبوضات اليومية")}</h3><p>{label("Daily totals for the selected period","Totaux quotidiens pour la période choisie","الإجماليات اليومية للفترة المحددة")}</p></div><span className="dashboard-chart-tag">{period==="7d"?label("Last 7 days","7 derniers jours","آخر 7 أيام"):label("Last 30 days","30 derniers jours","آخر 30 يومًا")}</span></div><div className="dashboard-chart-area"><ResponsiveContainer width="100%" height="100%"><BarChart data={lastDays} margin={{top:10,right:8,left:0,bottom:0}}><CartesianGrid stroke="rgba(148,163,184,.12)" strokeDasharray="3 5"/><XAxis dataKey="label" tick={{fill:"#8493a9",fontSize:11}} axisLine={false} tickLine={false} interval={period==="30d"?4:0}/><YAxis tick={{fill:"#8493a9",fontSize:11}} axisLine={false} tickLine={false} width={58} tickFormatter={v=>v>=1000000?(v/1000000).toFixed(1)+"M":v>=1000?(v/1000).toFixed(0)+"k":String(v)}/><Tooltip contentStyle={tooltipStyle} formatter={(value,name)=>[money(Number(value)),name==="sales"?label("Sales","Ventes","المبيعات"):label("Collected","Encaissé","المقبوضات")]}/><Legend wrapperStyle={{fontSize:11,color:"#9aa8bb"}}/><Bar dataKey="sales" name={label("Sales","Ventes","المبيعات")} fill="#35d6c5" radius={[5,5,0,0]} maxBarSize={period==="30d"?18:34}/><Bar dataKey="collected" name={label("Collected","Encaissé","المقبوضات")} fill="#8b7bff" radius={[5,5,0,0]} maxBarSize={period==="30d"?18:34}/></BarChart></ResponsiveContainer></div></article>
+          <article className="dashboard-chart-card"><div className="dashboard-chart-heading"><div><h3>{label("Sales vs purchases","Ventes vs achats","المبيعات مقابل المشتريات")}</h3><p>{label("Daily business movement","Mouvements quotidiens","حركة النشاط اليومية")}</p></div></div><div className="dashboard-chart-area"><ResponsiveContainer width="100%" height="100%"><AreaChart data={lastDays} margin={{top:10,right:4,left:0,bottom:0}}><defs><linearGradient id="dashSalesFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#35d6c5" stopOpacity={.28}/><stop offset="95%" stopColor="#35d6c5" stopOpacity={0}/></linearGradient><linearGradient id="dashPurchasesFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#f5a65b" stopOpacity={.2}/><stop offset="95%" stopColor="#f5a65b" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="rgba(148,163,184,.12)" strokeDasharray="3 5"/><XAxis dataKey="label" tick={{fill:"#8493a9",fontSize:10}} axisLine={false} tickLine={false} interval={period==="30d"?5:0}/><YAxis tick={{fill:"#8493a9",fontSize:10}} axisLine={false} tickLine={false} width={48} tickFormatter={v=>v>=1000?(v/1000).toFixed(0)+"k":String(v)}/><Tooltip contentStyle={tooltipStyle} formatter={value=>money(Number(value))}/><Area type="monotone" dataKey="sales" name={label("Sales","Ventes","المبيعات")} stroke="#35d6c5" strokeWidth={2.5} fill="url(#dashSalesFill)"/><Area type="monotone" dataKey="purchases" name={label("Purchases","Achats","المشتريات")} stroke="#f5a65b" strokeWidth={2} fill="url(#dashPurchasesFill)"/></AreaChart></ResponsiveContainer></div></article>
+          <article className="dashboard-chart-card dashboard-chart-wide"><div className="dashboard-chart-heading"><div><h3>{label("Monthly sales, collections & profit","Ventes, encaissements et bénéfice mensuels","المبيعات والمقبوضات والأرباح الشهرية")}</h3><p>{label("Six-month business performance","Performances sur six mois","أداء النشاط خلال ستة أشهر")}</p></div></div><div className="dashboard-chart-area dashboard-chart-area-tall"><ResponsiveContainer width="100%" height="100%"><LineChart data={lastMonths} margin={{top:10,right:10,left:0,bottom:0}}><CartesianGrid stroke="rgba(148,163,184,.12)" strokeDasharray="3 5"/><XAxis dataKey="label" tick={{fill:"#8493a9",fontSize:11}} axisLine={false} tickLine={false}/><YAxis tick={{fill:"#8493a9",fontSize:11}} axisLine={false} tickLine={false} width={58} tickFormatter={v=>v>=1000000?(v/1000000).toFixed(1)+"M":v>=1000?(v/1000).toFixed(0)+"k":String(v)}/><Tooltip contentStyle={tooltipStyle} formatter={(value,name)=>[money(Number(value)),name==="sales"?label("Sales","Ventes","المبيعات"):name==="collected"?label("Collected","Encaissé","المقبutions"):label("Estimated profit","Bénéfice estimé","الربح التقديري")]}/><Legend wrapperStyle={{fontSize:11,color:"#9aa8bb"}}/><Line type="monotone" dataKey="sales" name={label("Sales","Ventes","المبيعات")} stroke="#35d6c5" strokeWidth={2.5} dot={{r:3,fill:"#35d6c5"}} activeDot={{r:5}}/><Line type="monotone" dataKey="collected" name={label("Collected","Encaissé","المقبوضات")} stroke="#8b7bff" strokeWidth={2.5} dot={{r:3,fill:"#8b7bff"}}/><Line type="monotone" dataKey="profit" name={label("Estimated profit","Bénéfice estimé","الربح التقديري")} stroke="#65d98a" strokeWidth={2.5} dot={{r:3,fill:"#65d98a"}}/></LineChart></ResponsiveContainer></div></article>
         </div>
-      </div>
+      </section>
 
-      <div className="stats-grid">
-        <button
-          className="panel quick-access-card"
-          type="button"
-          onClick={() => onNavigate("Point of Sale")}
-        >
-          <ShoppingCart size={25} />
-          <strong>{tr(locale, "Point of Sale")}</strong>
-          <span>{tr(locale, "Create a new sale")}</span>
-        </button>
-
-        <button
-          className="panel quick-access-card"
-          type="button"
-          onClick={() => onNavigate("Sales History")}
-        >
-          <History size={25} />
-          <strong>{tr(locale, "Sales History")}</strong>
-          <span>{tr(locale, "Review completed invoices")}</span>
-        </button>
-
-        <button
-          className="panel quick-access-card"
-          type="button"
-          onClick={() => onNavigate("Products")}
-        >
-          <Package size={25} />
-          <strong>{tr(locale, "Products")}</strong>
-          <span>{tr(locale, "Manage inventory")}</span>
-        </button>
-      </div>
-    </>
+      <section className="dashboard-bottom-grid">
+        <article className="dashboard-chart-card dashboard-top-products"><div className="dashboard-chart-heading"><div><h3>{label("Best-selling products","Produits les plus vendus","المنتجات الأكثر مبيعًا")}</h3><p>{label("Ranked by units sold across recorded invoices","Classés par unités vendues","مرتبة حسب عدد الوحدات المباعة")}</p></div><button className="dashboard-text-link" onClick={()=>onNavigate("Products")}>{label("View products","Voir les produits","عرض المنتجات")} <ChevronRight size={15}/></button></div>
+          {topProducts.length ? <div className="dashboard-top-list">{topProducts.map((product,index)=> <div className="dashboard-top-row" key={product.id}><span className="dashboard-rank">{String(index+1).padStart(2,"0")}</span><span className="dashboard-product-mark"><Package size={17}/></span><span className="dashboard-product-name"><strong>{product.name}</strong><small>{product.sku || product.id}</small></span><span className="dashboard-product-sold"><strong>{number(product.sold)}</strong><small>{label("units sold","unités vendues","وحدة مباعة")}</small></span><div className="dashboard-product-bar"><span style={{width:(product.sold/Math.max(1,topProducts[0].sold)*100)+"%"}}/></div></div>)}</div> : <div className="dashboard-empty-chart"><Package size={25}/><strong>{label("No sales data yet","Aucune vente enregistrée","لا توجد مبيعات مسجلة بعد")}</strong><span>{label("Completed invoices will populate this ranking.","Les factures terminées alimenteront ce classement.","ستظهر المنتجات هنا بعد تسجيل فواتير بيع مكتملة.")}</span></div>}
+        </article>
+        <article className="dashboard-chart-card dashboard-health-card"><div className="dashboard-chart-heading"><div><h3>{label("Inventory health","État du stock","حالة المخزون")}</h3><p>{label("Current inventory overview","Vue du stock actuel","نظرة عامة على المخزون الحالي")}</p></div></div><div className="dashboard-health-main"><span className="dashboard-health-icon"><Package size={22}/></span><div><small>{label("Units currently in stock","Unités actuellement en stock","الوحدات الموجودة حاليًا")}</small><strong>{number(stockUnits)}</strong></div></div><div className="dashboard-health-line"><span>{label("Products in catalog","Produits au catalogue","المنتجات في القائمة")}</span><strong>{number(dashboardData.products.length)}</strong></div><div className="dashboard-health-line"><span>{label("Low-stock products","Produits à faible stock","منتجات منخفضة المخزون")}</span><strong className={lowStock?"dashboard-warning-text":""}>{number(lowStock)}</strong></div><div className="dashboard-health-line"><span>{label("Inventory cost value","Valeur du stock au coût","قيمة المخزون بسعر التكلفة")}</span><strong>{money(stockValue)}</strong></div><button className="dashboard-health-button" onClick={()=>onNavigate("Products")}>{label("Manage inventory","Gérer le stock","إدارة المخزون")} <ChevronRight size={15}/></button></article>
+      </section>
+      <div className="dashboard-footer-note"><span>{label("Last refreshed","Dernière actualisation","آخر تحديث")} {refreshedAt.toLocaleTimeString(locale==="ar"?"ar-DZ":locale==="fr"?"fr-FR":"en-US",{hour:"2-digit",minute:"2-digit"})}</span><span>{label("Estimated profit is based on the current purchase price saved on each product; it is not a formal accounting result.","Le bénéfice estimé utilise le prix d’achat actuel de chaque produit ; il ne constitue pas un résultat comptable officiel.","الربح التقديري محسوب باستخدام سعر الشراء الحالي للمنتج، وليس نتيجة محاسبية رسمية.")}</span></div>
+    </div>
   );
 }
 
