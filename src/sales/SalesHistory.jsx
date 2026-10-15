@@ -1126,7 +1126,7 @@ export default function SalesHistory() {
           </label>
         </div>
 
-        <div className="table-wrapper">
+        <div className="table-wrapper sales-history-main-table">
           <table className="products-table">
             <thead>
               <tr>
