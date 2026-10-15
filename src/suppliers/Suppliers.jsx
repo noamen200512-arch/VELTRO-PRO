@@ -1,10 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Phone, Truck, X, Save, CheckCircle2, AlertTriangle } from "lucide-react";
 import {
   getPurchaseSuppliers,
   savePurchaseSuppliers,
   getPurchaseInvoices,
 } from "../purchases/purchaseService.js";
+import { loadSuppliersFromCloud, saveSuppliersToCloud, deleteSupplierFromCloud } from "../lib/supplierCloud.js";
 import "./suppliers.css";
 
 const normalize = (value) => String(value ?? "").trim().toLowerCase();
@@ -51,12 +52,48 @@ export default function Suppliers() {
     setNoticeType(type);
   };
 
+  useEffect(() => {
+    let active = true;
+    const localSuppliers = loadSuppliers();
+
+    loadSuppliersFromCloud(localSuppliers)
+      .then((loaded) => {
+        if (!active || !Array.isArray(loaded)) return;
+        const normalized = loaded.map((item) => ({
+          ...item,
+          id: item.id || createId(),
+          name: item.name || "",
+          phone: item.phone || "",
+        }));
+        savePurchaseSuppliers(normalized);
+        setSuppliers(normalized);
+      })
+      .catch(() => {
+        if (active) {
+          notify(
+            "Cloud sync unavailable. Supplier data remains available on this device.",
+            "error"
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const persist = (next) => {
     if (!savePurchaseSuppliers(next)) {
       notify("Could not save supplier data. Please check browser storage.", "error");
       return false;
     }
     setSuppliers(next);
+    saveSuppliersToCloud(next).catch(() => {
+      notify(
+        "Supplier changes were saved on this device, but cloud sync failed. Please check your connection and sign in again.",
+        "error"
+      );
+    });
     return true;
   };
 
@@ -144,7 +181,7 @@ export default function Suppliers() {
     notify(editing ? "Supplier updated successfully." : "Supplier added successfully.");
   };
 
-  const deleteSupplier = (supplier) => {
+  const deleteSupplier = async (supplier) => {
     let invoices = [];
 
     try {
@@ -172,6 +209,16 @@ export default function Suppliers() {
     }
 
     if (!window.confirm(`Delete supplier "${supplier.name}"?`)) return;
+
+    try {
+      await deleteSupplierFromCloud(supplier.id);
+    } catch {
+      notify(
+        "Could not delete this supplier from the cloud. No local deletion was made.",
+        "error"
+      );
+      return;
+    }
 
     const next = suppliers.filter((item) => item.id !== supplier.id);
     if (persist(next)) notify("Supplier deleted.");
