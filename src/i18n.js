@@ -647,9 +647,9 @@ const dictionaries = {
     "Could not open the camera. Check browser camera permission or enter the barcode below.": "Impossible d’ouvrir la caméra. Vérifiez les autorisations ou saisissez le code-barres ci-dessous.",
     "Add at least one product before saving a pending voucher.": "Ajoutez au moins un produit avant d’enregistrer un bon en attente.",
     "Could not save the pending voucher. Check available storage.": "Impossible d’enregistrer le bon en attente. Vérifiez l’espace de stockage.",
+    "Start typing a product name, reference, or barcode.": "Commencez à saisir un nom, une référence ou un code-barres.",
   },
-
-    "Start typing a product name, reference, or barcode.": "Commencez à saisir un nom, une référence ou un code-barres.",  ar: {
+  ar: {
     "ANALYTICS": "التحليلات",
     "PURCHASE REGISTER": "سجل المشتريات",
     "No purchase records available for the chart.": "لا توجد بيانات مشتريات لعرضها في الرسم البياني.",
@@ -1248,8 +1248,8 @@ const dictionaries = {
     "Could not open the camera. Check browser camera permission or enter the barcode below.": "تعذر فتح الكاميرا. تحقق من صلاحيتها في المتصفح أو أدخل الباركود أدناه.",
     "Add at least one product before saving a pending voucher.": "أضف منتجًا واحدًا على الأقل قبل حفظ البون كقيد الانتظار.",
     "Could not save the pending voucher. Check available storage.": "تعذر حفظ البون المعلق. تحقق من مساحة التخزين المتاحة.",
-  }
     "Start typing a product name, reference, or barcode.": "ابدأ بكتابة اسم المنتج أو المرجع أو الباركود.",
+  }
 };
 
 const attributes = ["placeholder", "title", "aria-label", "aria-description"];
