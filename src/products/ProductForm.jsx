@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  X, Plus, Save, RefreshCw, Barcode, Camera, Percent, ImagePlus,
+  X, Plus, Save, RefreshCw, Barcode, Camera, Percent, ImagePlus, Check,
   Trash2, Package, ShoppingCart, BadgePercent, CalendarDays, Boxes,
   ScanBarcode, Tag,
 } from "lucide-react";
@@ -132,16 +132,17 @@ export default function ProductForm({
             <Field label="Retail Selling Price per Unit (DA)">
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.price} onChange={(e) => updateField("price", e.target.value)} placeholder="0.00" />
             </Field>
-            <Field label="Unit Profit Margin (%)">
+            <Field label="Manual Unit Profit Margin (%)">
               <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.retailProfit} onChange={(e) => updateField("retailProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
             </Field>
             <Field label="Carton Selling Price (DA)">
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.cartonPrice} onChange={(e) => updateField("cartonPrice", e.target.value)} placeholder="0.00" />
             </Field>
-            <Field label="Carton Profit Margin (%)">
+            <Field label="Manual Carton Profit Margin (%)">
               <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.cartonProfit} onChange={(e) => updateField("cartonProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
             </Field>
           </div>
+          <div style={{ color: C.muted, fontSize: 11, marginTop: 10 }}>You can type the profit percentage yourself. The selling price updates automatically from the entered margin; you can also type the selling price directly.</div>
         </Section>
 
         <Section icon={Tag} title="Additional Details">
@@ -201,9 +202,9 @@ export default function ProductForm({
           </div>
           <Field label="New Secondary Barcode">
             <div style={{ display: "flex", gap: 7 }}>
-              <input className="veltro-product-input" style={inputStyle} value={form.newBarcode || ""} onChange={(e) => updateField("newBarcode", e.target.value)} placeholder="Enter or scan a barcode" />
+              <input className="veltro-product-input" style={inputStyle} value={form.newBarcode || ""} onChange={(e) => updateField("newBarcode", e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addExtraBarcode(); } }} placeholder="Enter a barcode, then confirm" />
               <button type="button" title="Scan barcode" onClick={() => onOpenScanner("extra")} style={{ ...actionButton, color: C.green }}><Camera size={16} /></button>
-              <button type="button" onClick={addExtraBarcode} style={{ ...actionButton, color: C.cyan }}><Plus size={15} /> Add</button>
+              <button type="button" onClick={addExtraBarcode} style={{ ...actionButton, color: C.cyan }}><Check size={15} /> Confirm</button>
             </div>
           </Field>
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 15 }}><button type="button" onClick={() => setBarcodeModalOpen(false)} style={{ ...actionButton, background: C.cyan, color: "#07131A", borderColor: C.cyan }}>Done</button></div>
