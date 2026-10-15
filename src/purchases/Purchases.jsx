@@ -1244,13 +1244,9 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
   };
 
   const openNewInvoice = () => {
-    const savedDraft = safeRead(DRAFT_KEY, null);
-    if (savedDraft && Array.isArray(savedDraft.lines) && savedDraft.lines.length) {
-      setSavedDraftAvailable(true);
-      setNotice("An unfinished purchase invoice is saved. Restore it before starting another invoice.");
-      return;
-    }
-    resetDraft(false);
+    // Always allow a new invoice. Starting a fresh invoice clears the single
+    // autosaved draft slot so it cannot be silently mixed with the new invoice.
+    resetDraft(true);
     setDraftInvoiceNumber(`PUR-${Date.now()}`);
     setDraftCreatedBy(getCurrentUserName());
     setDraftCreatedAt(nowISO());
