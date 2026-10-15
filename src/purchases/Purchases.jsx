@@ -7,6 +7,9 @@ import {
   UserRound, Hash, Clock3, ListFilter
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
+import { saveProductsToCloud } from "../lib/productCloud.js";
+import { saveSuppliersToCloud } from "../lib/supplierCloud.js";
+import { savePurchaseInvoiceToCloud } from "../lib/purchaseCloud.js";
 import {
   getPurchaseInvoices,
   getPurchaseSuppliers,
@@ -1389,7 +1392,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     setDraftCreatedAt(invoice.date || nowISO());
   };
 
-  const confirmAccount = () => {
+  const confirmAccount = async () => {
     if (!supplier.trim()) {
       setNotice("Select a supplier or enter its name first.");
       setShowAccount(false);
@@ -1564,7 +1567,21 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     setShowInvoice(false);
     setActiveTab("dashboard");
     resetDraft(true);
-    setNotice("Purchase invoice closed. Invoice saved and inventory updated.");
+    setNotice("Purchase invoice saved locally. Synchronizing with cloud…");
+
+    try {
+      await saveSuppliersToCloud(nextSuppliers);
+      await saveProductsToCloud(nextProducts);
+      await savePurchaseInvoiceToCloud(invoice, nextSuppliers, {
+        replaceItems: Boolean(existing),
+      });
+      setNotice("Purchase invoice saved, inventory updated, and cloud synchronized.");
+    } catch (cloudError) {
+      console.error("VELTRO purchase cloud sync failed:", cloudError);
+      setNotice(
+        "Purchase invoice and inventory were saved on this device, but cloud sync failed. Check your connection and account permissions."
+      );
+    }
   };
 
   const openAccount = () => {
