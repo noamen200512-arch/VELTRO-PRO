@@ -24,6 +24,13 @@ const DRAFT_KEY = "veltro_purchase_draft_v2";
 const CATEGORIES_KEY = "veltro_product_categories";
 const UNITS_KEY = "veltro_product_units";
 
+const nextSupplierReference = items => {
+  const used = new Set((items || []).map(item => String(item.reference || "").toUpperCase()));
+  let number = 1;
+  while (used.has("SUP-" + String(number).padStart(6, "0"))) number += 1;
+  return "SUP-" + String(number).padStart(6, "0");
+};
+
 const purchaseText = (en, fr, ar) => {
   const locale = document.documentElement.lang;
   return locale === "ar" ? ar : locale === "fr" ? fr : en;
@@ -1507,12 +1514,15 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
       : null;
 
     const timestamp = nowISO();
+    const previousSupplier = suppliers.find(item => normalize(item.name) === normalize(supplier));
+    const isUnknownSupplier = normalize(supplier) === normalize("Unknown Supplier");
+    const linkedSupplierId = isUnknownSupplier ? "" : (supplierId || previousSupplier?.id || (existing && normalize(existing.supplier) === normalize(supplier) ? existing.supplierId : "") || makeId("SUP"));
 
     const invoice = {
       id: existing?.id || makeId("PUR"),
       number: existing?.number || draftInvoiceNumber || `PUR-${Date.now()}`,
       supplier: supplier.trim(),
-      supplierId: supplierId || suppliers.find(item => normalize(item.name) === normalize(supplier))?.id || "",
+      supplierId: linkedSupplierId,
       phone: supplierPhone.trim(),
       date: existing?.date || timestamp,
       updatedAt: timestamp,
@@ -1546,14 +1556,9 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
       closedBy: getCurrentUserName()
     };
 
-    const previousSupplier = suppliers.find(
-      item => normalize(item.name) === normalize(supplier)
-    );
-
-    const isUnknownSupplier = normalize(supplier) === normalize("Unknown Supplier");
     const nextSupplier = {
-      id: previousSupplier?.id || supplierId || makeId("SUP"),
-      reference: previousSupplier?.reference || ("SUP-" + String(suppliers.length + 1).padStart(6, "0")),
+      id: linkedSupplierId || previousSupplier?.id || makeId("SUP"),
+      reference: previousSupplier?.reference || nextSupplierReference(suppliers),
       name: supplier.trim(),
       phone: supplierPhone.trim() || previousSupplier?.phone || "",
       debt: newDebt,
