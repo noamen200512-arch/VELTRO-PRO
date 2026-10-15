@@ -4,7 +4,7 @@ import {
   CreditCard, Eye, Printer, Pencil, Barcode, Camera, Images,
   Save, History, CheckCircle2, AlertTriangle, Info, RotateCcw,
   FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign, ReceiptText, Wallet,
-  UserRound, Hash, Clock3, ScanBarcode, ListFilter
+  UserRound, Hash, Clock3, ListFilter
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
 import {
@@ -938,7 +938,7 @@ function CameraScannerModal({ onClose, onDetected }) {
             disabled={!manualCode.trim()}
             onClick={() => detectedRef.current?.(manualCode.trim())}
           >
-            <ScanBarcode size={16} /> Use Barcode
+            <Barcode size={16} /> Use Barcode
           </Button>
         </footer>
       </div>
