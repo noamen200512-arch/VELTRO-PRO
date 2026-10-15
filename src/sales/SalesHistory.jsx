@@ -405,7 +405,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     if (!row || !item) return;
     const qty = Math.max(1, Math.floor(Number(row.qty) || 1));
     const rawPrice = String(row.price ?? item.price ?? 0).trim().replace(",", ".");
-    const numericPrice = Number(rawPrice);
+    const numericPrice = rawPrice === "" ? Math.max(0, Number(item.price) || 0) : Number(rawPrice);
     const decimals = (rawPrice.split(".")[1] || "").length;
     const price = !Number.isFinite(numericPrice) || numericPrice < 0 ? Math.max(0, Number(item.price) || 0)
       : numericPrice === 0 ? 0 : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
@@ -507,12 +507,29 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
       return;
     }
 
+    const itemsToSave = draft.items.map((item, index) => {
+      const row = itemDrafts[index];
+      if (!row) return item;
+      const qty = Math.max(1, Math.floor(Number(row.qty) || 1));
+      const rawPrice = String(row.price ?? item.price ?? 0).trim().replace(",", ".");
+      const numericPrice = rawPrice === "" ? Math.max(0, Number(item.price) || 0) : Number(rawPrice);
+      const decimals = (rawPrice.split(".")[1] || "").length;
+      const price = !Number.isFinite(numericPrice) || numericPrice < 0
+        ? Math.max(0, Number(item.price) || 0)
+        : numericPrice === 0 ? 0
+          : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
+      const discount = Math.max(0, Number(String(row.discount ?? 0).replace(",", ".")) || 0);
+      return { ...item, qty, quantity: qty, price, discount };
+    });
+    const savedSubtotal = invoiceSubtotal(itemsToSave);
+    const savedTotal = Math.max(0, savedSubtotal - (Number(draft.discount) || 0));
+
     if (paid < 0) {
       setError("Paid amount cannot be negative.");
       return;
     }
 
-    if (paid > total) {
+    if (paid > savedTotal) {
       setError("The paid amount cannot exceed the invoice total.");
       return;
     }
@@ -525,10 +542,11 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     try {
       result = onSave({
         ...draft,
-        subtotal,
-        total,
+        items: itemsToSave,
+        subtotal: savedSubtotal,
+        total: savedTotal,
         paid,
-        remaining: Math.max(0, total - paid),
+        remaining: Math.max(0, savedTotal - paid),
       });
     } catch {
       result = { ok: false, error: "UNKNOWN_ERROR" };
