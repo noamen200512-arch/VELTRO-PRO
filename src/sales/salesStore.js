@@ -538,3 +538,42 @@ export function getCustomerDebt(customerId) {
     return total + Math.max(0, invoiceTotal - paid);
   }, 0);
 }
+
+
+/**
+ * Update only the payment/accounting fields of a completed invoice.
+ * Inventory is intentionally untouched because the sold items did not change.
+ */
+export function updateCompletedSalePayment(invoiceId, paidAmount) {
+  if (!invoiceId) return { ok: false, error: "INVALID_INVOICE" };
+
+  const paid = Number(paidAmount);
+  if (!Number.isFinite(paid) || paid < 0) {
+    return { ok: false, error: "INVALID_PAID_AMOUNT" };
+  }
+
+  const sales = getCompletedSales();
+  const saleIndex = findSaleIndex(sales, invoiceId);
+  if (saleIndex < 0) return { ok: false, error: "INVOICE_NOT_FOUND" };
+
+  const sale = sales[saleIndex];
+  const total = Math.max(0, Number(sale.total) || 0);
+  if (paid > total) return { ok: false, error: "PAID_EXCEEDS_TOTAL" };
+
+  const updatedSale = {
+    ...sale,
+    paid,
+    remaining: Math.max(0, total - paid),
+    updatedAt: new Date().toISOString(),
+    accountUpdatedAt: new Date().toISOString(),
+  };
+
+  const nextSales = [...sales];
+  nextSales[saleIndex] = updatedSale;
+  if (!writeArray(SALES_KEY, nextSales)) {
+    return { ok: false, error: "SALE_SAVE_FAILED" };
+  }
+
+  return { ok: true, sale: updatedSale };
+}
+
