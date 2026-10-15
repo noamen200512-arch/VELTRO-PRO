@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Package,
   Minus,
@@ -9,6 +9,53 @@ import {
   Undo2,
   Boxes,
 } from "lucide-react";
+
+function EditablePriceInput({ item, value, onCommit }) {
+  const formatPrice = (price) => {
+    const numeric = Number(price);
+    return Number.isFinite(numeric) && numeric >= 0 ? numeric.toFixed(2) : "0.00";
+  };
+
+  const [draft, setDraft] = useState(() => formatPrice(value));
+
+  useEffect(() => {
+    setDraft(formatPrice(value));
+  }, [value]);
+
+  const commit = () => {
+    const normalized = String(draft).trim().replace(",", ".");
+    const numeric = Number(normalized);
+
+    if (normalized === "" || !Number.isFinite(numeric) || numeric < 0) {
+      setDraft(formatPrice(value));
+      return;
+    }
+
+    onCommit(item, "price", numeric);
+    setDraft(formatPrice(numeric));
+  };
+
+  return (
+    <input
+      className="invoice-cell-input"
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      aria-label={`Unit price for ${item.name}`}
+      value={draft}
+      onFocus={(event) => event.currentTarget.select()}
+      onChange={(event) => setDraft(event.target.value.replace(/[^0-9.,]/g, ""))}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+        if (event.key === "Escape") {
+          setDraft(formatPrice(value));
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
 
 export function InvoiceTable({
   items = [],
@@ -293,20 +340,10 @@ export function InvoiceTable({
                     </td>
 
                     <td>
-                      <input
-                        className="invoice-cell-input"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        aria-label={`Unit price for ${item.name}`}
-                        value={(Number(item.price) || 0).toFixed(2)}
-                        onChange={(event) =>
-                          updateField(
-                            item,
-                            "price",
-                            event.target.value
-                          )
-                        }
+                      <EditablePriceInput
+                        item={item}
+                        value={item.price}
+                        onCommit={updateField}
                       />
                     </td>
 
