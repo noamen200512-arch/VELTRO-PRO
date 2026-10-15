@@ -20,6 +20,9 @@ import {
   Save,
   UserRound,
   Check,
+  WalletCards,
+  ReceiptText,
+  AlertTriangle,
 } from "lucide-react";
 
 import { getProducts } from "../productStore.js";
@@ -27,6 +30,8 @@ import {
   getCompletedSales,
   editCompletedSale,
   deleteCompletedSale,
+  getCustomerDebt,
+  updateCompletedSalePayment,
 } from "./salesStore.js";
 
 import "./salesHistory.css";
@@ -269,6 +274,86 @@ function InvoicePrint({ invoice, onClose, printRequest }) {
             Print / Reprint Invoice
           </button>
         </div>
+      </section>
+    </div>
+  );
+}
+
+
+function AccountUpdateModal({ invoice, onCancel, onSave }) {
+  const total = Math.max(0, Number(invoice.total ?? invoiceTotal(invoice)) || 0);
+  const [paidDraft, setPaidDraft] = useState(String(Math.max(0, Number(invoice.paid) || 0)));
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const customer = String(invoice.customerName || "Anonyme").trim() || "Anonyme";
+  const anonymous = !invoice.customerId || String(invoice.customerId).trim().toLowerCase() === "anonyme" || customer.toLowerCase() === "anonyme";
+  const paid = Math.max(0, Number(paidDraft) || 0);
+  const remaining = Math.max(0, total - paid);
+  const previousDebt = anonymous ? 0 : Math.max(0, getCustomerDebt(invoice.customerId) - Math.max(0, total - (Number(invoice.paid) || 0)));
+  const totalDebt = previousDebt + remaining;
+
+  const submit = () => {
+    const value = paidDraft.trim() === "" ? 0 : Number(paidDraft);
+    if (!Number.isFinite(value) || value < 0) {
+      setError("Enter a valid amount paid.");
+      return;
+    }
+    if (value > total) {
+      setError("The amount paid cannot exceed the invoice total.");
+      return;
+    }
+    setError("");
+    setSaving(true);
+    const result = onSave({ invoice, paid: value });
+    if (!result?.ok) {
+      setSaving(false);
+      setError(result?.error === "SALE_SAVE_FAILED" ? "Could not save the account update. Please try again." : "This invoice could not be updated. Refresh the page and try again.");
+    }
+  };
+
+  return (
+    <div className="modal-backdrop account-update-backdrop">
+      <section className="panel account-update-modal" role="dialog" aria-modal="true" aria-labelledby="account-update-title">
+        <header className="account-update-header">
+          <div className="account-update-heading-icon"><WalletCards size={21} /></div>
+          <div className="account-update-heading-copy">
+            <span className="account-update-eyebrow">INVOICE ACCOUNT</span>
+            <h3 id="account-update-title">{anonymous ? "Update invoice account" : "Review customer account"}</h3>
+            <p>{invoice.invoiceNumber || invoice.id} <span>·</span> {customer}</p>
+          </div>
+          <button className="account-update-close" type="button" onClick={onCancel} aria-label="Close account update"><X size={19} /></button>
+        </header>
+
+        <div className="account-update-body">
+          {anonymous ? (
+            <div className="account-update-anonymous-note">
+              <span><AlertTriangle size={17} /></span>
+              <div><strong>Anonymous customer</strong><p>No customer debt account is tracked for Anonyme. You can still correct the amount paid for this invoice.</p></div>
+            </div>
+          ) : (
+            <div className="account-update-debt-card">
+              <div className="account-update-debt-heading"><span><WalletCards size={16} /> Previous customer debt</span><strong>{money(previousDebt)}</strong></div>
+              <div className="account-update-debt-heading invoice-amount"><span><ReceiptText size={16} /> This invoice total</span><strong>{money(total)}</strong></div>
+              <div className="account-update-total-debt"><span>Total account debt after update</span><strong>{money(totalDebt)}</strong></div>
+            </div>
+          )}
+
+          <div className="account-update-payment-card">
+            <div className="account-update-field-heading"><span>Amount paid</span><small>Editable</small></div>
+            <label className="account-update-paid-field">
+              <input type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} onChange={(event) => { setPaidDraft(event.target.value); setError(""); }} onFocus={(event) => event.target.select()} aria-label="Amount paid in DA" />
+              <span>DA</span>
+            </label>
+            <div className="account-update-remaining"><span>Remaining on this invoice</span><strong>{money(remaining)}</strong></div>
+            {!anonymous && <div className="account-update-updated-debt"><span>Customer debt after update</span><strong>{money(totalDebt)}</strong></div>}
+          </div>
+          {error && <p className="account-update-error" role="alert">{error}</p>}
+        </div>
+
+        <footer className="account-update-actions">
+          <button type="button" className="account-update-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
+          <button type="button" className="account-update-save" onClick={submit} disabled={saving}>{saving ? "Saving..." : <><Check size={16} /> {anonymous ? "Update invoice & close" : "Update account & close"}</>}</button>
+        </footer>
       </section>
     </div>
   );
@@ -783,6 +868,7 @@ export default function SalesHistory() {
   const [appliedFilters, setAppliedFilters] = useState(null);
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [accountReviewInvoice, setAccountReviewInvoice] = useState(null);
   const [printRequest, setPrintRequest] = useState(0);
   const [passwordInvoice, setPasswordInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
@@ -1373,8 +1459,28 @@ export default function SalesHistory() {
           invoice={selectedInvoice}
           printRequest={printRequest}
           onClose={() => {
+            setAccountReviewInvoice(selectedInvoice);
             setSelectedInvoice(null);
             setPrintRequest(0);
+          }}
+        />
+      )}
+
+      {accountReviewInvoice && (
+        <AccountUpdateModal
+          invoice={accountReviewInvoice}
+          onCancel={() => setAccountReviewInvoice(null)}
+          onSave={({ invoice, paid }) => {
+            const result = updateCompletedSalePayment(
+              invoice.id || invoice.invoiceId || invoice.invoiceNumber,
+              paid
+            );
+            if (result.ok) {
+              setAccountReviewInvoice(null);
+              setRefreshKey((key) => key + 1);
+              setNotice("Account updated for " + (result.sale.invoiceNumber || result.sale.id) + ".");
+            }
+            return result;
           }}
         />
       )}
