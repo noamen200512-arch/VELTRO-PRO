@@ -3,7 +3,7 @@ import {
   Plus, Search, X, Trash2, Package, Truck, CalendarDays,
   CreditCard, Eye, Printer, Pencil, Barcode, Camera, Images,
   Save, History, CheckCircle2, AlertTriangle, Info, RotateCcw,
-  FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign
+  FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign, ReceiptText, Wallet
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
 import {
