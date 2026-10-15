@@ -2316,7 +2316,7 @@ function InvoiceTable({
                   <td><strong>{invoice.number}</strong></td>
                   <td>{(invoice.lines || []).length}</td>
                   <td>{invoice.supplier}</td>
-                  <td>{new Date(invoice.date).toLocaleString("en-US")}</td>
+                  <td>{new Date(invoice.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</td>
                   <td>{money(invoice.total)}</td>
                   <td>
                     <span
