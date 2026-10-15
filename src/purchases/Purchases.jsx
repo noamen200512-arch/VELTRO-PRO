@@ -2024,7 +2024,7 @@ export default function Purchases() {
               </div>
               <button type="button" className="purchase-selected-supplier" onClick={() => { setSupplierPickerSearch(""); setSupplierPage(1); setShowSupplierPicker(true); }}>
                 <span className="purchase-selected-supplier-icon"><Truck size={20} /></span>
-                <span className="purchase-selected-supplier-copy"><strong>{supplier || "No supplier selected"}</strong><small>{supplierPhone || (normalize(supplier) === normalize("Unknown Supplier") ? "Supplier details are not recorded" : "Click to select a supplier")}</small></span>
+                <span className="purchase-selected-supplier-copy"><strong>{supplier ? (normalize(supplier) === normalize("Unknown Supplier") ? "Unknown supplier" : supplier) : "No supplier selected"}</strong><small>{supplierPhone || (normalize(supplier) === normalize("Unknown Supplier") ? "Supplier details are not recorded" : "Click to select a supplier")}</small></span>
                 <ChevronDown size={18} />
               </button>
             </section>
@@ -2132,12 +2132,13 @@ export default function Purchases() {
         <Modal title="Search products" subtitle="Products appear as you type. Select one to add it to this purchase voucher." onClose={() => setShowProductPicker(false)} wide>
           <div className="purchase-picker-search"><Search size={17} /><input autoFocus value={productPickerSearch} onChange={event => setProductPickerSearch(event.target.value)} placeholder="Type a product name, reference, or barcode..." /></div>
           <div className="purchase-product-picker-list">
-            {filteredPickerProducts.map(product => <button type="button" key={product.id} onClick={() => openProductForPurchase(product)}>
+            {!productPickerSearch.trim() && <div className="purchase-empty-row">Start typing a product name, reference, or barcode.</div>}
+            {productPickerSearch.trim() && filteredPickerProducts.map(product => <button type="button" key={product.id} onClick={() => openProductForPurchase(product)}>
               <span className="purchase-product-picker-icon"><Package size={18} /></span>
               <span className="purchase-product-picker-copy"><strong>{product.name}</strong><small>Ref: {product.sku || product.id} · Barcode: {product.barcode || "—"}</small></span>
               <span className="purchase-product-picker-price">{money(product.purchasePrice)} <Plus size={16} /></span>
             </button>)}
-            {!filteredPickerProducts.length && <div className="purchase-empty-row">No products found. Use “Generate code / New product” to create one.</div>}
+            {productPickerSearch.trim() && !filteredPickerProducts.length && <div className="purchase-empty-row">No products found. Use “Generate code / New product” to create one.</div>}
           </div>
         </Modal>
       )}
