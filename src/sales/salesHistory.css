@@ -1047,3 +1047,62 @@
   background: rgba(255, 76, 100, 0.24) !important;
   border-color: rgba(255, 91, 112, 0.72) !important;
 }
+
+
+/* Main invoice table: keep every column reachable on narrow screens. */
+.history-page {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.history-page .sales-history-main-table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #3c566d #111b29;
+}
+
+.history-page .sales-history-main-table .products-table {
+  width: max-content;
+  min-width: 980px;
+  max-width: none;
+  table-layout: auto;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.history-page .sales-history-main-table .products-table th,
+.history-page .sales-history-main-table .products-table td {
+  white-space: nowrap;
+}
+
+.history-page .sales-history-main-table .products-table td:nth-child(2),
+.history-page .sales-history-main-table .products-table td:nth-child(3),
+.history-page .sales-history-main-table .products-table td:nth-child(4) {
+  white-space: normal;
+}
+
+.history-page .sales-history-main-table .products-table th:last-child,
+.history-page .sales-history-main-table .products-table td:last-child {
+  min-width: 230px;
+}
+
+@media (max-width: 720px) {
+  .history-page .sales-history-main-table {
+    margin-right: 0;
+    margin-left: 0;
+    border-radius: 10px;
+    touch-action: pan-x pan-y;
+  }
+
+  .history-page .sales-history-main-table .products-table {
+    min-width: 980px;
+  }
+}
