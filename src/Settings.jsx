@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   Building2, UsersRound, ShieldCheck, MapPinned, SlidersHorizontal,
   RefreshCw, Search, Mail, Phone, CheckCircle2, AlertCircle,
-  Languages, Store, KeyRound, ChevronRight, UserRound, Database,
+  Languages, Store, KeyRound, ChevronRight, UserRound, Database, Save, Pencil, X,
+
 } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
 
@@ -16,6 +17,10 @@ const copy = {
     organization: "Organization", status: "Status", active: "Active", suspended: "Suspended",
     currentAccount: "Current account", accountName: "Account name", email: "Email address",
     phone: "Phone number", role: "Role", accountStatus: "Account status",
+    editProfile: "Edit profile", saveChanges: "Save changes", cancel: "Cancel",
+    profileName: "Full name", profileSaved: "Profile updated successfully.",
+    profileSaveError: "Could not save profile changes. Please try again.",
+    nameRequired: "Please enter your name.", saving: "Saving…", createdAt: "Created on",
     team: "Team members", teamText: "Accounts linked to this organization.",
     searchUsers: "Search by name, phone, or role…", noUsers: "No team members were found.",
     roleCatalog: "Role catalog", roleCatalogText: "Roles configured for this organization.",
@@ -44,6 +49,10 @@ const copy = {
     organization: "Organisation", status: "Statut", active: "Actif", suspended: "Suspendu",
     currentAccount: "Compte actuel", accountName: "Nom du compte", email: "Adresse e-mail",
     phone: "Téléphone", role: "Rôle", accountStatus: "État du compte",
+    editProfile: "Modifier le profil", saveChanges: "Enregistrer", cancel: "Annuler",
+    profileName: "Nom complet", profileSaved: "Profil mis à jour.",
+    profileSaveError: "Impossible d’enregistrer le profil. Réessayez.",
+    nameRequired: "Veuillez saisir votre nom.", saving: "Enregistrement…", createdAt: "Créé le",
     team: "Membres de l’équipe", teamText: "Comptes associés à cette organisation.",
     searchUsers: "Rechercher par nom, téléphone ou rôle…", noUsers: "Aucun membre trouvé.",
     roleCatalog: "Catalogue des rôles", roleCatalogText: "Rôles configurés pour cette organisation.",
@@ -72,6 +81,10 @@ const copy = {
     organization: "المؤسسة", status: "الحالة", active: "نشطة", suspended: "موقوفة",
     currentAccount: "الحساب الحالي", accountName: "اسم الحساب", email: "البريد الإلكتروني",
     phone: "رقم الهاتف", role: "الدور", accountStatus: "حالة الحساب",
+    editProfile: "تعديل الملف الشخصي", saveChanges: "حفظ التغييرات", cancel: "إلغاء",
+    profileName: "الاسم الكامل", profileSaved: "تم تحديث الملف الشخصي بنجاح.",
+    profileSaveError: "تعذر حفظ التعديلات. حاول مرة أخرى.",
+    nameRequired: "يرجى إدخال الاسم.", saving: "جارٍ الحفظ…", createdAt: "تاريخ الإنشاء",
     team: "أعضاء الفريق", teamText: "الحسابات المرتبطة بهذه المؤسسة.",
     searchUsers: "ابحث بالاسم أو الهاتف أو الدور…", noUsers: "لم يتم العثور على مستخدمين.",
     roleCatalog: "قائمة الأدوار", roleCatalogText: "الأدوار المعرفة لهذه المؤسسة.",
@@ -113,6 +126,12 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [data, setData] = useState({
     organization: null, profile: null, users: [], roles: [], permissions: [],
     rolePermissions: [], branches: [],
@@ -145,6 +164,8 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       ]);
       const failed = results.find((result) => result.error);
       if (failed) throw failed.error;
+      setProfileName(profile.full_name || "");
+      setProfilePhone(profile.phone || "");
       setData({
         organization: results[0].data,
         profile,
@@ -159,6 +180,40 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       setError(err?.message || t.loadError);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    setProfileMessage("");
+    setProfileError("");
+    if (!profileName.trim()) {
+      setProfileError(t.nameRequired);
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from("profiles")
+        .update({
+          full_name: profileName.trim(),
+          phone: profilePhone.trim(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", data.profile.user_id)
+        .select("user_id, organization_id, role_id, full_name, phone, status, created_at")
+        .single();
+      if (updateError) throw updateError;
+      setData((previous) => ({ ...previous, profile: updatedProfile }));
+      setProfileName(updatedProfile.full_name || "");
+      setProfilePhone(updatedProfile.phone || "");
+      setEditingProfile(false);
+      setProfileMessage(t.profileSaved);
+    } catch (err) {
+      console.error("Unable to save profile:", err);
+      setProfileError(t.profileSaveError);
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -252,15 +307,38 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     })}
                   </div>
                   <div className="settings-card">
-                    <div className="settings-card-heading"><Store size={18} /><div><h4>{t.organization}</h4><p>{t.readOnlyText}</p></div></div>
+                    <div className="settings-card-heading"><Store size={18} /><div><h4>{t.organization}</h4><p>{t.readOnlyText}</p></div><span className="settings-readonly-tag"><Database size={13} />{t.readOnly}</span></div>
                     <div className="settings-detail-grid">
                       <div className="settings-detail"><span>{t.organization}</span><strong>{data.organization?.name || "—"}</strong></div>
                       <div className="settings-detail"><span>{t.status}</span><strong><i className={`settings-status-dot ${data.organization?.status === "active" ? "is-active" : ""}`} />{data.organization?.status === "active" ? t.active : t.suspended}</strong></div>
-                      <div className="settings-detail"><span>{t.currentAccount}</span><strong>{data.profile?.full_name || currentUser?.email || "—"}</strong></div>
-                      <div className="settings-detail"><span>{t.email}</span><strong>{currentUser?.email || t.noEmail}</strong></div>
-                      <div className="settings-detail"><span>{t.phone}</span><strong>{data.profile?.phone || t.noPhone}</strong></div>
-                      <div className="settings-detail"><span>{t.role}</span><strong>{roleById[data.profile?.role_id]?.name || "—"}</strong></div>
+                      <div className="settings-detail"><span>{t.createdAt}</span><strong>{data.organization?.created_at ? new Date(data.organization.created_at).toLocaleDateString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-FR" : "en-GB") : "—"}</strong></div>
                     </div>
+                  </div>
+                  <div className="settings-card">
+                    <div className="settings-card-heading">
+                      <UserRound size={18} />
+                      <div><h4>{t.currentAccount}</h4><p>{t.accountName} · {currentUser?.email || t.noEmail}</p></div>
+                      {!editingProfile && <button type="button" className="settings-edit-button" onClick={() => { setProfileError(""); setProfileMessage(""); setEditingProfile(true); }}><Pencil size={14} />{t.editProfile}</button>}
+                    </div>
+                    {profileMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{profileMessage}</div>}
+                    {profileError && <div className="settings-feedback settings-feedback-error" role="alert"><AlertCircle size={15} />{profileError}</div>}
+                    {editingProfile ? (
+                      <form className="settings-profile-form" onSubmit={saveProfile}>
+                        <label className="settings-form-field"><span>{t.profileName}</span><input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={120} required autoComplete="name" /></label>
+                        <label className="settings-form-field"><span>{t.phone}</span><input value={profilePhone} onChange={(event) => setProfilePhone(event.target.value)} maxLength={40} autoComplete="tel" /></label>
+                        <div className="settings-profile-actions">
+                          <button type="submit" className="settings-save-button" disabled={savingProfile}><Save size={15} />{savingProfile ? t.saving : t.saveChanges}</button>
+                          <button type="button" className="settings-cancel-button" disabled={savingProfile} onClick={() => { setProfileName(data.profile?.full_name || ""); setProfilePhone(data.profile?.phone || ""); setProfileError(""); setEditingProfile(false); }}><X size={15} />{t.cancel}</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="settings-detail-grid">
+                        <div className="settings-detail"><span>{t.profileName}</span><strong>{data.profile?.full_name || "—"}</strong></div>
+                        <div className="settings-detail"><span>{t.email}</span><strong>{currentUser?.email || t.noEmail}</strong></div>
+                        <div className="settings-detail"><span>{t.phone}</span><strong>{data.profile?.phone || t.noPhone}</strong></div>
+                        <div className="settings-detail"><span>{t.role}</span><strong>{roleById[data.profile?.role_id]?.name || "—"}</strong></div>
+                      </div>
+                    )}
                   </div>
                   <div className="settings-card settings-security-card">
                     <div className="settings-security-icon"><ShieldCheck size={20} /></div>
