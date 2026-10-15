@@ -37,6 +37,7 @@ export function SalesToolbar({
   onPending,
   pendingCount = 0,
   showPending = false,
+  newDisabled = false,
   disabled = false,
 }) {
   const actions = {
@@ -80,6 +81,7 @@ export function SalesToolbar({
               }}
               disabled={
                 disabled ||
+                (button.action === "new" && newDisabled) ||
                 typeof actions[button.action] !== "function"
               }
               aria-expanded={isPending ? showPending : undefined}
@@ -88,7 +90,11 @@ export function SalesToolbar({
                   ? `${button.label}: ${pendingCount} saved`
                   : button.label
               }
-              title={button.label}
+              title={
+                button.action === "new" && newDisabled
+                  ? "Add products to the current invoice before creating a new invoice."
+                  : button.label
+              }
             >
               <span className="sales-toolbar-button-icon">
                 <Icon size={18} strokeWidth={1.8} />
