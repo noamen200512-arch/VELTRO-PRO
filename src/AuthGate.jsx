@@ -73,7 +73,7 @@ return (
 }
 
 if (session) {
-return <App onLogout={handleLogout} />;
+return <App onLogout={handleLogout} currentUser={session?.user || null} />;
 }
 
 return (
