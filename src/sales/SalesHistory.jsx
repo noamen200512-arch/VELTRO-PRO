@@ -758,6 +758,7 @@ export default function SalesHistory() {
   const [endTime, setEndTime] = useState("");
   const [customerFilter, setCustomerFilter] = useState("");
   const [employeeFilter, setEmployeeFilter] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState(null);
 
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [printRequest, setPrintRequest] = useState(0);
@@ -795,7 +796,10 @@ export default function SalesHistory() {
   );
 
   const filteredInvoices = useMemo(() => {
-    const query = search.trim().toLowerCase();
+    if (!appliedFilters) return [];
+
+    const filters = appliedFilters;
+    const query = filters.search.trim().toLowerCase();
 
     return invoices.filter((invoice) => {
       const dateValue = invoiceDate(invoice);
@@ -819,25 +823,16 @@ export default function SalesHistory() {
 
       return (
         matchesSearch &&
-        (!startDate || (dateOnly && dateOnly >= startDate)) &&
-        (!endDate || (dateOnly && dateOnly <= endDate)) &&
-        (!startTime || (timeOnly && timeOnly >= startTime)) &&
-        (!endTime || (timeOnly && timeOnly <= endTime)) &&
-        (!customerFilter ||
-          (invoice.customerName || "") === customerFilter) &&
-        (!employeeFilter || employeeName(invoice) === employeeFilter)
+        (!filters.startDate || (dateOnly && dateOnly >= filters.startDate)) &&
+        (!filters.endDate || (dateOnly && dateOnly <= filters.endDate)) &&
+        (!filters.startTime || (timeOnly && timeOnly >= filters.startTime)) &&
+        (!filters.endTime || (timeOnly && timeOnly <= filters.endTime)) &&
+        (!filters.customerFilter ||
+          (invoice.customerName || "") === filters.customerFilter) &&
+        (!filters.employeeFilter || employeeName(invoice) === filters.employeeFilter)
       );
     });
-  }, [
-    invoices,
-    search,
-    startDate,
-    endDate,
-    startTime,
-    endTime,
-    customerFilter,
-    employeeFilter,
-  ]);
+  }, [invoices, appliedFilters]);
 
   const totalPages = Math.max(1, Math.ceil(filteredInvoices.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -846,7 +841,7 @@ export default function SalesHistory() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, startDate, endDate, startTime, endTime, customerFilter, employeeFilter]);
+  }, [appliedFilters]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -858,6 +853,34 @@ export default function SalesHistory() {
     0
   );
 
+  const applySearch = () => {
+    const filters = {
+      search,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      customerFilter,
+      employeeFilter,
+    };
+
+    const hasSearchInfo = Object.values(filters).some((value) =>
+      String(value ?? "").trim() !== ""
+    );
+
+    if (!hasSearchInfo) {
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      filters.startDate = today;
+      filters.endDate = today;
+      setStartDate(today);
+      setEndDate(today);
+    }
+
+    setAppliedFilters(filters);
+    setCurrentPage(1);
+  };
+
   const resetFilters = () => {
     setSearch("");
     setStartDate("");
@@ -866,6 +889,8 @@ export default function SalesHistory() {
     setEndTime("");
     setCustomerFilter("");
     setEmployeeFilter("");
+    setAppliedFilters(null);
+    setCurrentPage(1);
   };
 
   const exportCsv = () => {
@@ -1165,6 +1190,17 @@ export default function SalesHistory() {
           </label>
         </div>
 
+        <div className="history-search-actions">
+          <button
+            className="primary-button"
+            type="button"
+            onClick={applySearch}
+          >
+            <Search size={16} />
+            Search
+          </button>
+        </div>
+
         <div className="table-wrapper sales-history-main-table">
           <table className="products-table">
             <thead>
@@ -1258,7 +1294,7 @@ export default function SalesHistory() {
                 );
               })}
 
-              {filteredInvoices.length === 0 && (
+              {visibleInvoices.length === 0 && (
                 <tr>
                   <td colSpan={8} className="empty-state">
                     <div className="history-empty">
@@ -1266,12 +1302,16 @@ export default function SalesHistory() {
                         <History size={30} />
                       </div>
                       <strong>
-                        {invoices.length
+                        {!appliedFilters
+                          ? "Press Search to display sales records."
+                          : invoices.length
                           ? "No matching invoices"
                           : "No completed sales yet"}
                       </strong>
                       <p>
-                        {invoices.length
+                        {!appliedFilters
+                          ? "Enter filters if needed, then press Search. With no filters, only today's sales are shown."
+                          : invoices.length
                           ? "Try changing your filters."
                           : "Completed invoices from Point of Sale will appear here."}
                       </p>
