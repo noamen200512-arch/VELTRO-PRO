@@ -571,6 +571,10 @@ const dictionaries = {
     "Amount Paid Now (DA)": "Montant payé maintenant (DA)",
     "Account Notes (Optional)": "Notes du compte (facultatif)",
     "Print Selected ({selectedLabels.length})": "Imprimer la sélection ({selectedLabels.length})",
+    "Daily purchases and payments for the last 7 days": "Achats et paiements quotidiens des 7 derniers jours",
+    "Daily purchases and payments for the last 30 days": "Achats et paiements quotidiens des 30 derniers jours",
+    "Purchases:": "Achats :",
+    "Payments:": "Paiements :",
   },
   ar: {
     "ANALYTICS": "التحليلات",
@@ -1097,6 +1101,10 @@ const dictionaries = {
     "Amount Paid Now (DA)": "المبلغ المدفوع الآن (دج)",
     "Account Notes (Optional)": "ملاحظات الحساب (اختياري)",
     "Print Selected ({selectedLabels.length})": "طباعة المحدد ({selectedLabels.length})",
+    "Daily purchases and payments for the last 7 days": "المشتريات والمدفوعات اليومية خلال آخر 7 أيام",
+    "Daily purchases and payments for the last 30 days": "المشتريات والمدفوعات اليومية خلال آخر 30 يومًا",
+    "Purchases:": "المشتريات:",
+    "Payments:": "المدفوعات:",
   }
 };
 
@@ -1228,6 +1236,22 @@ export function translatePage(locale, root = document.body) {
       match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
       if (match) translated = `Affichage ${match[1]}–${match[2]} sur ${match[3]}`;
     }
+    if (!dictionary[trimmed] && locale === "ar") {
+      let match = trimmed.match(/^Invoice Details:\s*(.+)$/i);
+      if (match) translated = `تفاصيل الفاتورة: ${match[1]}`;
+      match = trimmed.match(/^Invoice Preview:\s*(.+)$/i);
+      if (match) translated = `معاينة الفاتورة: ${match[1]}`;
+      match = trimmed.match(/^Credit Amount \(up to (.+)\)$/i);
+      if (match) translated = `مبلغ الرصيد الدائن (حتى ${match[1]})`;
+    } else if (!dictionary[trimmed] && locale === "fr") {
+      let match = trimmed.match(/^Invoice Details:\s*(.+)$/i);
+      if (match) translated = `Détails de la facture : ${match[1]}`;
+      match = trimmed.match(/^Invoice Preview:\s*(.+)$/i);
+      if (match) translated = `Aperçu de la facture : ${match[1]}`;
+      match = trimmed.match(/^Credit Amount \(up to (.+)\)$/i);
+      if (match) translated = `Montant du crédit (jusqu'à ${match[1]})`;
+    }
+
     const next = original.replace(trimmed, translated);
     if (node.nodeValue !== next) node.nodeValue = next;
     record.rendered = next;
