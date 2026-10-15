@@ -157,6 +157,8 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [savingRole, setSavingRole] = useState(false);
   const [roleMessage, setRoleMessage] = useState("");
   const [roleError, setRoleError] = useState("");
+  const [showWorkerForm, setShowWorkerForm] = useState(false);
+  const [showRoleForm, setShowRoleForm] = useState(false);
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPhone, setNewUserPhone] = useState("");
@@ -475,10 +477,10 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
               {section === "users" && (
                 <>
                   {isOwner && <div className="settings-card">
-                    <div className="settings-card-heading"><UserRound size={18} /><div><h4>{t.addWorker}</h4><p>{t.ownerOnly}</p></div></div>
+                    <div className="settings-card-heading"><UserRound size={18} /><div><h4>{t.addWorker}</h4><p>{t.ownerOnly}</p></div><button type="button" className="settings-save-button" onClick={() => { setShowWorkerForm((value) => !value); setUserError(""); }}><UserRound size={15} />{showWorkerForm ? t.cancel : t.addWorker}</button></div>
                     {userMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{userMessage}</div>}
                     {userError && <div className="settings-feedback settings-feedback-error" role="alert"><AlertCircle size={15} />{userError}</div>}
-                    <form className="settings-profile-form" onSubmit={createWorker}>
+                    {showWorkerForm && <form className="settings-profile-form" onSubmit={createWorker}>
                       <div className="settings-detail-grid">
                         <label className="settings-form-field"><span>{t.workerName}</span><input value={newUserName} onChange={(event) => setNewUserName(event.target.value)} maxLength={120} minLength={2} required autoComplete="name" /></label>
                         <label className="settings-form-field"><span>{t.workerEmail}</span><input type="email" value={newUserEmail} onChange={(event) => setNewUserEmail(event.target.value)} required autoComplete="email" /></label>
@@ -487,7 +489,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                         <label className="settings-form-field"><span>{t.assignRole}</span><select value={newUserRoleId} onChange={(event) => setNewUserRoleId(event.target.value)} required><option value="">{t.assignRole}</option>{data.roles.filter((role) => !ownerRoleIds.has(role.id)).map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></label>
                       </div>
                       <div className="settings-profile-actions"><button type="submit" className="settings-save-button" disabled={savingUser}><Save size={15} />{savingUser ? t.savingRole : t.createWorker}</button></div>
-                    </form>
+                    </form>}
                   </div>}
                   <div className="settings-card">
                     <div className="settings-card-heading"><UsersRound size={18} /><div><h4>{t.team}</h4><p>{t.teamText}</p></div><span className="settings-count">{data.users.length}</span></div>
@@ -498,9 +500,9 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     </tbody></table></div>
                   </div>
                   <div className="settings-card">
-                    <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.roleCatalog}</h4><p>{t.roleCatalogText}</p></div></div>
+                    <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.roleCatalog}</h4><p>{t.roleCatalogText}</p></div>{isOwner && <button type="button" className="settings-save-button" onClick={() => { setShowRoleForm((value) => !value); setRoleError(""); }}><KeyRound size={15} />{showRoleForm ? t.cancel : t.addRole}</button>}</div>
                     <div className="settings-role-list">{data.roles.map((role) => <div className="settings-role-row" key={role.id}><span className="settings-role-icon"><ShieldCheck size={17} /></span><span className="settings-role-copy"><strong>{role.name}</strong><small>{role.description || "—"}</small></span><span className="settings-role-permissions">{permissionCountByRole[role.id] || 0} / {data.permissions.length}</span><span className="settings-role-type">{role.is_system ? t.systemRole : t.customRole}</span>{isOwner && !ownerRoleIds.has(role.id) && <button type="button" className="settings-edit-button" onClick={() => startRoleEditing(role)}>{t.editPermissions}</button>}</div>)}{!data.roles.length && <p className="settings-empty">{t.noRoles}</p>}</div>
-                    {isOwner && <form className="settings-profile-form" onSubmit={createRole}>
+                    {isOwner && showRoleForm && <form className="settings-profile-form" onSubmit={createRole}>
                       <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.addRole}</h4><p>{t.ownerOnly}</p></div></div>
                       <div className="settings-detail-grid">
                         <label className="settings-form-field"><span>{t.roleName}</span><input value={roleName} onChange={(event) => setRoleName(event.target.value)} maxLength={80} minLength={2} required /></label>
