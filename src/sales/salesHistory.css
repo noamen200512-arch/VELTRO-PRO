@@ -1119,6 +1119,8 @@
 }
 
 .history-page .history-search-actions .primary-button {
+  position: relative;
+  top: -8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
