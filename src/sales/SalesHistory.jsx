@@ -523,7 +523,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
       const key = (id || name).toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
-      records.push({ ...record, name, customerId: id || name, phone: String(record.phone ?? record.phoneNumber ?? record.mobile ?? record.telephone ?? "").trim() });
+      records.push({ ...record, name, customerId: id || name, reference: String(record.reference ?? record.code ?? record.ref ?? id).trim(), phone: String(record.phone ?? record.phoneNumber ?? record.mobile ?? record.telephone ?? "").trim() });
     };
     ["veltro_customers", "veltro_clients", "veltro_customer_list", "customers", "clients"].forEach((key) => {
       try {
@@ -855,7 +855,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
             <div className="edit-customer-list">
               <button type="button" className="edit-customer-option" onClick={() => chooseCustomer({ name: "Anonyme" })}><span><strong>Anonyme</strong><small>Walk-in customer · no customer account</small></span><Check size={16} /></button>
               {customerRecords.filter((record) => [record.name, record.phone, record.customerId, record.code, record.reference].some((value) => String(value ?? "").toLowerCase().includes(customerSearch.trim().toLowerCase()))).map((record) => (
-                <button type="button" className="edit-customer-option" key={record.customerId} onClick={() => chooseCustomer(record)}><span><strong>{record.name}</strong><small>{record.phone || record.code || record.customerId}</small></span><UserRound size={16} /></button>
+                <button type="button" className="edit-customer-option" key={record.customerId} onClick={() => chooseCustomer(record)}><span><strong>{record.name}</strong><small>{record.reference || record.code || record.customerId}{record.phone ? " · " + record.phone : ""}</small></span><UserRound size={16} /></button>
               ))}
               {customerRecords.filter((record) => [record.name, record.phone, record.customerId, record.code, record.reference].some((value) => String(value ?? "").toLowerCase().includes(customerSearch.trim().toLowerCase()))).length === 0 && <p className="edit-customer-empty">No saved customers found. You can still type a customer name directly in the invoice.</p>}
             </div>
