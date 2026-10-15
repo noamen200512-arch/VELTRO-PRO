@@ -164,7 +164,7 @@ export default function EditInvoiceProductPicker({
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError(
-        "La caméra n'est pas disponible. Vérifiez que le site utilise HTTPS."
+        "Camera access is unavailable. Check that the site uses HTTPS or enter the barcode manually."
       );
       return;
     }
