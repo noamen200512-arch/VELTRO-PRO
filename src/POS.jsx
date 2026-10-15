@@ -20,6 +20,7 @@ import {
 
 import { getProducts } from "./productStore.js";
 import { saveProductsToCloud } from "./lib/productCloud.js";
+import { loadCustomersFromCloud } from "./lib/customerCloud.js";
 import "./sales/sales.css";
 
 function money(value) {
@@ -158,6 +159,19 @@ export default function POS() {
   const [showBelowCostWarning, setShowBelowCostWarning] = useState(false);
   const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
+
+  useEffect(() => {
+    let active = true;
+    let local = [];
+    try {
+      const value = JSON.parse(localStorage.getItem("veltro_customers") || "[]");
+      local = Array.isArray(value) ? value : [];
+    } catch {}
+    loadCustomersFromCloud(local).then(records => {
+      if (active && Array.isArray(records)) localStorage.setItem("veltro_customers", JSON.stringify(records));
+    }).catch(error => console.warn("Customer cloud sync unavailable:", error));
+    return () => { active = false; };
+  }, []);
 
   const items = invoice.items || [];
   const customer = invoice.customerName || "Anonyme";
@@ -693,7 +707,7 @@ export default function POS() {
       const key = (id || name).toLowerCase();
       if (seen.has(key)) return;
       seen.add(key);
-      records.push({ ...record, name, customerId: id || name, phone, code: String(record.code ?? record.reference ?? record.ref ?? id).trim() });
+      records.push({ ...record, name, customerId: id || name, phone, code: String(record.code ?? record.reference ?? record.ref ?? id).trim(), reference: String(record.reference ?? record.code ?? record.ref ?? id).trim() });
     };
 
     // Load registered customer records when a customer module has stored them.
