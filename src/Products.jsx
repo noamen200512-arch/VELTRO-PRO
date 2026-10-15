@@ -61,7 +61,7 @@ const EMPTY_FORM = {
 };
 
 const money = (value) =>
-  `${Number(value || 0).toLocaleString("fr-FR")} DA`;
+  `${Number(value || 0).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")} DA`;
 
 const numberValue = (value) => Math.max(0, Number(value) || 0);
 
