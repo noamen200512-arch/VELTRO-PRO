@@ -650,7 +650,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
                 const previewDiscount = Math.max(0, Number(String(row.discount).replace(",", ".")) || 0);
                 const lineTotal = Math.max(0, previewQty * previewPrice - previewDiscount);
                 const product = inventory.find((candidate) => String(candidate.id) === productId(item));
-                const cartonSize = Math.max(1, Math.floor(Number(item.piecesPerCarton ?? product?.piecesPerCarton) || 1));
+                const cartonSize = Math.max(1, Math.floor(Number(product?.piecesPerCarton ?? item.piecesPerCarton) || 1));
                 return (
                   <tr key={`${item.id || productId(item)}-${index}`}>
                     <td className="edit-invoice-product-cell">
