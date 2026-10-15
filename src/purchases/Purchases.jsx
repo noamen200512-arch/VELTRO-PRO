@@ -1461,17 +1461,6 @@ export default function Purchases() {
           <span className="purchase-eyebrow">VELTRO-PRO / COMMERCE</span>
           <h1>Purchases</h1>
           <p>Manage purchase invoices, supplier accounts, and incoming inventory.</p>
-          <div className="purchase-live-datetime" aria-live="off">
-            <CalendarDays size={16} />
-            <strong>{clockNow.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</strong>
-            <span>{clockNow.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
-          </div>
-        </div>
-
-        <div className="purchase-header-buttons">
-          <Button variant="primary" onClick={openNewInvoice}>
-            <Plus size={17} /> New Purchase
-          </Button>
         </div>
       </header>
 
@@ -1544,7 +1533,6 @@ export default function Purchases() {
               </div>
               <div className="purchase-register-actions">
                 <Button onClick={() => { setSearch(""); setShowHistory(true); setActiveTab("history"); }}><History size={16} /> View All Vouchers</Button>
-                <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> Create Purchase Voucher</Button>
               </div>
             </div>
             <div className="purchase-voucher-table-frame">
