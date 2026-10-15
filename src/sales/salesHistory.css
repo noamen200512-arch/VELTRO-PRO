@@ -2597,3 +2597,281 @@
   }
 }
 
+
+/* Final typography and density pass for both Sales History tables */
+.history-page .sales-history-main-table {
+  padding: 8px;
+  margin-top: 16px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(11, 21, 34, 0.96), rgba(7, 14, 24, 0.96));
+}
+
+.history-page .sales-history-main-table .products-table {
+  min-width: 1040px;
+}
+
+.history-page .sales-history-main-table .products-table thead th {
+  padding: 13px 14px;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: 0.045em;
+}
+
+.history-page .sales-history-main-table .products-table tbody td {
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:first-child strong {
+  min-height: 25px;
+  padding: 3px 8px;
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(2),
+.history-page .sales-history-main-table .products-table tbody td:nth-child(3) {
+  min-width: 120px;
+  max-width: 190px;
+  overflow-wrap: anywhere;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(4) {
+  min-width: 118px;
+  font-size: 11px;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(4) small {
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.history-page .sales-history-main-table .products-table th:last-child,
+.history-page .sales-history-main-table .products-table td:last-child {
+  min-width: 218px;
+}
+
+.history-page .history-row-actions {
+  gap: 6px;
+}
+
+.history-page .history-row-actions .icon-button,
+.history-page .history-row-actions .history-delete-button {
+  min-width: 33px;
+  min-height: 33px;
+  border-radius: 8px;
+}
+
+.history-page .history-row-actions .history-delete-button {
+  min-width: 76px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.history-page .sales-history-pagination {
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.history-page .sales-history-page-controls button {
+  min-width: 33px;
+  min-height: 33px;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+
+/* Invoice edit table: compact, legible cells and aligned editable controls */
+.edit-invoice-modal .table-wrapper.sales-history-table-scroll {
+  padding: 7px;
+  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(10, 20, 33, 0.98), rgba(6, 13, 23, 0.98));
+}
+
+.edit-invoice-modal .products-table {
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.edit-invoice-modal .products-table th {
+  padding: 12px 10px;
+  color: #b0bfd1;
+  background: #192a3e;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.4;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.edit-invoice-modal .products-table td {
+  padding: 11px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  vertical-align: middle;
+}
+
+.edit-invoice-modal .products-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.edit-invoice-modal .products-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+.edit-invoice-modal .edit-invoice-product-cell {
+  min-width: 0;
+  gap: 4px;
+}
+
+.edit-invoice-modal .edit-invoice-product-cell > strong {
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.edit-invoice-modal .edit-invoice-product-cell > span,
+.edit-invoice-modal .edit-invoice-product-cell small {
+  color: #8fa3ba;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.edit-invoice-modal .edit-number-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 35px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.edit-invoice-modal .edit-product-line-total {
+  font-size: 11px !important;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.edit-invoice-modal .edit-item-actions {
+  gap: 5px;
+}
+
+.edit-invoice-modal .edit-item-actions button,
+.edit-invoice-modal .edit-apply-item-button {
+  min-height: 32px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.edit-invoice-modal .edit-apply-item-button {
+  min-width: 66px;
+  padding: 0 8px;
+}
+
+.edit-invoice-modal .edit-item-actions .danger-icon {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.edit-invoice-modal .edit-add-carton-button {
+  min-height: 29px;
+  padding: 0 8px;
+  border-radius: 7px;
+  font-size: 10px;
+}
+
+.edit-invoice-modal .edit-totals {
+  gap: 10px;
+}
+
+.edit-invoice-modal .edit-totals > div {
+  padding: 12px 14px;
+  border-radius: 11px;
+}
+
+.edit-invoice-modal .edit-totals span {
+  font-size: 10px;
+}
+
+.edit-invoice-modal .edit-totals strong {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .history-page .sales-history-main-table {
+    padding: 5px;
+    margin-top: 13px;
+    border-radius: 12px;
+  }
+
+  .history-page .sales-history-main-table .products-table {
+    min-width: 1040px;
+  }
+
+  .history-page .sales-history-main-table .products-table thead th {
+    padding: 11px 12px;
+    font-size: 9px;
+  }
+
+  .history-page .sales-history-main-table .products-table tbody td {
+    padding: 11px 12px;
+    font-size: 11px;
+  }
+
+  .history-page .history-row-actions .icon-button,
+  .history-page .history-row-actions .history-delete-button {
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 560px) {
+  .edit-invoice-modal .table-wrapper.sales-history-table-scroll {
+    padding: 4px;
+    border-radius: 11px;
+  }
+
+  .edit-invoice-modal .products-table {
+    width: 900px;
+    min-width: 900px;
+  }
+
+  .edit-invoice-modal .products-table th {
+    padding: 10px 9px;
+    font-size: 9px;
+  }
+
+  .edit-invoice-modal .products-table td {
+    padding: 10px 9px;
+    font-size: 10px;
+  }
+
+  .edit-invoice-modal .edit-invoice-product-cell > strong {
+    font-size: 10px;
+  }
+
+  .edit-invoice-modal .edit-number-input {
+    min-height: 33px;
+    padding: 0 6px;
+    font-size: 10px;
+  }
+
+  .edit-invoice-modal .edit-apply-item-button {
+    min-width: 60px;
+    min-height: 30px;
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .edit-invoice-modal .edit-item-actions .danger-icon {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+  }
+}
+
