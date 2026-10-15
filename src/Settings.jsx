@@ -25,6 +25,12 @@ const copy = {
     searchUsers: "Search by name, phone, or role…", noUsers: "No team members were found.",
     roleCatalog: "Role catalog", roleCatalogText: "Roles configured for this organization.",
     systemRole: "System role", customRole: "Custom role", noRoles: "No roles found.",
+    addRole: "Create role", roleName: "Role name", roleDescription: "Description", createRole: "Create role",
+    editPermissions: "Configure permissions", chooseRole: "Choose a role to configure", savePermissions: "Save permissions",
+    roleCreated: "Role created successfully.", permissionsSaved: "Permissions saved successfully.",
+    roleSaveError: "Could not save role settings.", ownerOnly: "Only the workspace owner can manage roles and permissions.",
+    roleNameRequired: "Enter a role name with at least 2 characters.", cancelEdit: "Cancel editing", savingRole: "Saving…",
+    systemRole: "System role", customRole: "Custom role", noRoles: "No roles found.",
     accessRules: "Access rules", accessRulesText: "Available permission keys grouped by application module.",
     noPermissions: "No permission rules were found.", module: "Module", permissionKey: "Permission key",
     description: "Description", branchesText: "Locations linked to this organization.",
@@ -57,6 +63,12 @@ const copy = {
     searchUsers: "Rechercher par nom, téléphone ou rôle…", noUsers: "Aucun membre trouvé.",
     roleCatalog: "Catalogue des rôles", roleCatalogText: "Rôles configurés pour cette organisation.",
     systemRole: "Rôle système", customRole: "Rôle personnalisé", noRoles: "Aucun rôle trouvé.",
+    addRole: "Créer un rôle", roleName: "Nom du rôle", roleDescription: "Description", createRole: "Créer le rôle",
+    editPermissions: "Configurer les autorisations", chooseRole: "Choisir un rôle à configurer", savePermissions: "Enregistrer les autorisations",
+    roleCreated: "Rôle créé avec succès.", permissionsSaved: "Autorisations enregistrées.", roleSaveError: "Impossible d’enregistrer les paramètres du rôle.",
+    ownerOnly: "Seul le propriétaire peut gérer les rôles et autorisations.", roleNameRequired: "Saisissez un nom de rôle d’au moins 2 caractères.",
+    cancelEdit: "Annuler la modification", savingRole: "Enregistrement…",
+    systemRole: "Rôle système", customRole: "Rôle personnalisé", noRoles: "Aucun rôle trouvé.",
     accessRules: "Règles d’accès", accessRulesText: "Autorisations disponibles regroupées par module.",
     noPermissions: "Aucune autorisation trouvée.", module: "Module", permissionKey: "Clé d’autorisation",
     description: "Description", branchesText: "Agences associées à cette organisation.",
@@ -88,6 +100,12 @@ const copy = {
     team: "أعضاء الفريق", teamText: "الحسابات المرتبطة بهذه المؤسسة.",
     searchUsers: "ابحث بالاسم أو الهاتف أو الدور…", noUsers: "لم يتم العثور على مستخدمين.",
     roleCatalog: "قائمة الأدوار", roleCatalogText: "الأدوار المعرفة لهذه المؤسسة.",
+    systemRole: "دور نظام", customRole: "دور مخصص", noRoles: "لا توجد أدوار.",
+    addRole: "إنشاء دور", roleName: "اسم الدور", roleDescription: "الوصف", createRole: "إنشاء الدور",
+    editPermissions: "تخصيص الصلاحيات", chooseRole: "اختر دورًا لتخصيصه", savePermissions: "حفظ الصلاحيات",
+    roleCreated: "تم إنشاء الدور بنجاح.", permissionsSaved: "تم حفظ الصلاحيات بنجاح.", roleSaveError: "تعذر حفظ إعدادات الدور.",
+    ownerOnly: "المالك وحده يستطيع إدارة الأدوار والصلاحيات.", roleNameRequired: "أدخل اسمًا للدور لا يقل عن حرفين.",
+    cancelEdit: "إلغاء التعديل", savingRole: "جارٍ الحفظ…",
     systemRole: "دور نظام", customRole: "دور مخصص", noRoles: "لا توجد أدوار.",
     accessRules: "قواعد الوصول", accessRulesText: "الصلاحيات المتاحة مجمعة حسب أقسام التطبيق.",
     noPermissions: "لم يتم العثور على صلاحيات.", module: "القسم", permissionKey: "رمز الصلاحية",
@@ -132,6 +150,13 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [roleName, setRoleName] = useState("");
+  const [roleDescription, setRoleDescription] = useState("");
+  const [selectedRoleId, setSelectedRoleId] = useState("");
+  const [selectedPermissionCodes, setSelectedPermissionCodes] = useState([]);
+  const [savingRole, setSavingRole] = useState(false);
+  const [roleMessage, setRoleMessage] = useState("");
+  const [roleError, setRoleError] = useState("");
   const [data, setData] = useState({
     organization: null, profile: null, users: [], roles: [], permissions: [],
     rolePermissions: [], branches: [],
@@ -148,7 +173,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
 
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("user_id, organization_id, role_id, full_name, phone, status, created_at")
+        .select("user_id, organization_id, role_id, full_name, phone, status, is_owner, created_at")
         .eq("user_id", user.id)
         .single();
       if (profileError) throw profileError;
@@ -233,6 +258,65 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   }, [data.users, data.roles, search, roleById]);
 
   const activeNav = nav.find((item) => item.id === section) || nav[0];
+  const isOwner = data.profile?.is_owner === true;
+  const selectedRole = data.roles.find((role) => role.id === selectedRoleId) || null;
+  const ownerRoleIds = new Set(data.users.filter((user) => user.is_owner).map((user) => user.role_id).filter(Boolean));
+
+  const startRoleEditing = (role) => {
+    setSelectedRoleId(role.id);
+    const rolePermissionIds = new Set(data.rolePermissions.filter((item) => item.role_id === role.id).map((item) => item.permission_id));
+    setSelectedPermissionCodes(data.permissions.filter((permission) => rolePermissionIds.has(permission.id)).map((permission) => permission.code));
+    setRoleMessage("");
+    setRoleError("");
+  };
+
+  const createRole = async (event) => {
+    event.preventDefault();
+    setRoleMessage("");
+    setRoleError("");
+    if (!isOwner) { setRoleError(t.ownerOnly); return; }
+    if (roleName.trim().length < 2) { setRoleError(t.roleNameRequired); return; }
+    setSavingRole(true);
+    try {
+      const { data: newRoleId, error: createError } = await supabase.rpc("create_custom_role", {
+        p_name: roleName.trim(),
+        p_description: roleDescription.trim(),
+      });
+      if (createError) throw createError;
+      setRoleName("");
+      setRoleDescription("");
+      await loadSettings();
+      setSelectedRoleId(newRoleId);
+      setSelectedPermissionCodes([]);
+      setRoleMessage(t.roleCreated);
+    } catch (err) {
+      console.error("Could not create role:", err);
+      setRoleError(err?.message || t.roleSaveError);
+    } finally {
+      setSavingRole(false);
+    }
+  };
+
+  const saveRolePermissions = async () => {
+    if (!isOwner || !selectedRoleId) return;
+    setSavingRole(true);
+    setRoleMessage("");
+    setRoleError("");
+    try {
+      const { error: saveError } = await supabase.rpc("save_role_permissions", {
+        p_role_id: selectedRoleId,
+        p_permission_codes: selectedPermissionCodes,
+      });
+      if (saveError) throw saveError;
+      await loadSettings();
+      setRoleMessage(t.permissionsSaved);
+    } catch (err) {
+      console.error("Could not save role permissions:", err);
+      setRoleError(err?.message || t.roleSaveError);
+    } finally {
+      setSavingRole(false);
+    }
+  };
 
   return (
     <section className="settings-page">
@@ -358,7 +442,22 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   </div>
                   <div className="settings-card">
                     <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.roleCatalog}</h4><p>{t.roleCatalogText}</p></div></div>
-                    <div className="settings-role-list">{data.roles.map((role) => <div className="settings-role-row" key={role.id}><span className="settings-role-icon"><ShieldCheck size={17} /></span><span className="settings-role-copy"><strong>{role.name}</strong><small>{role.description || "—"}</small></span><span className="settings-role-permissions">{permissionCountByRole[role.id] || 0} / {data.permissions.length}</span><span className="settings-role-type">{role.is_system ? t.systemRole : t.customRole}</span></div>)}{!data.roles.length && <p className="settings-empty">{t.noRoles}</p>}</div>
+                    <div className="settings-role-list">{data.roles.map((role) => <div className="settings-role-row" key={role.id}><span className="settings-role-icon"><ShieldCheck size={17} /></span><span className="settings-role-copy"><strong>{role.name}</strong><small>{role.description || "—"}</small></span><span className="settings-role-permissions">{permissionCountByRole[role.id] || 0} / {data.permissions.length}</span><span className="settings-role-type">{role.is_system ? t.systemRole : t.customRole}</span>{isOwner && !ownerRoleIds.has(role.id) && <button type="button" className="settings-edit-button" onClick={() => startRoleEditing(role)}>{t.editPermissions}</button>}</div>)}{!data.roles.length && <p className="settings-empty">{t.noRoles}</p>}</div>
+                    {isOwner && <form className="settings-profile-form" onSubmit={createRole}>
+                      <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.addRole}</h4><p>{t.ownerOnly}</p></div></div>
+                      <div className="settings-detail-grid">
+                        <label className="settings-form-field"><span>{t.roleName}</span><input value={roleName} onChange={(event) => setRoleName(event.target.value)} maxLength={80} minLength={2} required /></label>
+                        <label className="settings-form-field"><span>{t.roleDescription}</span><input value={roleDescription} onChange={(event) => setRoleDescription(event.target.value)} maxLength={240} /></label>
+                      </div>
+                      <div className="settings-profile-actions"><button type="submit" className="settings-save-button" disabled={savingRole}><Save size={15} />{savingRole ? t.savingRole : t.createRole}</button></div>
+                    </form>}
+                    {isOwner && selectedRole && !ownerRoleIds.has(selectedRole.id) && <div className="settings-role-editor">
+                      <div className="settings-card-heading"><ShieldCheck size={18} /><div><h4>{t.editPermissions}: {selectedRole.name}</h4><p>{t.chooseRole}</p></div><button type="button" className="settings-cancel-button" onClick={() => setSelectedRoleId("")}>{t.cancelEdit}</button></div>
+                      <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{formatModule(module)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <label className="settings-permission-row" key={permission.id}><input type="checkbox" checked={selectedPermissionCodes.includes(permission.code)} onChange={(event) => setSelectedPermissionCodes((previous) => event.target.checked ? [...new Set([...previous, permission.code])] : previous.filter((code) => code !== permission.code))} /><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{permission.description}</small></span></label>)}</div></section>)}</div>
+                      <div className="settings-profile-actions"><button type="button" className="settings-save-button" onClick={saveRolePermissions} disabled={savingRole}><Save size={15} />{savingRole ? t.savingRole : t.savePermissions}</button></div>
+                    </div>}
+                    {roleMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{roleMessage}</div>}
+                    {roleError && <div className="settings-feedback settings-feedback-error" role="alert"><AlertCircle size={15} />{roleError}</div>}
                   </div>
                 </>
               )}
