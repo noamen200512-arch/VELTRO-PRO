@@ -1697,6 +1697,37 @@ export default function Purchases() {
     );
   });
 
+  const savePendingConfirmation = () => {
+    if (!lines.length) {
+      setNotice("Add at least one product before saving a pending voucher.");
+      return;
+    }
+    const key = "veltro_purchase_pending_drafts_v1";
+    const pending = safeRead(key, []);
+    const record = {
+      id: makeId("PENDING"),
+      number: draftInvoiceNumber || `PUR-${Date.now()}`,
+      status: "Pending confirmation",
+      supplier: supplier || "Unknown Supplier",
+      phone: supplierPhone,
+      date: draftCreatedAt || nowISO(),
+      createdBy: draftCreatedBy || getCurrentUserName(),
+      lines: lines.map(line => ({ ...line, productSnapshot: { ...(line.productSnapshot || {}) } })),
+      total,
+      note: invoiceNote,
+      draftProductChanges,
+      editingInvoice
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify([record, ...pending]));
+      localStorage.removeItem(DRAFT_KEY);
+      setShowInvoice(false);
+      setNotice("Purchase voucher saved as pending confirmation. Inventory has not been updated.");
+    } catch {
+      setNotice("Could not save the pending voucher. Check available storage.");
+    }
+  };
+
   return (
     <section className="purchase-layout" dir={document.documentElement.dir || "ltr"}>
       <header className="purchase-page-header">
@@ -2065,7 +2096,7 @@ export default function Purchases() {
             <footer className="purchase-modal-footer purchase-voucher-footer">
               <Button variant="danger" onClick={cancelDraft}><Trash2 size={16} /> Cancel voucher</Button>
               <Button onClick={() => { setShowInvoice(false); setNotice("Purchase voucher saved as a draft and can be resumed later."); }}><Save size={16} /> Save draft</Button>
-              <Button onClick={() => { setShowInvoice(false); setNotice("Purchase voucher saved as pending confirmation. Inventory has not been updated."); }}><Clock3 size={16} /> Save as pending confirmation</Button>
+              <Button onClick={savePendingConfirmation}><Clock3 size={16} /> Save as pending confirmation</Button>
               <Button variant="primary" onClick={openAccount}><CheckCircle2 size={16} /> Review and confirm</Button>
             </footer>
           </div>
