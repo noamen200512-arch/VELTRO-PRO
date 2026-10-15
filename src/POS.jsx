@@ -154,6 +154,8 @@ export default function POS() {
   const [customerRecords, setCustomerRecords] = useState([]);
   const [showSaleReview, setShowSaleReview] = useState(false);
   const [showSaleConfirm, setShowSaleConfirm] = useState(false);
+  const [showBelowCostWarning, setShowBelowCostWarning] = useState(false);
+  const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
 
   const items = invoice.items || [];
@@ -767,12 +769,8 @@ export default function POS() {
     notify(`Opened ${pending.invoiceNumber}.`, "success");
   };
 
-  const completeCurrentSale = () => {
-    if (busy) return;
-    if (items.length === 0) {
-      notify("Add products before completing the sale.", "error");
-      return;
-    }
+  const openSaleConfirmation = () => {
+    setShowBelowCostWarning(false);
     if (isAnonymousCustomer) {
       setShowSaleReview(false);
       setShowSaleConfirm(true);
@@ -780,6 +778,53 @@ export default function POS() {
       setShowSaleConfirm(false);
       setShowSaleReview(true);
     }
+  };
+
+  const completeCurrentSale = () => {
+    if (busy) return;
+    if (items.length === 0) {
+      notify("Add products before completing the sale.", "error");
+      return;
+    }
+
+    // Compare each selling unit price with the latest purchase cost in inventory.
+    const inventoryProducts = getProducts();
+    const lossItems = items.flatMap((item) => {
+      const productId = getProductId(item);
+      const product = inventoryProducts.find(
+        (record) => String(record.id) === String(productId)
+      );
+      const purchaseCost = Number(product?.purchasePrice ?? item.purchasePrice);
+      const sellingPrice = Number(item.price);
+
+      if (
+        !Number.isFinite(purchaseCost) ||
+        purchaseCost <= 0 ||
+        !Number.isFinite(sellingPrice) ||
+        sellingPrice >= purchaseCost - 0.000001
+      ) {
+        return [];
+      }
+
+      return [{
+        id: productId,
+        name: item.name || product?.name || "Product",
+        quantity: getQuantity(item),
+        sellingPrice,
+        purchaseCost,
+        lossPerUnit: purchaseCost - sellingPrice,
+      }];
+    });
+
+    if (lossItems.length > 0) {
+      setBelowCostItems(lossItems);
+      setShowBelowCostWarning(true);
+      setShowSaleReview(false);
+      setShowSaleConfirm(false);
+      return;
+    }
+
+    openSaleConfirmation();
   };
 
   const confirmSaleCompletion = () => {
@@ -967,6 +1012,85 @@ export default function POS() {
             <footer className="pending-invoices-modal-footer">
               <span>{pendingInvoices.length} saved invoice{pendingInvoices.length === 1 ? "" : "s"}</span>
               <button type="button" onClick={() => setShowPending(false)}>Close</button>
+            </footer>
+          </section>
+        </div>
+      )}
+
+      {showBelowCostWarning && (
+        <div
+          className="sale-confirm-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !busy) {
+              setShowBelowCostWarning(false);
+            }
+          }}
+        >
+          <section
+            className="sale-confirm-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="below-cost-title"
+          >
+            <header className="sale-confirm-header">
+              <div className="sale-confirm-icon review">
+                <AlertTriangle size={22} />
+              </div>
+              <div className="sale-confirm-heading-copy">
+                <h2 id="below-cost-title">Warning: selling below purchase cost</h2>
+                <p>Some products are priced below their recorded purchase cost. This sale may cause a loss.</p>
+              </div>
+              <button
+                type="button"
+                className="sale-confirm-close"
+                onClick={() => setShowBelowCostWarning(false)}
+                disabled={busy}
+                aria-label="Close warning"
+              >
+                <X size={18} />
+              </button>
+            </header>
+
+            <div className="sale-confirm-amounts">
+              {belowCostItems.map((item) => (
+                <div className="sale-confirm-amount-row" key={item.id}>
+                  <span>
+                    <strong>{item.name}</strong>
+                    <small style={{ display: "block", marginTop: 4 }}>
+                      Qty: {item.quantity} · Loss per unit: {item.lossPerUnit.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                    </small>
+                  </span>
+                  <span style={{ textAlign: "right" }}>
+                    <strong>{item.sellingPrice.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong>
+                    <small style={{ display: "block", marginTop: 4 }}>
+                      Cost: {item.purchaseCost.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                    </small>
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <p className="sale-confirm-note">
+              Do you want to continue with this sale anyway?
+            </p>
+            <footer className="sale-confirm-actions">
+              <button
+                type="button"
+                className="sale-confirm-secondary"
+                onClick={() => setShowBelowCostWarning(false)}
+                disabled={busy}
+              >
+                Cancel sale
+              </button>
+              <button
+                type="button"
+                className="sale-confirm-primary"
+                onClick={openSaleConfirmation}
+                disabled={busy}
+              >
+                Continue anyway <Check size={16} />
+              </button>
             </footer>
           </section>
         </div>
