@@ -211,7 +211,7 @@ export default function Suppliers() {
 
     const hasInvoices = invoices.some(
       (invoice) =>
-        normalize(invoice.supplier) === normalize(supplier.name)
+        (String(invoice.supplierId || "") && String(invoice.supplierId) === String(supplier.id)) || normalize(invoice.supplier) === normalize(supplier.name)
     );
 
     if (
