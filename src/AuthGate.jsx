@@ -73,19 +73,7 @@ return (
 }
 
 if (session) {
-return (
-<>
-<App />
-<button
-type="button"
-onClick={handleLogout}
-style={styles.logout}
-title="تسجيل الخروج"
->
-تسجيل الخروج
-</button>
-</>
-);
+return <App onLogout={handleLogout} />;
 }
 
 return (
