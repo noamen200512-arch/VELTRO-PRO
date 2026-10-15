@@ -575,7 +575,6 @@ const dictionaries = {
     "Daily purchases and payments for the last 30 days": "Achats et paiements quotidiens des 30 derniers jours",
     "Purchases:": "Achats :",
     "Payments:": "Paiements :",
-  },
 
     "Print": "Imprimer",
     "Remove": "Retirer",
