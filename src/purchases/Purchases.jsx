@@ -1222,7 +1222,6 @@ export default function Purchases() {
     setDraftInvoiceNumber(`PUR-${Date.now()}`);
     setDraftCreatedBy(getCurrentUserName());
     setDraftCreatedAt(nowISO());
-    setSupplier("Unknown Supplier");
     setShowInvoice(true);
     setShowHistory(false);
     setNotice("");
