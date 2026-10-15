@@ -32,6 +32,7 @@ import Products from "./Products.jsx";
 import SalesHistory from "./sales/SalesHistory.jsx";
 import Purchases from "./purchases/Purchases.jsx";
 import Suppliers from "./suppliers/Suppliers.jsx";
+import Customers from "./customers/Customers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
 
@@ -690,6 +691,8 @@ export default function App({ onLogout, currentUser }) {
             <Suppliers />
           ) : activePage === "Supplier Debts" ? (
             <SupplierDebts />
+          ) : activePage === "Customers" ? (
+            <Customers />
           ) : (
             <PlaceholderPage title={activePage} locale={locale} />
           )}
