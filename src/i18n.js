@@ -645,6 +645,8 @@ const dictionaries = {
     "Automatic barcode detection is not supported by this browser. Enter the barcode below.": "La détection automatique des codes-barres n’est pas prise en charge. Saisissez le code ci-dessous.",
     "Camera access is unavailable in this browser. Enter the barcode below.": "L’accès à la caméra est indisponible. Saisissez le code-barres ci-dessous.",
     "Could not open the camera. Check browser camera permission or enter the barcode below.": "Impossible d’ouvrir la caméra. Vérifiez les autorisations ou saisissez le code-barres ci-dessous.",
+    "Add at least one product before saving a pending voucher.": "Ajoutez au moins un produit avant d’enregistrer un bon en attente.",
+    "Could not save the pending voucher. Check available storage.": "Impossible d’enregistrer le bon en attente. Vérifiez l’espace de stockage.",
   },
   ar: {
     "ANALYTICS": "التحليلات",
@@ -1243,6 +1245,8 @@ const dictionaries = {
     "Automatic barcode detection is not supported by this browser. Enter the barcode below.": "هذا المتصفح لا يدعم التعرف التلقائي على الباركود. أدخل الكود أدناه.",
     "Camera access is unavailable in this browser. Enter the barcode below.": "الوصول إلى الكاميرا غير متاح في هذا المتصفح. أدخل الباركود أدناه.",
     "Could not open the camera. Check browser camera permission or enter the barcode below.": "تعذر فتح الكاميرا. تحقق من صلاحيتها في المتصفح أو أدخل الباركود أدناه.",
+    "Add at least one product before saving a pending voucher.": "أضف منتجًا واحدًا على الأقل قبل حفظ البون كقيد الانتظار.",
+    "Could not save the pending voucher. Check available storage.": "تعذر حفظ البون المعلق. تحقق من مساحة التخزين المتاحة.",
   }
 };
 
