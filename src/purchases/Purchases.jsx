@@ -1794,7 +1794,7 @@ export default function Purchases({ currentUser = null }) {
             </div>
             <div className="purchase-overview-hero-actions">
               <span className="purchase-overview-live"><i /> Live overview</span>
-              <Button onClick={() => { setPendingVouchers(safeRead("veltro_purchase_pending_drafts_v1", [])); setShowPendingVouchers(true); }}><Clock3 size={16} /> Pending Vouchers ({pendingVouchers.length})</Button>
+              <Button onClick={() => { setPendingVouchers(safeRead("veltro_purchase_pending_drafts_v1", [])); setShowPendingVouchers(true); }}><Clock3 size={16} /> {"Pending Vouchers (" + pendingVouchers.length + ")"}</Button>
               <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> New Purchase Voucher</Button>
             </div>
             <div className="purchase-hero-orb purchase-hero-orb-one" />
