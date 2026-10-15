@@ -3430,3 +3430,31 @@ html[dir="rtl"] .settings-language-option > svg { margin-left: 0; margin-right: 
   .settings-intro p { font-size: 10px; }
   .settings-refresh { margin-left: 0; }
 }
+
+
+/* Settings profile editor */
+.settings-readonly-tag{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;padding:5px 7px;border:1px solid rgba(148,163,184,.14);border-radius:6px;background:rgba(148,163,184,.05);color:#8998ad;font-size:8px;font-weight:700}
+.settings-edit-button,.settings-save-button,.settings-cancel-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:34px;padding:0 11px;border:1px solid #2b394d;border-radius:8px;font-size:10px;font-weight:750;white-space:nowrap}
+.settings-edit-button{margin-left:auto;color:#5de0d0;background:rgba(53,214,194,.07);border-color:rgba(53,214,194,.2)}
+.settings-edit-button:hover{background:rgba(53,214,194,.13);border-color:rgba(53,214,194,.42)}
+.settings-profile-form{display:flex;flex-direction:column;gap:14px}
+.settings-form-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.settings-form-field>span{color:#9aa8bc;font-size:10px;font-weight:650}
+.settings-form-field input{width:100%;min-height:40px;padding:9px 11px;border:1px solid #2b394d;border-radius:8px;background:#0a111c;color:#edf4ff;font-size:12px}
+.settings-form-field input:hover{border-color:#3a4a61}
+.settings-form-field input:focus{border-color:rgba(53,214,194,.65);outline:2px solid rgba(53,214,194,.1)}
+.settings-profile-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding-top:3px}
+.settings-save-button{color:#071512;background:linear-gradient(135deg,#56e8d4,#2fc7b5);border-color:rgba(86,232,212,.5)}
+.settings-save-button:hover:not(:disabled){filter:brightness(1.06);box-shadow:0 5px 17px rgba(53,214,194,.13)}
+.settings-cancel-button{color:#bac5d5;background:#121b29}
+.settings-cancel-button:hover:not(:disabled){color:#fff;border-color:#526078}
+.settings-feedback{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;margin:0 0 13px;border:1px solid;border-radius:8px;font-size:10px;line-height:1.6}
+.settings-feedback svg{flex:0 0 15px;margin-top:1px}
+.settings-feedback-success{color:#65e3b1;background:rgba(53,214,150,.07);border-color:rgba(53,214,150,.2)}
+.settings-feedback-error{color:#ff9da8;background:rgba(255,124,139,.07);border-color:rgba(255,124,139,.22)}
+html[dir="rtl"] .settings-edit-button{margin-left:0;margin-right:auto}
+html[dir="rtl"] .settings-readonly-tag{direction:rtl}
+@media(max-width:700px){
+  .settings-readonly-tag{display:none}
+  .settings-profile-actions>*{flex:1 1 auto}
+}
