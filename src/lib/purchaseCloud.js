@@ -41,7 +41,9 @@ export async function savePurchaseInvoiceToCloud(invoice, suppliers = [], option
 
   const { userId, organizationId } = await getAccount();
   const supplier = suppliers.find(
-    (item) => normalize(item.name) === normalize(invoice.supplier)
+    item => invoice.supplierId && String(item.id) === String(invoice.supplierId)
+  ) || suppliers.find(
+    item => normalize(item.name) === normalize(invoice.supplier)
   );
   const total = Math.max(0, Number(invoice.total) || 0);
   const paid = Math.max(0, Number(invoice.paid) || 0);
