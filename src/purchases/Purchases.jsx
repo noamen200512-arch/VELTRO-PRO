@@ -1469,13 +1469,6 @@ export default function Purchases() {
         </div>
 
         <div className="purchase-header-buttons">
-          <Button onClick={() => {
-            setShowHistory(true);
-            setActiveTab("history");
-          }}>
-            <History size={17} /> Purchase History
-          </Button>
-
           <Button variant="primary" onClick={openNewInvoice}>
             <Plus size={17} /> New Purchase
           </Button>
@@ -1491,34 +1484,6 @@ export default function Purchases() {
           </button>
         </div>
       )}
-
-      <nav className="purchase-tabs">
-        <button
-          className={`purchase-tab ${activeTab === "dashboard" ? "active" : ""}`}
-          onClick={() => setActiveTab("dashboard")}
-        >
-          <span className="purchase-tab-icon">
-            <CircleDollarSign size={20} />
-          </span>
-          <span>
-            <strong>Purchase Dashboard</strong>
-            <small>Purchase and payment overview</small>
-          </span>
-        </button>
-
-        <button
-          className={`purchase-tab ${activeTab === "products" ? "active" : ""}`}
-          onClick={() => setActiveTab("products")}
-        >
-          <span className="purchase-tab-icon">
-            <Package size={20} />
-          </span>
-          <span>
-            <strong>Product Prices</strong>
-            <small>Select products and print price labels</small>
-          </span>
-        </button>
-      </nav>
 
       {activeTab === "dashboard" && (
         <main className="purchase-dashboard">
@@ -1568,45 +1533,6 @@ export default function Purchases() {
               <small><span className="purchase-metric-dot" /> Outstanding across suppliers</small>
               <div className="purchase-metric-bottom"><span>OUTSTANDING</span><Wallet size={14} /></div>
             </article>
-          </section>
-
-          <section className="purchase-analytics-panel">
-            <div className="purchase-section-heading">
-              <div>
-                <span className="purchase-section-kicker">ANALYTICS</span>
-                <h3>Purchase &amp; Payment Activity</h3>
-                <p>Compare voucher values with actual payments.</p>
-              </div>
-              <div className="purchase-segmented">
-                <button className={chartMode === "daily" ? "active" : ""} onClick={() => setChartMode("daily")}>Daily</button>
-                <button className={chartMode === "monthly" ? "active" : ""} onClick={() => setChartMode("monthly")}>Monthly</button>
-              </div>
-            </div>
-            <div className="purchase-chart purchase-chart-redesigned">
-              {chartData.length ? chartData.map(item => {
-                const max = Math.max(1, ...chartData.map(entry => entry.total));
-                return (
-                  <div className="purchase-chart-column" key={item.key}>
-                    <div className="purchase-chart-value">{money(item.total)}</div>
-                    <div className="purchase-chart-bars">
-                      <div className="purchase-chart-bar total" style={{ height: `${Math.max(3, item.total / max * 100)}%` }} title={`Purchases: ${money(item.total)}`} />
-                      <div className="purchase-chart-bar paid" style={{ height: `${Math.max(3, item.paid / max * 100)}%` }} title={`Paid: ${money(item.paid)}`} />
-                    </div>
-                    <small>{chartMode === "daily" ? item.key.slice(5) : item.key}</small>
-                  </div>
-                );
-              }) : (
-                <div className="purchase-empty-state">
-                  <FileText size={30} />
-                  <p>No purchase records available for the chart.</p>
-                </div>
-              )}
-            </div>
-            <div className="purchase-chart-legend">
-              <span><i className="total" /> Total Purchases</span>
-              <span><i className="paid" /> Amount Paid</span>
-              <span className="purchase-chart-period">{chartMode === "daily" ? "Recent days" : "Recent months"}</span>
-            </div>
           </section>
 
           <section className="purchase-voucher-register">
