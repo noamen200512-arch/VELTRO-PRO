@@ -1106,3 +1106,36 @@
     min-width: 980px;
   }
 }
+
+
+/* Explicit search action for Sales History */
+.history-page .history-search-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.history-page .history-search-actions .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 112px;
+  min-height: 36px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .history-page .history-search-actions {
+    justify-content: stretch;
+  }
+
+  .history-page .history-search-actions .primary-button {
+    width: 100%;
+  }
+}
