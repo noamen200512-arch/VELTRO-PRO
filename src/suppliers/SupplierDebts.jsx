@@ -53,6 +53,7 @@ export default function SupplierDebts() {
       .map((supplier) => {
         const invoices = data.invoices.filter(
           (invoice) =>
+            (String(invoice.supplierId || "") && String(invoice.supplierId) === String(supplier.id)) ||
             normalize(invoice.supplier) === normalize(supplier.name)
         );
 
@@ -73,7 +74,8 @@ export default function SupplierDebts() {
       .filter(({ supplier, invoices, debt }) => {
         const matches =
           normalize(supplier.name).includes(query) ||
-          normalize(supplier.phone).includes(query);
+          normalize(supplier.phone).includes(query) ||
+          normalize(supplier.reference || supplier.id).includes(query);
 
         return matches && (showAll || debt > 0 || invoices.length > 0);
       })
@@ -142,7 +144,7 @@ export default function SupplierDebts() {
         <div className="supplier-panel-heading">
           <div>
             <h3>Supplier balances</h3>
-            <p>Select the search filter to find a supplier by name or phone.</p>
+            <p>Search by supplier ID, name or phone. Invoices are linked by supplier ID when available.</p>
           </div>
         </div>
 
@@ -152,7 +154,7 @@ export default function SupplierDebts() {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search supplier name or phone..."
+            placeholder="Search supplier ID, name or phone..."
           />
         </label>
 
@@ -183,6 +185,7 @@ export default function SupplierDebts() {
             <table className="supplier-table">
               <thead>
                 <tr>
+                  <th>Supplier ID</th>
                   <th>Supplier</th>
                   <th>Phone</th>
                   <th>Invoices</th>
@@ -193,6 +196,7 @@ export default function SupplierDebts() {
               <tbody>
                 {rows.map(({ supplier, invoices, debt }) => (
                   <tr key={supplier.id || supplier.name}>
+                    <td><strong>{supplier.reference || supplier.id || "—"}</strong></td>
                     <td><strong>{supplier.name}</strong></td>
                     <td>{supplier.phone || "No phone number"}</td>
                     <td>{invoices.length}</td>
