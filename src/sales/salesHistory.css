@@ -2875,3 +2875,135 @@
   }
 }
 
+
+/* Professional completed-invoice actions */
+.history-page .invoice-detail-modal .panel-actions {
+  display:flex; justify-content:flex-end; align-items:center; gap:10px;
+  margin-top:18px; padding-top:16px; border-top:1px solid rgba(106,132,160,.2);
+}
+.history-page .invoice-detail-modal .panel-actions button {
+  display:inline-flex; align-items:center; justify-content:center; gap:9px;
+  min-height:43px; padding:0 18px; border-radius:11px; font-size:12px;
+  font-weight:750; transition:transform 160ms ease,box-shadow 160ms ease,background 160ms ease;
+}
+.history-page .invoice-detail-modal .panel-actions .secondary-button {
+  color:#d0dbea; background:#172538; border:1px solid #354a62;
+}
+.history-page .invoice-detail-modal .panel-actions .secondary-button:hover {
+  color:#fff; background:#22364d; border-color:#506984; transform:translateY(-1px);
+}
+.history-page .invoice-detail-modal .panel-actions .primary-button {
+  color:#061a19; background:linear-gradient(135deg,#63e3d2,#36c6b5);
+  border:1px solid rgba(112,246,226,.6); box-shadow:0 7px 18px rgba(40,197,178,.16);
+}
+.history-page .invoice-detail-modal .panel-actions .primary-button:hover {
+  background:linear-gradient(135deg,#80f0e1,#49d6c4); box-shadow:0 9px 22px rgba(40,197,178,.24); transform:translateY(-1px);
+}
+
+.account-update-backdrop {
+  position:fixed; inset:0; z-index:10050; display:flex; align-items:center; justify-content:center;
+  overflow-y:auto; padding:22px; background:rgba(2,7,14,.8); backdrop-filter:blur(9px);
+}
+.account-update-modal {
+  box-sizing:border-box; width:min(100%,510px); max-height:90vh; overflow-y:auto; padding:0;
+  border:1px solid rgba(100,137,168,.35); border-radius:20px;
+  background:linear-gradient(155deg,#121f30,#0b1421 65%,#09111c);
+  box-shadow:0 28px 90px rgba(0,0,0,.52); color:#edf4ff;
+}
+.account-update-header {
+  display:flex; align-items:center; gap:13px; padding:22px 22px 19px;
+  border-bottom:1px solid rgba(109,136,166,.18);
+  background:radial-gradient(ellipse at 0 0,rgba(54,211,192,.12),transparent 68%);
+}
+.account-update-heading-icon {
+  display:grid; flex:0 0 46px; width:46px; height:46px; place-items:center;
+  border:1px solid rgba(65,220,200,.26); border-radius:14px;
+  background:rgba(53,214,194,.11); color:#61dfd0;
+}
+.account-update-heading-copy { flex:1; min-width:0; }
+.account-update-eyebrow { display:block; margin-bottom:5px; color:#69dccc; font-size:9px; font-weight:850; letter-spacing:.15em; }
+.account-update-heading-copy h3 { margin:0; color:#f3f7ff; font-size:17px; font-weight:800; line-height:1.35; }
+.account-update-heading-copy p { display:flex; flex-wrap:wrap; gap:7px; margin:6px 0 0; color:#95a9bf; font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.account-update-close {
+  display:grid; flex:0 0 36px; width:36px; height:36px; place-items:center;
+  border:1px solid #34485f; border-radius:10px; background:#172538; color:#b6c5d7; cursor:pointer;
+}
+.account-update-close:hover { color:#fff; background:#263a50; border-color:#536c85; }
+.account-update-body { display:grid; gap:14px; padding:19px 22px 21px; }
+.account-update-anonymous-note {
+  display:flex; align-items:flex-start; gap:11px; padding:13px 14px;
+  border:1px solid rgba(226,174,89,.24); border-radius:12px; background:rgba(226,174,89,.07);
+}
+.account-update-anonymous-note>span {
+  display:grid; flex:0 0 30px; width:30px; height:30px; place-items:center; border-radius:9px;
+  background:rgba(226,174,89,.11); color:#edc77f;
+}
+.account-update-anonymous-note strong { display:block; margin:1px 0 4px; color:#f0d49d; font-size:12px; }
+.account-update-anonymous-note p { margin:0; color:#aeb9c8; font-size:11px; line-height:1.6; }
+.account-update-debt-card,.account-update-payment-card {
+  padding:15px; border:1px solid rgba(101,128,157,.23); border-radius:13px; background:rgba(9,18,30,.68);
+}
+.account-update-debt-heading,.account-update-total-debt,.account-update-remaining,.account-update-updated-debt {
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+}
+.account-update-debt-heading { padding:3px 0 12px; }
+.account-update-debt-heading+.account-update-debt-heading { padding-top:12px; border-top:1px solid rgba(104,129,157,.14); }
+.account-update-debt-heading>span { display:flex; align-items:center; gap:8px; color:#aebed0; font-size:11px; line-height:1.45; }
+.account-update-debt-heading>span svg { flex:0 0 auto; color:#73d9ce; }
+.account-update-debt-heading>strong { color:#e4edf8; font-size:12px; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.account-update-total-debt {
+  margin-top:3px; padding:13px 12px; border:1px solid rgba(160,132,240,.22);
+  border-radius:10px; background:rgba(145,113,231,.09);
+}
+.account-update-total-debt>span { color:#d0c4f4; font-size:11px; font-weight:700; }
+.account-update-total-debt>strong { color:#c6b4ff; font-size:14px; font-weight:850; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.account-update-field-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:9px; }
+.account-update-field-heading>span { color:#e3edf8; font-size:12px; font-weight:750; }
+.account-update-field-heading>small { color:#69dccc; font-size:10px; font-weight:700; }
+.account-update-paid-field {
+  display:flex; align-items:center; gap:10px; min-height:49px; padding:0 13px;
+  border:1px solid rgba(70,215,196,.36); border-radius:11px; background:#07111d;
+}
+.account-update-paid-field:focus-within { border-color:#54dfce; box-shadow:0 0 0 3px rgba(64,211,192,.11); }
+.account-update-paid-field input {
+  width:100%; min-width:0; padding:0; border:0; outline:0; background:transparent; color:#72e7d7;
+  font:inherit; font-size:17px; font-weight:850; font-variant-numeric:tabular-nums;
+}
+.account-update-paid-field>span { color:#91a8bd; font-size:11px; font-weight:700; }
+.account-update-remaining,.account-update-updated-debt { margin-top:13px; padding-top:12px; border-top:1px solid rgba(104,129,157,.16); }
+.account-update-remaining>span,.account-update-updated-debt>span { color:#9fb1c5; font-size:11px; }
+.account-update-remaining>strong { color:#f0c879; font-size:13px; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.account-update-updated-debt>strong { color:#c5b4ff; font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+.account-update-error { margin:0; padding:10px 12px; border:1px solid rgba(255,102,124,.28); border-radius:9px; background:rgba(255,86,110,.08); color:#ffabb6; font-size:11px; line-height:1.5; }
+.account-update-actions {
+  display:flex; justify-content:flex-end; gap:10px; padding:15px 22px 21px;
+  border-top:1px solid rgba(109,136,166,.16);
+}
+.account-update-actions button {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px;
+  padding:0 15px; border-radius:10px; font-family:inherit; font-size:11px; font-weight:800; cursor:pointer;
+  transition:transform 150ms ease,background 150ms ease,border-color 150ms ease,box-shadow 150ms ease;
+}
+.account-update-cancel { border:1px solid #35495f; background:#172538; color:#c8d5e5; }
+.account-update-cancel:hover:not(:disabled) { background:#22364b; border-color:#506982; color:#fff; }
+.account-update-save {
+  border:1px solid rgba(106,241,222,.58); background:linear-gradient(135deg,#65e3d2,#36c5b4);
+  color:#061a18; box-shadow:0 6px 17px rgba(45,199,181,.15);
+}
+.account-update-save:hover:not(:disabled) { background:linear-gradient(135deg,#81efdf,#4bd7c5); box-shadow:0 8px 20px rgba(45,199,181,.23); transform:translateY(-1px); }
+.account-update-actions button:disabled { opacity:.6; cursor:not-allowed; }
+.account-update-modal button:focus-visible,.account-update-modal input:focus-visible { outline:2px solid #61e4d2; outline-offset:3px; }
+@media(max-width:560px) {
+  .history-page .invoice-detail-modal .panel-actions { flex-direction:column-reverse; align-items:stretch; }
+  .history-page .invoice-detail-modal .panel-actions button { width:100%; min-height:44px; }
+  .account-update-backdrop { align-items:flex-end; padding:10px; }
+  .account-update-modal { width:100%; max-height:88vh; border-radius:19px 19px 14px 14px; }
+  .account-update-header { gap:10px; padding:17px 16px 15px; }
+  .account-update-heading-icon { flex-basis:40px; width:40px; height:40px; border-radius:12px; }
+  .account-update-heading-copy h3 { font-size:15px; }
+  .account-update-body { gap:11px; padding:14px 15px 16px; }
+  .account-update-debt-card,.account-update-payment-card { padding:12px; }
+  .account-update-actions { padding:13px 15px calc(15px + env(safe-area-inset-bottom)); }
+  .account-update-actions button { flex:1; min-height:43px; padding:0 10px; font-size:10px; }
+}
+
