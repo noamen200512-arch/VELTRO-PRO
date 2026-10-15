@@ -1326,3 +1326,229 @@
   .edit-customer-picker-backdrop { align-items: flex-end; padding: 0; }
   .edit-customer-picker-modal { width: 100%; max-height: 88dvh; border-radius: 16px 16px 0 0; }
 }
+
+/* =========================================================
+   SALES HISTORY — EDIT INVOICE LAYOUT POLISH
+   Keep fields, product columns, totals and actions aligned.
+========================================================= */
+.edit-invoice-modal {
+  width: min(980px, calc(100vw - 32px));
+  max-width: 980px;
+  padding: 24px;
+}
+
+.edit-invoice-modal .panel-header {
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.edit-invoice-modal .edit-invoice-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.edit-invoice-modal .edit-invoice-fields .edit-customer-field {
+  grid-column: 1 / -1;
+}
+
+.edit-invoice-modal .modal-field {
+  gap: 8px;
+}
+
+.edit-invoice-modal .modal-field > span {
+  min-height: 16px;
+  line-height: 1.35;
+}
+
+.edit-invoice-modal .modal-field input,
+.edit-invoice-modal .edit-customer-control input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  height: 42px;
+}
+
+.edit-invoice-modal .edit-customer-control {
+  align-items: stretch;
+  gap: 10px;
+}
+
+.edit-invoice-modal .edit-change-customer-button {
+  min-height: 42px;
+  height: 42px;
+}
+
+.edit-invoice-modal .edit-products-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 12px;
+}
+
+.edit-invoice-modal .edit-products-heading h4 {
+  margin: 0;
+}
+
+.edit-invoice-modal .edit-add-product-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  margin: 0;
+}
+
+.edit-invoice-modal .table-wrapper {
+  width: 100%;
+  margin: 0;
+}
+
+.edit-invoice-modal .products-table {
+  width: 100%;
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.edit-invoice-modal .products-table th,
+.edit-invoice-modal .products-table td {
+  padding: 12px 10px;
+  vertical-align: middle;
+}
+
+.edit-invoice-modal .products-table th:first-child { width: 25%; }
+.edit-invoice-modal .products-table th:nth-child(2) { width: 8%; }
+.edit-invoice-modal .products-table th:nth-child(3) { width: 12%; }
+.edit-invoice-modal .products-table th:nth-child(4) { width: 15%; }
+.edit-invoice-modal .products-table th:nth-child(5) { width: 17%; }
+.edit-invoice-modal .products-table th:nth-child(6) { width: 23%; }
+
+.edit-invoice-modal .products-table th:nth-child(2),
+.edit-invoice-modal .products-table td:nth-child(2) {
+  text-align: center;
+}
+
+.edit-invoice-modal .edit-invoice-product-cell {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.edit-invoice-modal .edit-add-carton-button {
+  max-width: 100%;
+}
+
+.edit-invoice-modal .edit-number-input {
+  height: 40px;
+  padding: 0 9px;
+  font-size: 13px;
+}
+
+.edit-invoice-modal .edit-product-line-total {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.edit-invoice-modal .edit-item-actions {
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.edit-invoice-modal .edit-apply-item-button {
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.edit-invoice-modal .edit-totals {
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.edit-invoice-modal .edit-totals > div {
+  min-height: 82px;
+  padding: 13px;
+  gap: 10px;
+}
+
+.edit-invoice-modal .panel-actions {
+  margin-top: 22px;
+  padding-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .edit-invoice-modal {
+    width: calc(100vw - 20px);
+    padding: 17px 14px;
+  }
+
+  .edit-invoice-modal .edit-invoice-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .edit-invoice-modal .edit-invoice-fields .edit-customer-field {
+    grid-column: 1 / -1;
+  }
+
+  .edit-invoice-modal .edit-products-heading {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .edit-invoice-modal .edit-add-product-button {
+    width: auto;
+  }
+
+  .edit-invoice-modal .products-table {
+    min-width: 900px;
+  }
+
+  .edit-invoice-modal .edit-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .edit-invoice-modal .edit-customer-control {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .edit-invoice-modal .edit-customer-control input {
+    flex: 1 1 100%;
+  }
+
+  .edit-invoice-modal .edit-change-customer-button {
+    width: 100%;
+  }
+
+  .edit-invoice-modal .edit-products-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .edit-invoice-modal .edit-add-product-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .edit-invoice-modal {
+    padding: 14px 10px;
+  }
+
+  .edit-invoice-modal .edit-invoice-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .edit-invoice-modal .edit-invoice-fields .edit-customer-field {
+    grid-column: auto;
+  }
+
+  .edit-invoice-modal .edit-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
