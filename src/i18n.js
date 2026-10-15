@@ -1130,6 +1130,27 @@ export function translatePage(locale, root = document.body) {
     const trimmed = original.trim();
     let translated = dictionary[trimmed] || trimmed;
 
+    // Purchase-page strings that include live values need pattern translations.
+    if (!dictionary[trimmed] && locale === "ar") {
+      let match = trimmed.match(/^Print Selected \((\d+)\)$/i);
+      if (match) translated = `طباعة المحدد (${match[1]})`;
+      match = trimmed.match(/^Debt:\s*(.+?)\s*·\s*Credit:\s*(.+)$/i);
+      if (match) translated = `الدين: ${match[1]} · الرصيد الدائن: ${match[2]}`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)\s+invoices$/i);
+      if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]} فاتورة`;
+      match = trimmed.match(/^Delete invoice\s+(.+)\? Inventory movements will not be reversed automatically\.$/i);
+      if (match) translated = `حذف الفاتورة ${match[1]}؟ لن يتم عكس حركات المخزون تلقائيًا.`;
+    } else if (!dictionary[trimmed] && locale === "fr") {
+      let match = trimmed.match(/^Print Selected \((\d+)\)$/i);
+      if (match) translated = `Imprimer la sélection (${match[1]})`;
+      match = trimmed.match(/^Debt:\s*(.+?)\s*·\s*Credit:\s*(.+)$/i);
+      if (match) translated = `Dette : ${match[1]} · Crédit : ${match[2]}`;
+      match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)\s+invoices$/i);
+      if (match) translated = `Affichage de ${match[1]}–${match[2]} sur ${match[3]} factures`;
+      match = trimmed.match(/^Delete invoice\s+(.+)\? Inventory movements will not be reversed automatically\.$/i);
+      if (match) translated = `Supprimer la facture ${match[1]} ? Les mouvements de stock ne seront pas annulés automatiquement.`;
+    }
+
     // Translate dynamic POS notices and count strings.
     if (!dictionary[trimmed] && locale === "ar") {
       let match = trimmed.match(/^Additional Barcodes \((\d+)\)$/i);
