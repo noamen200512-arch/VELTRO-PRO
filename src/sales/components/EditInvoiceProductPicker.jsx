@@ -275,9 +275,9 @@ export default function EditInvoiceProductPicker({
 
             <div>
               <h2 id="edit-product-picker-title">
-                Ajouter un produit
+                Add a product
               </h2>
-              <p>Rechercher et sélectionner un produit</p>
+              <p>Search and select a product</p>
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function EditInvoiceProductPicker({
               stopCamera();
               onClose?.();
             }}
-            aria-label="Fermer"
+            aria-label="Close"
           >
             <X size={20} />
           </button>
@@ -303,7 +303,7 @@ export default function EditInvoiceProductPicker({
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nom, code-barres ou référence..."
+              placeholder="Name, barcode or reference..."
               autoComplete="off"
             />
 
@@ -311,7 +311,7 @@ export default function EditInvoiceProductPicker({
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                aria-label="Effacer la recherche"
+                aria-label="Clear search"
               >
                 <X size={17} />
               </button>
@@ -324,7 +324,7 @@ export default function EditInvoiceProductPicker({
             onClick={cameraOpen ? stopCamera : startCamera}
           >
             {cameraOpen ? <X size={18} /> : <Camera size={18} />}
-            <span>{cameraOpen ? "Fermer caméra" : "Scanner"}</span>
+            <span>{cameraOpen ? "Close camera" : "Scan barcode"}</span>
           </button>
         </div>
 
@@ -347,15 +347,14 @@ export default function EditInvoiceProductPicker({
               {scanning && (
                 <div className="edit-product-picker-scan-line">
                   <ScanLine size={28} />
-                  <span>Placez le code-barres devant la caméra</span>
+                  <span>Place the barcode in front of the camera</span>
                 </div>
               )}
             </div>
 
             {!scanning && (
               <p>
-                Si le scanner automatique n'est pas disponible,
-                recherchez le code-barres dans le champ ci-dessus.
+                If automatic scanning is unavailable, search for the barcode in the field above.
               </p>
             )}
 
@@ -368,22 +367,22 @@ export default function EditInvoiceProductPicker({
               }}
             >
               <RefreshCw size={16} />
-              Réessayer
+              Retry
             </button>
           </div>
         )}
 
         <div className="edit-product-picker-list-heading">
-          <span>Liste des produits</span>
-          <span>{filteredProducts.length} produit(s)</span>
+          <span>Product list</span>
+          <span>{filteredProducts.length} products</span>
         </div>
 
         <div className="edit-product-picker-list">
           {filteredProducts.length === 0 ? (
             <div className="edit-product-picker-empty">
               <Package size={34} />
-              <strong>Aucun produit trouvé</strong>
-              <p>Essayez un autre nom, code-barres ou référence.</p>
+              <strong>No products found</strong>
+              <p>Try another name, barcode or reference.</p>
             </div>
           ) : (
             filteredProducts.map((product, index) => {
@@ -415,10 +414,10 @@ export default function EditInvoiceProductPicker({
 
                   <span className="edit-product-picker-item-info">
                     <strong>{name}</strong>
-                    <small>Réf. : {reference}</small>
+                    <small>Ref: {reference}</small>
                     {stock !== null && (
                       <small>
-                        Stock : {Number.isFinite(stock) ? stock : 0}
+                        Stock: {Number.isFinite(stock) ? stock : 0}
                       </small>
                     )}
                   </span>
@@ -427,7 +426,7 @@ export default function EditInvoiceProductPicker({
                     <strong>{formatPrice(price)}</strong>
                     <span className="edit-product-picker-add">
                       <Plus size={17} />
-                      Ajouter
+                      Add
                     </span>
                   </span>
                 </button>
@@ -439,7 +438,7 @@ export default function EditInvoiceProductPicker({
         <footer className="edit-product-picker-footer">
           <span>
             <Barcode size={16} />
-            Recherche par nom, référence ou code-barres
+            Search by name, reference or barcode
           </span>
 
           <button
@@ -450,7 +449,7 @@ export default function EditInvoiceProductPicker({
               onClose?.();
             }}
           >
-            Annuler
+            Cancel
           </button>
         </footer>
       </section>
