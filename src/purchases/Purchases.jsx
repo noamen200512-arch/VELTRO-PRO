@@ -846,6 +846,12 @@ export default function Purchases() {
   const [customSupplier, setCustomSupplier] = useState("");
   const [showSupplierList, setShowSupplierList] = useState(false);
   const [draftCreatedAt, setDraftCreatedAt] = useState(null);
+  const [clockNow, setClockNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const total = lines.reduce(
     (sum, line) =>
@@ -1448,6 +1454,11 @@ export default function Purchases() {
           <span className="purchase-eyebrow">VELTRO-PRO / COMMERCE</span>
           <h1>Purchases</h1>
           <p>Manage purchase invoices, supplier accounts, and incoming inventory.</p>
+          <div className="purchase-live-datetime" aria-live="off">
+            <CalendarDays size={16} />
+            <strong>{clockNow.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</strong>
+            <span>{clockNow.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
+          </div>
         </div>
 
         <div className="purchase-header-buttons">
@@ -1504,21 +1515,26 @@ export default function Purchases() {
 
       {activeTab === "dashboard" && (
         <div className="purchase-layout-content">
-          <div className="purchase-stats-grid">
-            <article className="purchase-stat-card">
+          <div className="purchase-stats-grid purchase-stats-grid-four">
+            <article className="purchase-stat-card purchase-stat-card-total">
               <span>Today's Purchases</span>
               <strong>{money(todayTotal)}</strong>
-              <small>
-                <CalendarDays size={14} /> Total value of today's invoices
-              </small>
+              <small><CalendarDays size={14} /> Total value of today's vouchers</small>
             </article>
-
-            <article className="purchase-stat-card">
+            <article className="purchase-stat-card purchase-stat-card-count">
+              <span>Purchase Vouchers Today</span>
+              <strong>{todayInvoices.length.toLocaleString()}</strong>
+              <small><FileText size={14} /> Number of vouchers created today</small>
+            </article>
+            <article className="purchase-stat-card purchase-stat-card-paid">
               <span>Paid Today</span>
               <strong>{money(todayPaid)}</strong>
-              <small>
-                <CreditCard size={14} /> Amounts paid
-              </small>
+              <small><CreditCard size={14} /> Payments recorded today</small>
+            </article>
+            <article className="purchase-stat-card purchase-stat-card-debt">
+              <span>Total Supplier Debt</span>
+              <strong>{money(suppliers.reduce((sum, item) => sum + Math.max(0, Number(item.debt || 0)), 0))}</strong>
+              <small><Truck size={14} /> Outstanding balance across suppliers</small>
             </article>
           </div>
 
@@ -1526,51 +1542,24 @@ export default function Purchases() {
             <div className="purchase-panel-heading">
               <div>
                 <h2>Purchase Activity</h2>
-                <p>Compare invoice totals with amounts paid.</p>
+                <p>Compare purchase totals and recorded payments over time.</p>
               </div>
-
               <div className="purchase-segmented">
-                <button
-                  className={chartMode === "daily" ? "active" : ""}
-                  onClick={() => setChartMode("daily")}
-                >
-                  Daily
-                </button>
-                <button
-                  className={chartMode === "monthly" ? "active" : ""}
-                  onClick={() => setChartMode("monthly")}
-                >
-                  Monthly
-                </button>
+                <button className={chartMode === "daily" ? "active" : ""} onClick={() => setChartMode("daily")}>Daily</button>
+                <button className={chartMode === "monthly" ? "active" : ""} onClick={() => setChartMode("monthly")}>Monthly</button>
               </div>
             </div>
 
             <div className="purchase-chart">
               {chartData.length ? chartData.map(item => {
-                const max = Math.max(
-                  1,
-                  ...chartData.map(entry => entry.total)
-                );
-
+                const max = Math.max(1, ...chartData.map(entry => entry.total));
                 return (
                   <div className="purchase-chart-column" key={item.key}>
                     <div className="purchase-chart-bars">
-                      <div
-                        className="purchase-chart-bar total"
-                        style={{
-                          height: `${Math.max(3, item.total / max * 100)}%`
-                        }}
-                        title={`Purchases: ${money(item.total)}`}
-                      />
-                      <div
-                        className="purchase-chart-bar paid"
-                        style={{
-                          height: `${Math.max(3, item.paid / max * 100)}%`
-                        }}
-                        title={`Paid: ${money(item.paid)}`}
-                      />
+                      <div className="purchase-chart-bar total" style={{ height: `${Math.max(3, item.total / max * 100)}%` }} title={`Purchases: ${money(item.total)}`} />
+                      <div className="purchase-chart-bar paid" style={{ height: `${Math.max(3, item.paid / max * 100)}%` }} title={`Paid: ${money(item.paid)}`} />
                     </div>
-                    <small>{item.key}</small>
+                    <small>{chartMode === "daily" ? item.key.slice(5) : item.key}</small>
                     <span>{money(item.total)}</span>
                   </div>
                 );
@@ -1581,33 +1570,83 @@ export default function Purchases() {
                 </div>
               )}
             </div>
-
             <div className="purchase-chart-legend">
               <span><i className="total" /> Total Purchases</span>
               <span><i className="paid" /> Amount Paid</span>
             </div>
           </section>
 
-          <section className="purchase-panel">
-            <div className="purchase-panel-heading">
+          <section className="purchase-panel purchase-today-vouchers">
+            <div className="purchase-panel-heading purchase-voucher-heading">
               <div>
-                <h2>Recent Purchase Invoices</h2>
-                <p>Review, edit, and print recent invoices.</p>
+                <h2>Today's Purchase Vouchers</h2>
+                <p>{todayInvoices.length} voucher(s) recorded for {clockNow.toLocaleDateString()}</p>
               </div>
-
-              <Button onClick={() => setShowHistory(true)}>
-                View All Invoices <History size={16} />
+              <Button variant="primary" onClick={openNewInvoice}>
+                <Plus size={17} /> New Purchase Voucher
               </Button>
             </div>
 
-            <InvoiceTable
-              invoices={invoices.slice(0, 5)}
-              onView={setViewInvoice}
-              onInfo={setShowInfo}
-              onEdit={startEditInvoice}
-              onPrint={printInvoice}
-              onDelete={deleteInvoice}
-            />
+            <div className="purchase-history-table-scroll purchase-vouchers-scroll">
+              <div className="purchase-table-wrap">
+                <table className="purchase-table purchase-vouchers-table">
+                  <thead>
+                    <tr>
+                      <th>Voucher No.</th>
+                      <th>Voucher ID</th>
+                      <th>Created By</th>
+                      <th>Date &amp; Time</th>
+                      <th>Items</th>
+                      <th>Supplier</th>
+                      <th>Voucher Total</th>
+                      <th>Paid</th>
+                      <th>Voucher Balance</th>
+                      <th>Total Supplier Debt</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...todayInvoices].sort((a, b) => new Date(b.date) - new Date(a.date)).map(invoice => {
+                      const supplierRecord = suppliers.find(item => normalize(item.name) === normalize(invoice.supplier));
+                      const itemCount = (invoice.lines || []).length;
+                      const voucherBalance = Math.max(0, Number(invoice.remaining ?? (Number(invoice.total || 0) - Number(invoice.paid || 0))));
+                      const supplierDebt = Number(invoice.currentDebt ?? supplierRecord?.debt ?? voucherBalance);
+                      return (
+                        <tr key={invoice.id}>
+                          <td><strong>{invoice.number || "—"}</strong></td>
+                          <td><span className="purchase-voucher-id">{invoice.id || "—"}</span></td>
+                          <td>{invoice.createdBy || invoice.employee || invoice.closedBy || "—"}</td>
+                          <td><span className="purchase-voucher-date">{new Date(invoice.date).toLocaleDateString()}</span><small className="purchase-voucher-time">{new Date(invoice.date).toLocaleTimeString()}</small></td>
+                          <td><span className="purchase-item-count">{itemCount}</span></td>
+                          <td>{invoice.supplier || "—"}</td>
+                          <td><strong>{money(invoice.total)}</strong></td>
+                          <td className="purchase-paid-cell">{money(invoice.paid)}</td>
+                          <td className={voucherBalance > 0 ? "purchase-debt-cell" : "purchase-paid-cell"}>{money(voucherBalance)}</td>
+                          <td className={supplierDebt > 0 ? "purchase-debt-cell" : "purchase-paid-cell"}>{money(supplierDebt)}</td>
+                          <td>
+                            <div className="purchase-row-actions">
+                              <button type="button" title="Edit voucher" aria-label="Edit voucher" onClick={() => startEditInvoice(invoice)}><Pencil size={15} /></button>
+                              <button type="button" title="Preview voucher" aria-label="Preview voucher" onClick={() => setViewInvoice(invoice)}><Eye size={15} /></button>
+                              <button type="button" title="Print voucher" aria-label="Print voucher" onClick={() => printInvoice(invoice)}><Printer size={15} /></button>
+                              <button type="button" title="Delete voucher" aria-label="Delete voucher" className="danger" onClick={() => deleteInvoice(invoice)}><Trash2 size={15} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {!todayInvoices.length && (
+                      <tr><td colSpan="11" className="purchase-empty-row">No purchase vouchers have been created today.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="purchase-voucher-table-footer">
+              <span>Showing today's vouchers only</span>
+              <Button onClick={() => { setSearch(""); setShowHistory(true); setActiveTab("history"); }}>
+                <History size={16} /> View All Purchase Vouchers
+              </Button>
+            </div>
           </section>
         </div>
       )}
