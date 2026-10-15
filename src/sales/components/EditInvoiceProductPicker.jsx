@@ -141,6 +141,7 @@ export default function EditInvoiceProductPicker({
       videoRef.current.srcObject = null;
     }
 
+    detectorRef.current = null;
     setScanning(false);
     setCameraOpen(false);
   }
@@ -166,60 +167,57 @@ export default function EditInvoiceProductPicker({
       return;
     }
 
-    if (!("BarcodeDetector" in window)) {
-      setCameraError(
-        "La lecture automatique du code-barres n'est pas prise en charge par ce navigateur. Utilisez la recherche manuelle."
-      );
-      setCameraOpen(true);
-      return;
+    detectorRef.current = null;
+    if ("BarcodeDetector" in window) {
+      try {
+        detectorRef.current = new window.BarcodeDetector({
+          formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf", "qr_code"],
+        });
+      } catch (error) {
+        console.warn("Barcode detection is not supported for the selected formats:", error);
+      }
+    } else {
+      setCameraError("Camera preview is available, but automatic barcode reading is not supported by this browser. Enter the barcode in the search field.");
     }
 
     try {
-      const detector = new window.BarcodeDetector({
-        formats: [
-          "ean_13",
-          "ean_8",
-          "upc_a",
-          "upc_e",
-          "code_128",
-          "code_39",
-          "itf",
-          "qr_code",
-        ],
-      });
-
-      detectorRef.current = detector;
-
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-        },
+        video: { facingMode: { ideal: "environment" } },
         audio: false,
       });
-
       streamRef.current = stream;
       setCameraOpen(true);
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
+      // Wait until React has mounted the video element before attaching the stream.
+      window.requestAnimationFrame(async () => {
+        const video = videoRef.current;
+        if (!video || streamRef.current !== stream) return;
+        video.srcObject = stream;
+        try {
+          await video.play();
+        } catch (error) {
+          console.error("Camera preview playback failed:", error);
+          setCameraError("Camera opened but preview could not start. Check browser permissions and retry.");
+          setScanning(false);
+          return;
+        }
 
-      setScanning(true);
-      scanFrame();
+        if (detectorRef.current) {
+          setScanning(true);
+          scanFrame();
+        } else {
+          setScanning(false);
+        }
+      });
     } catch (error) {
       console.error("Camera error:", error);
       stopCamera();
-      setCameraError(
-        "Impossible d'ouvrir la caméra. Autorisez l'accès à la caméra puis réessayez."
-      );
+      setCameraError("Unable to open the camera. Allow camera access in your browser settings, then retry.");
     }
   }
 
   async function scanFrame() {
-    if (!detectorRef.current || !videoRef.current || !streamRef.current) {
-      return;
-    }
+    if (!detectorRef.current || !videoRef.current || !streamRef.current) return;
 
     try {
       const video = videoRef.current;
