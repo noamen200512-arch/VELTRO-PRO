@@ -24,6 +24,7 @@ import {
   Maximize2,
   Minimize2,
   Languages,
+  LogOut,
 } from "lucide-react";
 
 import POS from "./POS";
@@ -59,7 +60,7 @@ const translations = {
  "Categories":"Catégories","Orders":"Commandes","Suppliers List":"Liste des fournisseurs","Supplier Debts":"Dettes fournisseurs",
  "Customers":"Clients","Cash Register":"Caisse","Reports":"Rapports","BUSINESS SUITE":"GESTION COMMERCIALE",
  "My Business":"Mon entreprise","Business workspace":"Espace de travail","System operational":"Système opérationnel",
- "Language":"Langue","Workspace":"Espace de travail","Your business performance overview.":"Vue d’ensemble des performances de votre entreprise.",
+ "Language":"Langue","Logout":"Déconnexion","Workspace":"Espace de travail","Your business performance overview.":"Vue d’ensemble des performances de votre entreprise.",
  "Create and manage sales invoices.":"Créer et gérer les factures de vente.","Manage your products and inventory.":"Gérer vos produits et votre stock.",
  "Review, print and edit completed sales.":"Consulter, imprimer et modifier les ventes terminées.",
  "Create and manage purchase invoices.":"Créer et gérer les factures d’achat.","Manage supplier names and phone numbers.":"Gérer les noms et téléphones des fournisseurs.",
@@ -84,7 +85,7 @@ const translations = {
  "Categories":"الفئات","Orders":"الطلبات","Suppliers List":"قائمة الموردين","Supplier Debts":"ديون الموردين",
  "Customers":"العملاء","Cash Register":"الصندوق","Reports":"التقارير","BUSINESS SUITE":"نظام إدارة الأعمال",
  "My Business":"مؤسستي","Business workspace":"مساحة العمل","System operational":"النظام يعمل بشكل طبيعي",
- "Language":"اللغة","Workspace":"مساحة العمل","Your business performance overview.":"نظرة عامة على أداء أعمالك.",
+ "Language":"اللغة","Logout":"تسجيل الخروج","Workspace":"مساحة العمل","Your business performance overview.":"نظرة عامة على أداء أعمالك.",
  "Create and manage sales invoices.":"إنشاء فواتير البيع وإدارتها.","Manage your products and inventory.":"إدارة المنتجات والمخزون.",
  "Review, print and edit completed sales.":"مراجعة المبيعات المكتملة وطباعتها وتعديلها.",
  "Create and manage purchase invoices.":"إنشاء فواتير الشراء وإدارتها.","Manage supplier names and phone numbers.":"إدارة أسماء الموردين وأرقام هواتفهم.",
@@ -176,6 +177,7 @@ function Sidebar({
   onClose,
   locale,
   onLocaleChange,
+  onLogout,
 }) {
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
@@ -332,6 +334,10 @@ function Sidebar({
               ))}
             </div>
           </div>
+          <button className="sidebar-logout-button" type="button" onClick={onLogout} title={tr(locale, "Logout")}>
+            <LogOut size={17} />
+            <span>{tr(locale, "Logout")}</span>
+          </button>
           <div className="sidebar-footer">
             <span className="online-dot" />
             <span>{tr(locale, "System operational")}</span>
@@ -547,7 +553,7 @@ function PlaceholderPage({ title, locale }) {
    MAIN APP
 ========================================================= */
 
-export default function App() {
+export default function App({ onLogout }) {
   const [activePage, setActivePage] = useState("Dashboard");
   const [locale, setLocale] = useState(() => {
     try { const saved = window.localStorage.getItem("veltro-language"); return ["en","fr","ar"].includes(saved) ? saved : "en"; }
@@ -640,6 +646,7 @@ export default function App() {
           locale={locale}
           onLocaleChange={setLocale}
           onNavigate={setActivePage}
+          onLogout={onLogout}
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
         />
