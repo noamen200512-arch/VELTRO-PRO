@@ -198,7 +198,6 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
         .update({
           full_name: profileName.trim(),
           phone: profilePhone.trim(),
-          updated_at: new Date().toISOString(),
         })
         .eq("user_id", data.profile.user_id)
         .select("user_id, organization_id, role_id, full_name, phone, status, created_at")
