@@ -326,6 +326,22 @@ const dictionaries = {
     "Update account": "Mettre à jour le compte",
     "Account update": "Mise à jour du compte",
 
+    "Select customer":"Choisir un client",
+    "Search by name, phone number, customer ID or reference.":"Recherchez par nom, téléphone, identifiant client ou référence.",
+    "Name, phone, ID or reference...":"Nom, téléphone, ID ou référence...",
+    "Close customer selection":"Fermer la sélection du client",
+    "Search customers":"Rechercher des clients",
+    "Clear search":"Effacer la recherche",
+    "Walk-in customer · No customer debt tracking":"Client de passage · Aucun suivi de dette client",
+    "Customer list":"Liste des clients",
+    "customer":"client",
+    "customers":"clients",
+    "No matching customers":"Aucun client correspondant",
+    "No saved customers yet":"Aucun client enregistré pour le moment",
+    "Try another name, phone number, ID or reference.":"Essayez un autre nom, numéro de téléphone, identifiant ou référence.",
+    "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"Les clients des factures précédentes apparaîtront ici. Vous pouvez toujours choisir Anonyme pour une vente rapide.",
+    "Choose a customer to link this invoice to their account.":"Choisissez un client pour associer cette facture à son compte."
+
   },
   ar: {
     "Warning: selling below purchase cost":"تحذير: البيع بسعر أقل من تكلفة الشراء",
@@ -650,6 +666,22 @@ const dictionaries = {
     "Update account": "تحديث الحساب",
     "Account update": "تحديث الحساب",
 
+    "Select customer":"اختيار الزبون",
+    "Search by name, phone number, customer ID or reference.":"ابحث بالاسم أو رقم الهاتف أو معرّف الزبون أو المرجع.",
+    "Name, phone, ID or reference...":"الاسم أو الهاتف أو المعرّف أو المرجع...",
+    "Close customer selection":"إغلاق اختيار الزبون",
+    "Search customers":"البحث عن الزبائن",
+    "Clear search":"مسح البحث",
+    "Walk-in customer · No customer debt tracking":"زبون عابر · لا يتم تتبّع ديونه",
+    "Customer list":"قائمة الزبائن",
+    "customer":"زبون",
+    "customers":"زبائن",
+    "No matching customers":"لا يوجد زبائن مطابقون",
+    "No saved customers yet":"لا يوجد زبائن محفوظون حتى الآن",
+    "Try another name, phone number, ID or reference.":"جرّب اسمًا أو رقم هاتف أو معرّفًا أو مرجعًا آخر.",
+    "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"سيظهر هنا الزبائن من الفواتير السابقة. يمكنك أيضًا استخدام «Anonyme» لإتمام بيع سريع.",
+    "Choose a customer to link this invoice to their account.":"اختر زبونًا لربط هذه الفاتورة بحسابه."
+
   }
 };
 
@@ -706,7 +738,9 @@ export function translatePage(locale, root = document.body) {
 
     // Translate common count/pagination labels whose numbers change at runtime.
     if (!dictionary[trimmed] && locale === "ar") {
-      let match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
+      let match = trimmed.match(/^(\d+)\s+customers?$/i);
+      if (match) translated = Number(match[1]) === 1 ? "زبون واحد" : `${match[1]} زبائن`;
+      match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
       if (match) translated = `عرض ${match[1]} فاتورة`;
       match = trimmed.match(/^(\d+)\s+ITEMS$/i);
       if (match) translated = Number(match[1]) === 1 ? "عنصر واحد" : `${match[1]} عناصر`;
@@ -721,7 +755,9 @@ export function translatePage(locale, root = document.body) {
       match = trimmed.match(/^Showing\s+(\d+)–(\d+)\s+of\s+(\d+)$/i);
       if (match) translated = `عرض ${match[1]}–${match[2]} من ${match[3]}`;
     } else if (!dictionary[trimmed] && locale === "fr") {
-      let match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
+      let match = trimmed.match(/^(\d+)\s+customers?$/i);
+      if (match) translated = Number(match[1]) === 1 ? "1 client" : `${match[1]} clients`;
+      match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
       if (match) translated = `Affichage de ${match[1]} factures`;
       match = trimmed.match(/^(\d+)\s+ITEMS$/i);
       if (match) translated = Number(match[1]) === 1 ? "1 article" : `${match[1]} articles`;
