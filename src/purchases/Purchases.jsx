@@ -18,10 +18,17 @@ const DRAFT_KEY = "veltro_purchase_draft_v2";
 const CATEGORIES_KEY = "veltro_product_categories";
 const UNITS_KEY = "veltro_product_units";
 
-const money = value =>
-  `${Number(value || 0).toLocaleString("en-US", {
+const money = value => {
+  const locale = document.documentElement.lang === "ar"
+    ? "ar-DZ"
+    : document.documentElement.lang === "fr"
+      ? "fr-DZ"
+      : "en-US";
+  return `${Number(value || 0).toLocaleString(locale, {
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })} DA`;
+};
 
 const nowISO = () => new Date().toISOString();
 const normalize = value => String(value ?? "").trim().toLowerCase();
@@ -1448,7 +1455,7 @@ export default function Purchases() {
   });
 
   return (
-    <section className="purchase-layout" dir="ltr">
+    <section className="purchase-layout" dir={document.documentElement.dir || "ltr"}>
       <header className="purchase-page-header">
         <div className="purchase-header-info">
           <span className="purchase-eyebrow">VELTRO-PRO / COMMERCE</span>
@@ -1514,53 +1521,78 @@ export default function Purchases() {
       </nav>
 
       {activeTab === "dashboard" && (
-        <div className="purchase-layout-content">
-          <div className="purchase-stats-grid purchase-stats-grid-four">
-            <article className="purchase-stat-card purchase-stat-card-total">
-              <span>Today's Purchases</span>
-              <strong>{money(todayTotal)}</strong>
-              <small><CalendarDays size={14} /> Total value of today's vouchers</small>
-            </article>
-            <article className="purchase-stat-card purchase-stat-card-count">
-              <span>Purchase Vouchers Today</span>
-              <strong>{todayInvoices.length.toLocaleString()}</strong>
-              <small><FileText size={14} /> Number of vouchers created today</small>
-            </article>
-            <article className="purchase-stat-card purchase-stat-card-paid">
-              <span>Paid Today</span>
-              <strong>{money(todayPaid)}</strong>
-              <small><CreditCard size={14} /> Payments recorded today</small>
-            </article>
-            <article className="purchase-stat-card purchase-stat-card-debt">
-              <span>Total Supplier Debt</span>
-              <strong>{money(suppliers.reduce((sum, item) => sum + Math.max(0, Number(item.debt || 0)), 0))}</strong>
-              <small><Truck size={14} /> Outstanding balance across suppliers</small>
-            </article>
-          </div>
+        <main className="purchase-dashboard">
+          <section className="purchase-overview-hero">
+            <div className="purchase-overview-copy">
+              <span className="purchase-overview-kicker">VELTRO-PRO / PROCUREMENT</span>
+              <h2>Purchase Overview</h2>
+              <p>Track today's purchases, supplier payments, and purchase vouchers from one place.</p>
+              <div className="purchase-live-datetime">
+                <span className="purchase-live-date-icon"><CalendarDays size={16} /></span>
+                <span className="purchase-live-date-text">
+                  <strong>{new Intl.DateTimeFormat(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }).format(clockNow)}</strong>
+                  <small>{new Intl.DateTimeFormat(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(clockNow)}</small>
+                </span>
+              </div>
+            </div>
+            <div className="purchase-overview-hero-actions">
+              <span className="purchase-overview-live"><i /> Live overview</span>
+              <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> New Purchase Voucher</Button>
+            </div>
+            <div className="purchase-hero-orb purchase-hero-orb-one" />
+            <div className="purchase-hero-orb purchase-hero-orb-two" />
+          </section>
 
-          <section className="purchase-panel">
-            <div className="purchase-panel-heading">
+          <section className="purchase-metric-grid" aria-label="Purchase statistics">
+            <article className="purchase-metric-card metric-purchases">
+              <div className="purchase-metric-top"><span>Today's Purchases</span><span className="purchase-metric-icon"><CircleDollarSign size={19} /></span></div>
+              <strong>{money(todayTotal)}</strong>
+              <small><span className="purchase-metric-dot" /> Total value of today's vouchers</small>
+              <div className="purchase-metric-bottom"><span>DAILY TOTAL</span><CalendarDays size={14} /></div>
+            </article>
+            <article className="purchase-metric-card metric-vouchers">
+              <div className="purchase-metric-top"><span>Purchase Vouchers</span><span className="purchase-metric-icon"><FileText size={19} /></span></div>
+              <strong>{todayInvoices.length.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</strong>
+              <small><span className="purchase-metric-dot" /> Vouchers created today</small>
+              <div className="purchase-metric-bottom"><span>DAILY COUNT</span><ReceiptText size={14} /></div>
+            </article>
+            <article className="purchase-metric-card metric-paid">
+              <div className="purchase-metric-top"><span>Payments Today</span><span className="purchase-metric-icon"><CreditCard size={19} /></span></div>
+              <strong>{money(todayPaid)}</strong>
+              <small><span className="purchase-metric-dot" /> Total amount paid today</small>
+              <div className="purchase-metric-bottom"><span>PAID AMOUNT</span><CheckCircle2 size={14} /></div>
+            </article>
+            <article className="purchase-metric-card metric-debt">
+              <div className="purchase-metric-top"><span>Total Supplier Debt</span><span className="purchase-metric-icon"><Truck size={19} /></span></div>
+              <strong>{money(suppliers.reduce((sum, item) => sum + Math.max(0, Number(item.debt || 0)), 0))}</strong>
+              <small><span className="purchase-metric-dot" /> Outstanding across suppliers</small>
+              <div className="purchase-metric-bottom"><span>OUTSTANDING</span><Wallet size={14} /></div>
+            </article>
+          </section>
+
+          <section className="purchase-analytics-panel">
+            <div className="purchase-section-heading">
               <div>
-                <h2>Purchase Activity</h2>
-                <p>Compare purchase totals and recorded payments over time.</p>
+                <span className="purchase-section-kicker">ANALYTICS</span>
+                <h3>Purchase &amp; Payment Activity</h3>
+                <p>Compare voucher values with actual payments.</p>
               </div>
               <div className="purchase-segmented">
                 <button className={chartMode === "daily" ? "active" : ""} onClick={() => setChartMode("daily")}>Daily</button>
                 <button className={chartMode === "monthly" ? "active" : ""} onClick={() => setChartMode("monthly")}>Monthly</button>
               </div>
             </div>
-
-            <div className="purchase-chart">
+            <div className="purchase-chart purchase-chart-redesigned">
               {chartData.length ? chartData.map(item => {
                 const max = Math.max(1, ...chartData.map(entry => entry.total));
                 return (
                   <div className="purchase-chart-column" key={item.key}>
+                    <div className="purchase-chart-value">{money(item.total)}</div>
                     <div className="purchase-chart-bars">
                       <div className="purchase-chart-bar total" style={{ height: `${Math.max(3, item.total / max * 100)}%` }} title={`Purchases: ${money(item.total)}`} />
                       <div className="purchase-chart-bar paid" style={{ height: `${Math.max(3, item.paid / max * 100)}%` }} title={`Paid: ${money(item.paid)}`} />
                     </div>
                     <small>{chartMode === "daily" ? item.key.slice(5) : item.key}</small>
-                    <span>{money(item.total)}</span>
                   </div>
                 );
               }) : (
@@ -1573,82 +1605,67 @@ export default function Purchases() {
             <div className="purchase-chart-legend">
               <span><i className="total" /> Total Purchases</span>
               <span><i className="paid" /> Amount Paid</span>
+              <span className="purchase-chart-period">{chartMode === "daily" ? "Recent days" : "Recent months"}</span>
             </div>
           </section>
 
-          <section className="purchase-panel purchase-today-vouchers">
-            <div className="purchase-panel-heading purchase-voucher-heading">
+          <section className="purchase-voucher-register">
+            <div className="purchase-register-header">
               <div>
-                <h2>Today's Purchase Vouchers</h2>
-                <p>{todayInvoices.length} voucher(s) recorded for {clockNow.toLocaleDateString()}</p>
+                <span className="purchase-section-kicker">PURCHASE REGISTER</span>
+                <h3>Today's Purchase Vouchers</h3>
+                <p><strong>{todayInvoices.length}</strong> voucher(s) recorded today</p>
               </div>
-              <Button variant="primary" onClick={openNewInvoice}>
-                <Plus size={17} /> New Purchase Voucher
-              </Button>
+              <div className="purchase-register-actions">
+                <Button onClick={() => { setSearch(""); setShowHistory(true); setActiveTab("history"); }}><History size={16} /> View All Vouchers</Button>
+                <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> Create Purchase Voucher</Button>
+              </div>
             </div>
-
-            <div className="purchase-history-table-scroll purchase-vouchers-scroll">
+            <div className="purchase-voucher-table-frame">
               <div className="purchase-table-wrap">
                 <table className="purchase-table purchase-vouchers-table">
-                  <thead>
-                    <tr>
-                      <th>Voucher No.</th>
-                      <th>Voucher ID</th>
-                      <th>Created By</th>
-                      <th>Date &amp; Time</th>
-                      <th>Items</th>
-                      <th>Supplier</th>
-                      <th>Voucher Total</th>
-                      <th>Paid</th>
-                      <th>Voucher Balance</th>
-                      <th>Total Supplier Debt</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
+                  <thead><tr>
+                    <th>Voucher Number</th><th>Voucher ID</th><th>Created By</th><th>Created At</th><th>Items</th><th>Supplier</th><th>Voucher Total</th><th>Paid Amount</th><th>Voucher Balance</th><th>Total Supplier Debt</th><th>Actions</th>
+                  </tr></thead>
                   <tbody>
                     {[...todayInvoices].sort((a, b) => new Date(b.date) - new Date(a.date)).map(invoice => {
                       const supplierRecord = suppliers.find(item => normalize(item.name) === normalize(invoice.supplier));
                       const itemCount = (invoice.lines || []).length;
-                      const voucherBalance = Math.max(0, Number(invoice.remaining ?? (Number(invoice.total || 0) - Number(invoice.paid || 0))));
-                      const supplierDebt = Number(invoice.currentDebt ?? supplierRecord?.debt ?? voucherBalance);
+                      const voucherBalance = Math.max(0, Number(invoice.total || 0) - Number(invoice.paid || 0) - Number(invoice.creditApplied || 0));
+                      const supplierDebt = Math.max(0, Number(invoice.currentDebt ?? supplierRecord?.debt ?? voucherBalance));
+                      const createdAt = new Date(invoice.openedAt || invoice.date);
                       return (
                         <tr key={invoice.id}>
-                          <td><strong>{invoice.number || "—"}</strong></td>
-                          <td><span className="purchase-voucher-id">{invoice.id || "—"}</span></td>
-                          <td>{invoice.createdBy || invoice.employee || invoice.closedBy || "—"}</td>
-                          <td><span className="purchase-voucher-date">{new Date(invoice.date).toLocaleDateString()}</span><small className="purchase-voucher-time">{new Date(invoice.date).toLocaleTimeString()}</small></td>
+                          <td><strong className="purchase-voucher-number">{invoice.number || "—"}</strong></td>
+                          <td><span className="purchase-voucher-id" title={invoice.id || ""}>{invoice.id || "—"}</span></td>
+                          <td><span className="purchase-created-by"><span className="purchase-user-avatar">{String(invoice.createdBy || "U").slice(0,1).toUpperCase()}</span>{invoice.createdBy || invoice.employee || "Current user"}</span></td>
+                          <td><span className="purchase-voucher-date">{new Intl.DateTimeFormat(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { year: "numeric", month: "short", day: "2-digit" }).format(createdAt)}</span><small className="purchase-voucher-time">{new Intl.DateTimeFormat(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { hour: "2-digit", minute: "2-digit" }).format(createdAt)}</small></td>
                           <td><span className="purchase-item-count">{itemCount}</span></td>
-                          <td>{invoice.supplier || "—"}</td>
-                          <td><strong>{money(invoice.total)}</strong></td>
+                          <td><span className="purchase-supplier-name">{invoice.supplier || "—"}</span></td>
+                          <td><strong className="purchase-voucher-total">{money(invoice.total)}</strong></td>
                           <td className="purchase-paid-cell">{money(invoice.paid)}</td>
                           <td className={voucherBalance > 0 ? "purchase-debt-cell" : "purchase-paid-cell"}>{money(voucherBalance)}</td>
                           <td className={supplierDebt > 0 ? "purchase-debt-cell" : "purchase-paid-cell"}>{money(supplierDebt)}</td>
-                          <td>
-                            <div className="purchase-row-actions">
-                              <button type="button" title="Edit voucher" aria-label="Edit voucher" onClick={() => startEditInvoice(invoice)}><Pencil size={15} /></button>
-                              <button type="button" title="Preview voucher" aria-label="Preview voucher" onClick={() => setViewInvoice(invoice)}><Eye size={15} /></button>
-                              <button type="button" title="Print voucher" aria-label="Print voucher" onClick={() => printInvoice(invoice)}><Printer size={15} /></button>
-                              <button type="button" title="Delete voucher" aria-label="Delete voucher" className="danger" onClick={() => deleteInvoice(invoice)}><Trash2 size={15} /></button>
-                            </div>
-                          </td>
+                          <td><div className="purchase-row-actions">
+                            <button type="button" title="Edit" aria-label="Edit voucher" onClick={() => startEditInvoice(invoice)}><Pencil size={15} /></button>
+                            <button type="button" title="Preview" aria-label="Preview voucher" onClick={() => setViewInvoice(invoice)}><Eye size={15} /></button>
+                            <button type="button" title="Print" aria-label="Print voucher" onClick={() => printInvoice(invoice)}><Printer size={15} /></button>
+                            <button type="button" title="Delete" aria-label="Delete voucher" className="danger" onClick={() => deleteInvoice(invoice)}><Trash2 size={15} /></button>
+                          </div></td>
                         </tr>
                       );
                     })}
-                    {!todayInvoices.length && (
-                      <tr><td colSpan="11" className="purchase-empty-row">No purchase vouchers have been created today.</td></tr>
-                    )}
+                    {!todayInvoices.length && <tr><td colSpan="11" className="purchase-empty-row"><div className="purchase-voucher-empty"><span><ReceiptText size={26} /></span><strong>No purchase vouchers today</strong><small>Create a new voucher to start recording today's purchases.</small><button type="button" onClick={openNewInvoice}><Plus size={15} /> Create first voucher</button></div></td></tr>}
                   </tbody>
                 </table>
               </div>
             </div>
-            <div className="purchase-voucher-table-footer">
-              <span>Showing today's vouchers only</span>
-              <Button onClick={() => { setSearch(""); setShowHistory(true); setActiveTab("history"); }}>
-                <History size={16} /> View All Purchase Vouchers
-              </Button>
-            </div>
+            <footer className="purchase-register-footer">
+              <span><i /> Showing vouchers created today only</span>
+              <span>Amounts shown in Algerian dinars (DA)</span>
+            </footer>
           </section>
-        </div>
+        </main>
       )}
 
       {activeTab === "products" && (
