@@ -340,7 +340,7 @@ const dictionaries = {
     "No saved customers yet":"Aucun client enregistré pour le moment",
     "Try another name, phone number, ID or reference.":"Essayez un autre nom, numéro de téléphone, identifiant ou référence.",
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"Les clients des factures précédentes apparaîtront ici. Vous pouvez toujours choisir Anonyme pour une vente rapide.",
-    "Choose a customer to link this invoice to their account.":"Choisissez un client pour associer cette facture à son compte."
+    "Choose a customer to link this invoice to their account.":"Choisissez un client pour associer cette facture à son compte.",
 
     "Choose a saved invoice to continue working on it.":"Choisissez une facture enregistrée pour continuer à travailler dessus.",
     "INVOICE DETAILS":"DÉTAILS DE LA FACTURE",
@@ -352,7 +352,7 @@ const dictionaries = {
     "No pending invoices":"Aucune facture en attente",
     "No saved invoices yet":"Aucune facture enregistrée pour le moment",
     "No invoices pending":"Aucune facture en attente",
-    "Open pending invoice":"Ouvrir la facture en attente"
+    "Open pending invoice":"Ouvrir la facture en attente",
 
   },
   ar: {
@@ -692,7 +692,7 @@ const dictionaries = {
     "No saved customers yet":"لا يوجد زبائن محفوظون حتى الآن",
     "Try another name, phone number, ID or reference.":"جرّب اسمًا أو رقم هاتف أو معرّفًا أو مرجعًا آخر.",
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"سيظهر هنا الزبائن من الفواتير السابقة. يمكنك أيضًا استخدام «Anonyme» لإتمام بيع سريع.",
-    "Choose a customer to link this invoice to their account.":"اختر زبونًا لربط هذه الفاتورة بحسابه."
+    "Choose a customer to link this invoice to their account.":"اختر زبونًا لربط هذه الفاتورة بحسابه.",
 
     "Choose a saved invoice to continue working on it.":"اختر فاتورة محفوظة لمواصلة العمل عليها.",
     "INVOICE DETAILS":"تفاصيل الفاتورة",
