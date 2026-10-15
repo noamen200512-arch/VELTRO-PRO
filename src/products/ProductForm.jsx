@@ -158,12 +158,6 @@ export default function ProductForm({
               <input className="veltro-product-input" style={inputStyle} value={form.category} onChange={(e) => updateField("category", e.target.value)} placeholder="e.g. Drinks" list="veltro-product-categories" />
               <datalist id="veltro-product-categories">{categories.filter((item) => item !== "All").map((item) => <option key={item} value={item} />)}</datalist>
             </Field>
-            <Field label="Expiry Date (Optional)">
-              <div style={{ position: "relative" }}><input className="veltro-product-input" style={inputStyle} type="date" value={form.expiryDate || ""} onChange={(e) => updateField("expiryDate", e.target.value)} /><CalendarDays size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
-            </Field>
-            <Field label="Minimum Stock Alert">
-              <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="1" value={form.minStock} onChange={(e) => updateField("minStock", e.target.value)} placeholder="5" />
-            </Field>
             <div style={{ gridColumn: "1 / -1", border: `1px solid ${C.border}`, borderRadius: 10, padding: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><ImagePlus size={17} color={C.cyan} /><span style={{ fontSize: 12, fontWeight: 650 }}>Product Image</span></div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -177,6 +171,12 @@ export default function ProductForm({
                 <button type="button" onClick={onRemoveImage} style={{ ...actionButton, color: C.red }}><Trash2 size={14} /> Remove Image</button>
               </div>}
             </div>
+            <Field label="Expiry Date (Optional)">
+              <div style={{ position: "relative" }}><input className="veltro-product-input" style={inputStyle} type="date" value={form.expiryDate || ""} onChange={(e) => updateField("expiryDate", e.target.value)} /><CalendarDays size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
+            </Field>
+            <Field label="Minimum Stock Alert">
+              <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="1" value={form.minStock} onChange={(e) => updateField("minStock", e.target.value)} placeholder="5" />
+            </Field>
           </div>
         </Section>
 
