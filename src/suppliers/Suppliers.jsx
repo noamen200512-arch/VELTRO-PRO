@@ -13,14 +13,32 @@ const normalize = (value) => String(value ?? "").trim().toLowerCase();
 const createId = () =>
   `SUP-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
+function nextSupplierReference(items = []) {
+  const used = new Set(items.map(item => String(item.reference || "").toUpperCase()));
+  let number = 1;
+  while (used.has("SUP-" + String(number).padStart(6, "0"))) number += 1;
+  return "SUP-" + String(number).padStart(6, "0");
+}
+function ensureSupplierReferences(items = []) {
+  const used = new Set();
+  let next = 1;
+  return items.map(item => {
+    let reference = String(item.reference || "").trim().toUpperCase();
+    if (!reference || used.has(reference)) {
+      while (used.has("SUP-" + String(next).padStart(6, "0"))) next += 1;
+      reference = "SUP-" + String(next).padStart(6, "0");
+      next += 1;
+    }
+    used.add(reference);
+    return { ...item, reference };
+  });
+}
+
 function loadSuppliers() {
   try {
-    return getPurchaseSuppliers().map((item) => ({
-      ...item,
-      id: item.id || createId(),
-      name: item.name || "",
-      phone: item.phone || "",
-    }));
+    return ensureSupplierReferences(getPurchaseSuppliers().map(item => ({
+      ...item, id: item.id || createId(), name: item.name || "", phone: item.phone || ""
+    })));
   } catch {
     return [];
   }
@@ -30,7 +48,7 @@ export default function Suppliers() {
   const [suppliers, setSuppliers] = useState(loadSuppliers);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: "", phone: "" });
+  const [form, setForm] = useState({ name: "", phone: "", reference: "" });
   const [modalOpen, setModalOpen] = useState(false);
   const [notice, setNotice] = useState("");
   const [noticeType, setNoticeType] = useState("success");
@@ -40,7 +58,7 @@ export default function Suppliers() {
     const query = normalize(search);
     return suppliers
       .filter((item) =>
-        [item.name, item.phone].some((value) =>
+        [item.name, item.phone, item.reference, item.id].some((value) =>
           normalize(value).includes(query)
         )
       )
@@ -59,14 +77,12 @@ export default function Suppliers() {
     loadSuppliersFromCloud(localSuppliers)
       .then((loaded) => {
         if (!active || !Array.isArray(loaded)) return;
-        const normalized = loaded.map((item) => ({
-          ...item,
-          id: item.id || createId(),
-          name: item.name || "",
-          phone: item.phone || "",
-        }));
+        const normalized = ensureSupplierReferences(loaded.map(item => ({
+          ...item, id: item.id || createId(), name: item.name || "", phone: item.phone || ""
+        })));
         savePurchaseSuppliers(normalized);
         setSuppliers(normalized);
+        saveSuppliersToCloud(normalized).catch(() => {});
       })
       .catch(() => {
         if (active) {
@@ -99,7 +115,7 @@ export default function Suppliers() {
 
   const openAdd = () => {
     setEditing(null);
-    setForm({ name: "", phone: "" });
+    setForm({ name: "", phone: "", reference: nextSupplierReference(suppliers) });
     setError("");
     setModalOpen(true);
   };
@@ -109,6 +125,7 @@ export default function Suppliers() {
     setForm({
       name: supplier.name || "",
       phone: supplier.phone || "",
+      reference: supplier.reference || supplier.id || "",
     });
     setError("");
     setModalOpen(true);
@@ -154,7 +171,7 @@ export default function Suppliers() {
     if (editing) {
       next = suppliers.map((item) =>
         item.id === editing.id
-          ? { ...item, name, phone, updatedAt: timestamp }
+          ? { ...item, name, phone, reference: item.reference || form.reference || nextSupplierReference(suppliers), updatedAt: timestamp }
           : item
       );
     } else {
@@ -164,6 +181,7 @@ export default function Suppliers() {
           id: createId(),
           name,
           phone,
+          reference: form.reference || nextSupplierReference(suppliers),
           email: "",
           address: "",
           note: "",
@@ -274,7 +292,7 @@ export default function Suppliers() {
             type="search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by supplier name or phone..."
+            placeholder="Search by supplier name, phone or ID..."
           />
           {search && (
             <button type="button" onClick={() => setSearch("")} aria-label="Clear search">
@@ -309,6 +327,7 @@ export default function Suppliers() {
             <table className="supplier-table">
               <thead>
                 <tr>
+                  <th>Supplier ID</th>
                   <th>Supplier name</th>
                   <th>Phone number</th>
                   <th>Actions</th>
@@ -317,6 +336,7 @@ export default function Suppliers() {
               <tbody>
                 {filtered.map((supplier) => (
                   <tr key={supplier.id}>
+                    <td><strong className="supplier-reference">{supplier.reference || supplier.id}</strong></td>
                     <td>
                       <div className="supplier-contact-cell">
                         <span>
@@ -391,6 +411,10 @@ export default function Suppliers() {
 
             <form onSubmit={saveSupplier}>
               <div className="supplier-form-grid">
+                <label className="supplier-field supplier-field-full">
+                  <span>Supplier ID / Reference</span>
+                  <input value={form.reference || ""} readOnly />
+                </label>
                 <label className="supplier-field supplier-field-full">
                   <span>Supplier name *</span>
                   <input
