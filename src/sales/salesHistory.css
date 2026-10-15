@@ -204,7 +204,7 @@
 ========================================================= */
 
 .history-page .invoice-detail-modal .panel-actions .primary-button,
-.history-page .edit-invoice-modal .panel-actions .primary-button,
+.edit-invoice-modal .panel-actions .primary-button,
 .history-page .small-modal .panel-actions .primary-button {
   color: #061512 !important;
   background: linear-gradient(135deg, #56f1db, #25bcae) !important;
@@ -212,7 +212,7 @@
 }
 
 .history-page .invoice-detail-modal .panel-actions .secondary-button,
-.history-page .edit-invoice-modal .panel-actions .secondary-button,
+.edit-invoice-modal .panel-actions .secondary-button,
 .history-page .small-modal .panel-actions .secondary-button {
   color: #edf2fa !important;
   background: #151e2c !important;
@@ -362,7 +362,7 @@
    EDIT INVOICE — PROFESSIONAL DESIGN
 ========================================================= */
 
-.history-page .edit-invoice-modal {
+.edit-invoice-modal {
   width: min(920px, calc(100vw - 28px));
   max-width: 920px;
   min-width: 0;
@@ -384,15 +384,15 @@
   overscroll-behavior: contain;
 }
 
-.history-page .edit-invoice-modal *,
-.history-page .edit-invoice-modal *::before,
-.history-page .edit-invoice-modal *::after {
+.edit-invoice-modal *,
+.edit-invoice-modal *::before,
+.edit-invoice-modal *::after {
   box-sizing: border-box;
 }
 
 /* HEADER */
 
-.history-page .edit-invoice-modal .panel-header {
+.edit-invoice-modal .panel-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -402,7 +402,7 @@
   border-bottom: 1px solid #263548;
 }
 
-.history-page .edit-invoice-modal .panel-header h3 {
+.edit-invoice-modal .panel-header h3 {
   margin: 0;
   color: #f4f7fc;
   font-size: clamp(20px, 2.2vw, 25px);
@@ -411,7 +411,7 @@
   overflow-wrap: anywhere;
 }
 
-.history-page .edit-invoice-modal .panel-description {
+.edit-invoice-modal .panel-description {
   margin: 8px 0 0;
   color: #94a4b9;
   font-size: 12px;
@@ -420,7 +420,7 @@
 
 /* INVOICE FIELDS */
 
-.history-page .edit-invoice-modal .edit-invoice-fields {
+.edit-invoice-modal .edit-invoice-fields {
   display: grid;
   grid-template-columns:
     minmax(0, 1.3fr)
@@ -430,7 +430,7 @@
   margin-bottom: 24px;
 }
 
-.history-page .edit-invoice-modal .modal-field {
+.edit-invoice-modal .modal-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -441,11 +441,11 @@
   font-weight: 600;
 }
 
-.history-page .edit-invoice-modal .modal-field > span {
+.edit-invoice-modal .modal-field > span {
   line-height: 1.4;
 }
 
-.history-page .edit-invoice-modal .modal-field input {
+.edit-invoice-modal .modal-field input {
   width: 100%;
   min-width: 0;
   height: 44px;
@@ -459,8 +459,8 @@
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
 
-.history-page .edit-invoice-modal .modal-field input:focus,
-.history-page .edit-invoice-modal .edit-number-input:focus {
+.edit-invoice-modal .modal-field input:focus,
+.edit-invoice-modal .edit-number-input:focus {
   border-color: #42cdbd;
   box-shadow: 0 0 0 3px rgba(66, 205, 189, 0.12);
   outline: none;
@@ -468,7 +468,7 @@
 
 /* PRODUCT SECTION */
 
-.history-page .edit-invoice-modal .edit-products-heading {
+.edit-invoice-modal .edit-products-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -476,7 +476,7 @@
   margin-bottom: 12px;
 }
 
-.history-page .edit-invoice-modal .edit-products-heading h4 {
+.edit-invoice-modal .edit-products-heading h4 {
   margin: 0;
   color: #eef4fb;
   font-size: 15px;
@@ -485,7 +485,7 @@
 
 /* ADD ANOTHER PRODUCT BUTTON */
 
-.history-page .edit-invoice-modal .edit-add-product-button {
+.edit-invoice-modal .edit-add-product-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -511,32 +511,32 @@
     transform 180ms ease;
 }
 
-.history-page .edit-invoice-modal .edit-add-product-button svg {
+.edit-invoice-modal .edit-add-product-button svg {
   display: block;
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
 }
 
-.history-page .edit-invoice-modal .edit-add-product-button:hover {
+.edit-invoice-modal .edit-add-product-button:hover {
   background: linear-gradient(135deg, #91f9e9 0%, #48d9c8 100%);
   border-color: #91f9e9;
   box-shadow: 0 4px 13px rgba(43, 198, 181, 0.2);
   transform: translateY(-1px);
 }
 
-.history-page .edit-invoice-modal .edit-add-product-button:active {
+.edit-invoice-modal .edit-add-product-button:active {
   transform: translateY(0);
 }
 
-.history-page .edit-invoice-modal .edit-add-product-button:focus-visible {
+.edit-invoice-modal .edit-add-product-button:focus-visible {
   outline: 2px solid #65e7d7;
   outline-offset: 3px;
 }
 
 /* LEGACY PRODUCT SELECTOR STYLES */
 
-.history-page .edit-invoice-modal .add-product-select {
+.edit-invoice-modal .add-product-select {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -549,11 +549,11 @@
   border-radius: 10px;
 }
 
-.history-page .edit-invoice-modal .add-product-select > svg {
+.edit-invoice-modal .add-product-select > svg {
   flex-shrink: 0;
 }
 
-.history-page .edit-invoice-modal .add-product-select select {
+.edit-invoice-modal .add-product-select select {
   width: 100%;
   min-width: 0;
   height: 40px;
@@ -564,14 +564,14 @@
   font-size: 12px;
 }
 
-.history-page .edit-invoice-modal .add-product-select select option {
+.edit-invoice-modal .add-product-select select option {
   color: #e7eff8;
   background: #101b29;
 }
 
 /* PRODUCTS TABLE */
 
-.history-page .edit-invoice-modal .table-wrapper {
+.edit-invoice-modal .table-wrapper {
   width: 100%;
   min-width: 0;
   overflow: auto;
@@ -581,7 +581,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-.history-page .edit-invoice-modal .products-table {
+.edit-invoice-modal .products-table {
   width: 100%;
   min-width: 610px;
   border-collapse: separate;
@@ -589,7 +589,7 @@
   table-layout: fixed;
 }
 
-.history-page .edit-invoice-modal .products-table th {
+.edit-invoice-modal .products-table th {
   padding: 12px;
   color: #8fa2b8;
   background: #142132;
@@ -601,24 +601,24 @@
   white-space: nowrap;
 }
 
-.history-page .edit-invoice-modal .products-table th:first-child {
+.edit-invoice-modal .products-table th:first-child {
   width: 31%;
 }
 
-.history-page .edit-invoice-modal .products-table th:nth-child(2) {
+.edit-invoice-modal .products-table th:nth-child(2) {
   width: 12%;
 }
 
-.history-page .edit-invoice-modal .products-table th:nth-child(3),
-.history-page .edit-invoice-modal .products-table th:nth-child(4) {
+.edit-invoice-modal .products-table th:nth-child(3),
+.edit-invoice-modal .products-table th:nth-child(4) {
   width: 19%;
 }
 
-.history-page .edit-invoice-modal .products-table th:last-child {
+.edit-invoice-modal .products-table th:last-child {
   width: 54px;
 }
 
-.history-page .edit-invoice-modal .products-table td {
+.edit-invoice-modal .products-table td {
   padding: 11px 10px;
   color: #e2eaf4;
   border-bottom: 1px solid rgba(94, 117, 145, 0.16);
@@ -626,17 +626,17 @@
   vertical-align: middle;
 }
 
-.history-page .edit-invoice-modal .products-table tbody tr:last-child td {
+.edit-invoice-modal .products-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.history-page .edit-invoice-modal .products-table td:first-child {
+.edit-invoice-modal .products-table td:first-child {
   overflow-wrap: anywhere;
   font-weight: 600;
   line-height: 1.45;
 }
 
-.history-page .edit-invoice-modal .edit-number-input {
+.edit-invoice-modal .edit-number-input {
   display: block;
   width: 100%;
   min-width: 0;
@@ -650,7 +650,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-.history-page .edit-invoice-modal .danger-icon {
+.edit-invoice-modal .danger-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -664,13 +664,13 @@
   border-radius: 9px;
 }
 
-.history-page .edit-invoice-modal .danger-icon:hover {
+.edit-invoice-modal .danger-icon:hover {
   color: #fff;
   background: rgba(255, 94, 116, 0.2);
   border-color: rgba(255, 94, 116, 0.48);
 }
 
-.history-page .edit-invoice-modal .empty-state {
+.edit-invoice-modal .empty-state {
   padding: 25px 12px;
   color: #91a2b7;
   text-align: center;
@@ -678,14 +678,14 @@
 
 /* TOTALS SUMMARY */
 
-.history-page .edit-invoice-modal .edit-totals {
+.edit-invoice-modal .edit-totals {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
 
-.history-page .edit-invoice-modal .edit-totals > div {
+.edit-invoice-modal .edit-totals > div {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -698,14 +698,14 @@
   border-radius: 11px;
 }
 
-.history-page .edit-invoice-modal .edit-totals span {
+.edit-invoice-modal .edit-totals span {
   color: #95a7bc;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.4;
 }
 
-.history-page .edit-invoice-modal .edit-totals strong {
+.edit-invoice-modal .edit-totals strong {
   color: #eef5fc;
   font-size: 15px;
   font-weight: 750;
@@ -713,18 +713,18 @@
   overflow-wrap: anywhere;
 }
 
-.history-page .edit-invoice-modal .edit-totals > div:nth-child(3) {
+.edit-invoice-modal .edit-totals > div:nth-child(3) {
   background: rgba(43, 191, 174, 0.12);
   border-color: rgba(66, 205, 189, 0.4);
 }
 
-.history-page .edit-invoice-modal .edit-totals > div:nth-child(3) strong {
+.edit-invoice-modal .edit-totals > div:nth-child(3) strong {
   color: #63e4d4;
 }
 
 /* ERRORS */
 
-.history-page .edit-invoice-modal .form-error {
+.edit-invoice-modal .form-error {
   margin: 15px 0 0;
   padding: 11px 13px;
   color: #ffb5bd;
@@ -737,7 +737,7 @@
 
 /* FOOTER ACTIONS */
 
-.history-page .edit-invoice-modal .panel-actions {
+.edit-invoice-modal .panel-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -748,7 +748,7 @@
   border-top: 1px solid #263548;
 }
 
-.history-page .edit-invoice-modal .panel-actions button {
+.edit-invoice-modal .panel-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -763,7 +763,7 @@
   white-space: nowrap;
 }
 
-.history-page .edit-invoice-modal .panel-actions .primary-button {
+.edit-invoice-modal .panel-actions .primary-button {
   min-width: 190px;
   color: #061512 !important;
   background: linear-gradient(135deg, #67efdc, #28bdae) !important;
@@ -771,18 +771,18 @@
   box-shadow: 0 7px 20px rgba(37, 189, 174, 0.12);
 }
 
-.history-page .edit-invoice-modal .panel-actions .primary-button:hover {
+.edit-invoice-modal .panel-actions .primary-button:hover {
   background: linear-gradient(135deg, #83f4e4, #43cfbf) !important;
   transform: translateY(-1px);
 }
 
-.history-page .edit-invoice-modal .panel-actions .secondary-button {
+.edit-invoice-modal .panel-actions .secondary-button {
   color: #dce6f2 !important;
   background: #172333 !important;
   border: 1px solid #33445a !important;
 }
 
-.history-page .edit-invoice-modal .panel-actions .secondary-button:hover {
+.edit-invoice-modal .panel-actions .secondary-button:hover {
   color: #fff !important;
   background: #223247 !important;
   border-color: #4a617b !important;
@@ -793,49 +793,49 @@
 ========================================================= */
 
 @media (max-width: 720px) {
-  .history-page .edit-invoice-modal {
+  .edit-invoice-modal {
     width: calc(100vw - 20px);
     max-height: calc(100dvh - 20px);
     padding: 17px 13px;
     border-radius: 15px;
   }
 
-  .history-page .edit-invoice-modal .edit-invoice-fields {
+  .edit-invoice-modal .edit-invoice-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 11px;
   }
 
-  .history-page .edit-invoice-modal .edit-invoice-fields .modal-field:first-child {
+  .edit-invoice-modal .edit-invoice-fields .modal-field:first-child {
     grid-column: 1 / -1;
   }
 
-  .history-page .edit-invoice-modal .edit-products-heading {
+  .edit-invoice-modal .edit-products-heading {
     align-items: stretch;
     flex-direction: column;
     gap: 10px;
   }
 
-  .history-page .edit-invoice-modal .edit-add-product-button {
+  .edit-invoice-modal .edit-add-product-button {
     width: 100%;
     min-height: 40px;
   }
 
-  .history-page .edit-invoice-modal .add-product-select {
+  .edit-invoice-modal .add-product-select {
     width: 100%;
     max-width: none;
   }
 
-  .history-page .edit-invoice-modal .edit-totals {
+  .edit-invoice-modal .edit-totals {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .history-page .edit-invoice-modal .panel-actions {
+  .edit-invoice-modal .panel-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
   }
 
-  .history-page .edit-invoice-modal .panel-actions button,
-  .history-page .edit-invoice-modal .panel-actions .primary-button {
+  .edit-invoice-modal .panel-actions button,
+  .edit-invoice-modal .panel-actions .primary-button {
     width: 100%;
     min-width: 0;
     padding: 0 8px;
@@ -843,12 +843,12 @@
     text-align: center;
   }
 
-  .history-page .edit-invoice-modal .table-wrapper {
+  .edit-invoice-modal .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .history-page .edit-invoice-modal .products-table {
+  .edit-invoice-modal .products-table {
     min-width: 610px;
   }
 
@@ -894,41 +894,41 @@
 ========================================================= */
 
 @media (max-width: 420px) {
-  .history-page .edit-invoice-modal {
+  .edit-invoice-modal {
     padding: 14px 10px;
   }
 
-  .history-page .edit-invoice-modal .edit-invoice-fields {
+  .edit-invoice-modal .edit-invoice-fields {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .history-page .edit-invoice-modal .edit-invoice-fields .modal-field:first-child {
+  .edit-invoice-modal .edit-invoice-fields .modal-field:first-child {
     grid-column: auto;
   }
 
-  .history-page .edit-invoice-modal .edit-totals {
+  .edit-invoice-modal .edit-totals {
     gap: 8px;
   }
 
-  .history-page .edit-invoice-modal .edit-totals > div {
+  .edit-invoice-modal .edit-totals > div {
     min-height: 68px;
     padding: 10px;
   }
 
-  .history-page .edit-invoice-modal .edit-totals span {
+  .edit-invoice-modal .edit-totals span {
     font-size: 10px;
   }
 
-  .history-page .edit-invoice-modal .edit-totals strong {
+  .edit-invoice-modal .edit-totals strong {
     font-size: 13px;
   }
 
-  .history-page .edit-invoice-modal .panel-actions {
+  .edit-invoice-modal .panel-actions {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .history-page .edit-invoice-modal .panel-actions button,
-  .history-page .edit-invoice-modal .panel-actions .primary-button {
+  .edit-invoice-modal .panel-actions button,
+  .edit-invoice-modal .panel-actions .primary-button {
     min-height: 42px;
   }
 
@@ -988,7 +988,7 @@
 @media (prefers-reduced-motion: reduce) {
   .history-page .history-toolbar-actions button,
   .history-page .panel-header > .history-reset-button,
-  .history-page .edit-invoice-modal .edit-add-product-button {
+  .edit-invoice-modal .edit-add-product-button {
     transition: none;
   }
 }
@@ -1179,21 +1179,21 @@
 
 
 /* Sales History invoice editor: customer selection and per-line controls */
-.history-page .edit-invoice-modal .edit-customer-field {
+.edit-invoice-modal .edit-customer-field {
   grid-column: 1 / -1;
   min-width: 0;
 }
-.history-page .edit-invoice-modal .edit-customer-control {
+.edit-invoice-modal .edit-customer-control {
   display: flex;
   align-items: stretch;
   gap: 8px;
   min-width: 0;
 }
-.history-page .edit-invoice-modal .edit-customer-control input {
+.edit-invoice-modal .edit-customer-control input {
   flex: 1 1 220px;
   min-width: 0;
 }
-.history-page .edit-invoice-modal .edit-change-customer-button {
+.edit-invoice-modal .edit-change-customer-button {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
@@ -1204,16 +1204,16 @@
   white-space: nowrap;
   font-size: 11px;
 }
-.history-page .edit-invoice-modal .edit-invoice-product-cell {
+.edit-invoice-modal .edit-invoice-product-cell {
   min-width: 155px;
   white-space: normal;
 }
-.history-page .edit-invoice-modal .edit-invoice-product-cell > strong {
+.edit-invoice-modal .edit-invoice-product-cell > strong {
   display: block;
   overflow-wrap: anywhere;
 }
-.history-page .edit-invoice-modal .edit-add-carton-button,
-.history-page .edit-invoice-modal .edit-apply-item-button {
+.edit-invoice-modal .edit-add-carton-button,
+.edit-invoice-modal .edit-apply-item-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1230,29 +1230,29 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.history-page .edit-invoice-modal .edit-add-carton-button:hover,
-.history-page .edit-invoice-modal .edit-apply-item-button:hover {
+.edit-invoice-modal .edit-add-carton-button:hover,
+.edit-invoice-modal .edit-apply-item-button:hover {
   background: rgba(43, 198, 181, .23);
   border-color: #43cfbf;
 }
-.history-page .edit-invoice-modal .edit-item-actions {
+.edit-invoice-modal .edit-item-actions {
   display: flex;
   align-items: center;
   gap: 7px;
 }
-.history-page .edit-invoice-modal .edit-apply-item-button {
+.edit-invoice-modal .edit-apply-item-button {
   margin-top: 0;
   min-height: 32px;
   color: #071713;
   background: linear-gradient(135deg, #72f4df, #2bc6b5);
   border-color: #48deca;
 }
-.history-page .edit-invoice-modal .edit-product-line-total {
+.edit-invoice-modal .edit-product-line-total {
   color: #72f4df;
   font-weight: 800;
   white-space: nowrap;
 }
-.history-page .edit-invoice-modal .products-table {
+.edit-invoice-modal .products-table {
   min-width: 850px;
 }
 .edit-customer-picker-backdrop {
@@ -1321,8 +1321,8 @@
 .edit-customer-option > svg { flex-shrink: 0; color: #43cfbf; }
 .edit-customer-empty { padding: 16px; color: #8d9bb0; font-size: 12px; line-height: 1.6; }
 @media (max-width: 560px) {
-  .history-page .edit-invoice-modal .edit-customer-control { flex-direction: column; }
-  .history-page .edit-invoice-modal .edit-change-customer-button { width: 100%; }
+  .edit-invoice-modal .edit-customer-control { flex-direction: column; }
+  .edit-invoice-modal .edit-change-customer-button { width: 100%; }
   .edit-customer-picker-backdrop { align-items: flex-end; padding: 0; }
   .edit-customer-picker-modal { width: 100%; max-height: 88dvh; border-radius: 16px 16px 0 0; }
 }
