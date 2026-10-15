@@ -19,6 +19,7 @@ import {
 } from "./sales/salesStore.js";
 
 import { getProducts } from "./productStore.js";
+import { saveProductsToCloud } from "./lib/productCloud.js";
 import "./sales/sales.css";
 
 function money(value) {
@@ -834,7 +835,7 @@ export default function POS() {
     openSaleConfirmation();
   };
 
-  const confirmSaleCompletion = () => {
+  const confirmSaleCompletion = async () => {
     if (busy) return;
     setShowSaleReview(false);
     setShowSaleConfirm(false);
@@ -854,10 +855,24 @@ export default function POS() {
         notify(getErrorMessage(result), "error");
         return;
       }
+
+      // completeSale deducts stock locally. Persist that exact updated stock
+      // to Supabase as well, otherwise the Products screen can reload stale
+      // cloud quantities and appear to undo the sale.
       setInvoice(createInvoice());
       setRemovedItem(null);
       refreshPending();
-      notify("Sale completed and inventory updated.", "success");
+
+      try {
+        await saveProductsToCloud(getProducts());
+        notify("Sale completed. Stock deducted and synchronized with cloud.", "success");
+      } catch (cloudError) {
+        console.error("VELTRO sale inventory cloud sync failed:", cloudError);
+        notify(
+          "Sale completed and stock deducted on this device, but cloud inventory sync failed. Check your connection before using another device.",
+          "error"
+        );
+      }
     } finally {
       setBusy(false);
     }
