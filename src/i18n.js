@@ -1,5 +1,10 @@
 const dictionaries = {
   en: {
+    "ANALYTICS": "ANALYTICS",
+    "PURCHASE REGISTER": "PURCHASE REGISTER",
+    "No purchase records available for the chart.": "No purchase records available for the chart.",
+    "Daily": "Daily",
+    "Monthly": "Monthly",
     "Purchase Overview": "Purchase Overview",
     "Track today's purchases, supplier payments, and purchase vouchers from one place.": "Track today's purchases, supplier payments, and purchase vouchers from one place.",
     "Live overview": "Live overview",
@@ -41,6 +46,11 @@ const dictionaries = {
     "Showing vouchers created today only": "Showing vouchers created today only",
     "Amounts shown in Algerian dinars (DA)": "Amounts shown in Algerian dinars (DA)",},
   fr: {
+    "ANALYTICS": "ANALYSE",
+    "PURCHASE REGISTER": "REGISTRE DES ACHATS",
+    "No purchase records available for the chart.": "Aucune donnée d’achat disponible pour le graphique.",
+    "Daily": "Quotidien",
+    "Monthly": "Mensuel",
     "Purchase Overview": "Vue d’ensemble des achats",
     "Track today's purchases, supplier payments, and purchase vouchers from one place.": "Suivez les achats du jour, les paiements fournisseurs et les bons d’achat depuis un seul endroit.",
     "Live overview": "Vue en direct",
@@ -481,6 +491,11 @@ const dictionaries = {
 
   },
   ar: {
+    "ANALYTICS": "التحليلات",
+    "PURCHASE REGISTER": "سجل المشتريات",
+    "No purchase records available for the chart.": "لا توجد بيانات مشتريات لعرضها في الرسم البياني.",
+    "Daily": "يومي",
+    "Monthly": "شهري",
     "Purchase Overview": "نظرة عامة على المشتريات",
     "Track today's purchases, supplier payments, and purchase vouchers from one place.": "تابع مشتريات اليوم ومدفوعات الموردين وبونات الشراء من مكان واحد.",
     "Live overview": "تحديث مباشر",
