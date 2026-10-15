@@ -1764,6 +1764,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
   const openPendingVoucher = record => {
     setSupplier(record.supplier || "");
+    setSupplierId(record.supplierId || "");
     setSupplierPhone(record.phone || "");
     setInvoiceNote(record.note || "");
     setLines(Array.isArray(record.lines) ? record.lines.map(line => ({ ...line, lineId: line.lineId || makeId("LINE") })) : []);
