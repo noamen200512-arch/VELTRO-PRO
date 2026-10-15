@@ -18,6 +18,11 @@ const DRAFT_KEY = "veltro_purchase_draft_v2";
 const CATEGORIES_KEY = "veltro_product_categories";
 const UNITS_KEY = "veltro_product_units";
 
+const purchaseText = (en, fr, ar) => {
+  const locale = document.documentElement.lang;
+  return locale === "ar" ? ar : locale === "fr" ? fr : en;
+};
+
 const money = value => {
   const locale = document.documentElement.lang === "ar"
     ? "ar-DZ"
@@ -493,7 +498,7 @@ function ProductModal({
 
     if (loss) {
       const accepted = window.confirm(
-        "Warning: A sale price is lower than the purchase price. Save despite the loss?"
+        purchaseText("Warning: A sale price is lower than the purchase price. Save despite the loss?", "Attention : un prix de vente est inférieur au prix d’achat. Enregistrer malgré la perte ?", "تحذير: سعر البيع أقل من سعر الشراء. هل تريد الحفظ رغم الخسارة؟")
       );
 
       if (!accepted) return;
@@ -508,8 +513,8 @@ function ProductModal({
   const addOption = type => {
     const label = window.prompt(
       type === "category"
-        ? "Enter the new category name:"
-        : "Enter the new unit name:"
+        ? purchaseText("Enter the new category name:", "Saisissez le nom de la nouvelle catégorie :", "أدخل اسم الفئة الجديدة:")
+        : purchaseText("Enter the new unit name:", "Saisissez le nom de la nouvelle unité :", "أدخل اسم الوحدة الجديدة:")
     );
 
     if (!label?.trim()) return;
@@ -974,7 +979,7 @@ export default function Purchases() {
 
     if (!draft || !Array.isArray(draft.lines) || !draft.lines.length) return;
 
-    if (!window.confirm("An unfinished purchase invoice was found. Would you like to restore it?")) {
+    if (!window.confirm(purchaseText("An unfinished purchase invoice was found. Would you like to restore it?", "Une facture d’achat inachevée a été trouvée. Voulez-vous la restaurer ?", "تم العثور على فاتورة شراء غير مكتملة. هل تريد استعادتها؟"))) {
       return;
     }
 
@@ -1347,7 +1352,7 @@ export default function Purchases() {
   };
 
   const cancelDraft = () => {
-    if (!window.confirm("Cancel this purchase invoice and delete its draft and temporary changes?")) {
+    if (!window.confirm(purchaseText("Cancel this purchase invoice and delete its draft and temporary changes?", "Annuler cette facture d’achat et supprimer son brouillon et ses modifications temporaires ?", "هل تريد إلغاء فاتورة الشراء وحذف مسودتها والتغييرات المؤقتة؟"))) {
       return;
     }
 
@@ -1359,7 +1364,7 @@ export default function Purchases() {
   const deleteInvoice = invoice => {
     if (
       !window.confirm(
-        `Delete invoice ${invoice.number}? Inventory movements will not be reversed automatically.`
+        purchaseText(`Delete invoice ${invoice.number}? Inventory movements will not be reversed automatically.`, `Supprimer la facture ${invoice.number} ? Les mouvements de stock ne seront pas annulés automatiquement.`, `هل تريد حذف الفاتورة ${invoice.number}؟ لن يتم عكس حركات المخزون تلقائيًا.`)
       )
     ) {
       return;
@@ -1389,7 +1394,7 @@ export default function Purchases() {
       return;
     }
 
-    popup.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(invoice.number)}</title>
+    popup.document.write(`<!doctype html><html lang="${document.documentElement.lang || "en"}" dir="${document.documentElement.dir || "ltr"}"><head><meta charset="utf-8"><title>${escapeHtml(invoice.number)}</title>
       <style>
         body{font-family:Arial,sans-serif;padding:28px;color:#111}
         table{width:100%;border-collapse:collapse;margin-top:20px}
@@ -1398,18 +1403,18 @@ export default function Purchases() {
         .total{font-size:20px;font-weight:bold;margin-top:22px}
       </style>
       </head><body>
-      <h1>VELTRO-PRO — Purchase Invoice</h1>
-      <p>Invoice Number: ${escapeHtml(invoice.number)}</p>
-      <p>Supplier: ${escapeHtml(invoice.supplier)}</p>
-      <p>Date: ${new Date(invoice.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</p>
+      <h1>VELTRO-PRO — ${purchaseText("Purchase Invoice", "Facture d’achat", "فاتورة شراء")}</h1>
+      <p>${purchaseText("Invoice Number", "Numéro de facture", "رقم الفاتورة")}: ${escapeHtml(invoice.number)}</p>
+      <p>${purchaseText("Supplier", "Fournisseur", "المورد")}: ${escapeHtml(invoice.supplier)}</p>
+      <p>${purchaseText("Date", "Date", "التاريخ")}: ${new Date(invoice.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</p>
       <table>
-        <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr></thead>
+        <thead><tr><th>${purchaseText("Product", "Produit", "المنتج")}</th><th>${purchaseText("Quantity", "Quantité", "الكمية")}</th><th>${purchaseText("Unit Price", "Prix unitaire", "سعر الوحدة")}</th><th>${purchaseText("Total", "Total", "الإجمالي")}</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
-      <div class="total">Total: ${money(invoice.total)}</div>
-      <p>Amount Paid: ${money(invoice.paid)}</p>
-      <p>Current Debt: ${money(invoice.currentDebt ?? invoice.remaining)}</p>
-      <p>Notes: ${escapeHtml(invoice.note || "—")}</p>
+      <div class="total">${purchaseText("Total", "Total", "الإجمالي")}: ${money(invoice.total)}</div>
+      <p>${purchaseText("Amount Paid", "Montant payé", "المبلغ المدفوع")}: ${money(invoice.paid)}</p>
+      <p>${purchaseText("Current Debt", "Dette actuelle", "الدين الحالي")}: ${money(invoice.currentDebt ?? invoice.remaining)}</p>
+      <p>${purchaseText("Notes", "Notes", "ملاحظات")}: ${escapeHtml(invoice.note || "—")}</p>
       <script>window.onload=()=>window.print();<\/script>
       </body></html>`);
 
@@ -1424,7 +1429,7 @@ export default function Purchases() {
         <strong>${escapeHtml(product.name)}</strong>
         <div class="price">${money(product.price)}</div>
         <div class="barcode">${barcodeSvg(product.barcode)}</div>
-        <small>Reference: ${escapeHtml(product.sku || product.id)}</small>
+        <small>${purchaseText("Reference", "Référence", "المرجع")}: ${escapeHtml(product.sku || product.id)}</small>
       </div>`).join("");
 
     const popup = window.open("", "_blank", "width=900,height=700");
@@ -1434,7 +1439,7 @@ export default function Purchases() {
       return;
     }
 
-    popup.document.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Product Price Labels</title>
+    popup.document.write(`<!doctype html><html lang="${document.documentElement.lang || "en"}" dir="${document.documentElement.dir || "ltr"}"><head><meta charset="utf-8"><title>${purchaseText("Product Price Labels", "Étiquettes de prix des produits", "ملصقات أسعار المنتجات")}</title>
       <style>
         @page{size:auto;margin:6mm}
         body{font-family:Arial,sans-serif;margin:0}
@@ -1837,7 +1842,7 @@ export default function Purchases() {
 
                 <Button onClick={() => {
                   const code = window.prompt(
-                    "Enter the barcode scanned by the scanner or camera:"
+                    purchaseText("Enter the barcode scanned by the scanner or camera:", "Saisissez le code-barres lu par le scanner ou la caméra :", "أدخل الباركود الذي مسحه الماسح أو الكاميرا:")
                   );
 
                   if (!code) return;
