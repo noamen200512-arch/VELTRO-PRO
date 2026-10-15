@@ -470,7 +470,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     setCustomerPickerOpen(false);
   };
 
-  const addProduct = (id) => {
+  const addProduct = (id, mode = "unit") => {
     if (!id) return;
 
     const product = inventory.find(
@@ -478,6 +478,36 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     );
 
     if (!product) return;
+
+    // Adding a carton from the product picker creates a separate invoice line,
+    // just like the existing Add Carton control in the invoice table.
+    if (mode === "carton") {
+      const cartonSize = Math.max(1, Math.floor(Number(product.piecesPerCarton) || 1));
+      if (cartonSize <= 1) {
+        setError("No carton quantity is configured for this product.");
+        return;
+      }
+      const cartonPrice = Math.max(0, Number(product.cartonPrice) || 0);
+      const unitPrice = cartonPrice > 0
+        ? Math.ceil((cartonPrice / cartonSize) * 100 - 1e-9) / 100
+        : Math.max(0, Number(product.price) || 0);
+      const cartonLine = {
+        ...product,
+        id: `${id}-carton-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        productId: String(id),
+        qty: cartonSize,
+        quantity: cartonSize,
+        price: unitPrice,
+        discount: 0,
+        piecesPerCarton: cartonSize,
+        cartonPrice,
+        isCartonLine: true,
+      };
+      setDraft((old) => ({ ...old, items: [...old.items, cartonLine] }));
+      setItemDrafts((old) => [...old, { qty: String(cartonSize), price: unitPrice.toFixed(2), discount: "0.00" }]);
+      setError("");
+      return;
+    }
 
     const existingIndex = draft.items.findIndex(
       (item) =>
