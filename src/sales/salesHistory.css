@@ -1911,3 +1911,294 @@
   }
 }
 
+
+/* Refined invoice editor table spacing and consistent action-button system */
+.edit-invoice-modal .table-wrapper.sales-history-table-scroll {
+  padding: 5px;
+  border-color: rgba(91, 117, 147, 0.32);
+  border-radius: 14px;
+  background: rgba(5, 12, 22, 0.72);
+  scrollbar-width: thin;
+  scrollbar-color: #40566e #111b29;
+}
+
+.edit-invoice-modal .products-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.edit-invoice-modal .products-table th {
+  padding: 14px 13px;
+  color: #9eb0c6;
+  background: #172538;
+  border-bottom: 1px solid #34475e;
+  font-size: 10px;
+  letter-spacing: 0.055em;
+  line-height: 1.45;
+}
+
+.edit-invoice-modal .products-table th:first-child { width: 27%; }
+.edit-invoice-modal .products-table th:nth-child(2) { width: 9%; }
+.edit-invoice-modal .products-table th:nth-child(3) { width: 13%; }
+.edit-invoice-modal .products-table th:nth-child(4) { width: 16%; }
+.edit-invoice-modal .products-table th:nth-child(5) { width: 17%; }
+.edit-invoice-modal .products-table th:last-child { width: 18%; }
+
+.edit-invoice-modal .products-table td {
+  padding: 14px 13px;
+  background: rgba(17, 29, 44, 0.76);
+  border-bottom: 1px solid rgba(100, 124, 151, 0.18);
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.edit-invoice-modal .products-table tbody tr:nth-child(even) td {
+  background: rgba(21, 35, 52, 0.78);
+}
+
+.edit-invoice-modal .products-table tbody tr:hover td {
+  background: rgba(36, 57, 76, 0.76);
+}
+
+.edit-invoice-modal .products-table th:first-child,
+.edit-invoice-modal .products-table td:first-child {
+  padding-left: 16px;
+}
+
+.edit-invoice-modal .products-table th:last-child,
+.edit-invoice-modal .products-table td:last-child {
+  padding-right: 14px;
+}
+
+.edit-invoice-modal .edit-invoice-product-cell > strong {
+  display: block;
+  max-width: 100%;
+  color: #edf5ff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.edit-invoice-modal .edit-number-input {
+  min-height: 38px;
+  padding: 0 10px;
+  border-color: #33485f;
+  border-radius: 9px;
+  background: #0d1928;
+  font-size: 12px;
+  font-weight: 600;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.edit-invoice-modal .edit-number-input:hover {
+  border-color: #526b85;
+}
+
+.edit-invoice-modal .edit-number-input:focus {
+  background: #101f30;
+  border-color: #48d8c6;
+  box-shadow: 0 0 0 3px rgba(72, 216, 198, 0.13);
+}
+
+.edit-invoice-modal .edit-product-line-total {
+  color: #73e4d4 !important;
+  font-size: 12px !important;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.edit-invoice-modal .edit-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.edit-invoice-modal .edit-item-actions button,
+.edit-invoice-modal .edit-change-customer-button,
+.edit-invoice-modal .edit-add-product-button,
+.edit-invoice-modal .panel-actions button,
+.edit-invoice-modal .panel-header > .icon-button {
+  font-family: inherit;
+  letter-spacing: 0;
+  transition: color 160ms ease, background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.edit-invoice-modal .edit-apply-item-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 76px;
+  min-height: 35px;
+  padding: 0 10px;
+  color: #8aefe1;
+  background: rgba(48, 201, 181, 0.1);
+  border: 1px solid rgba(72, 216, 198, 0.34);
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.edit-invoice-modal .edit-apply-item-button:hover {
+  color: #071714;
+  background: #58ddca;
+  border-color: #58ddca;
+  box-shadow: 0 4px 12px rgba(48, 201, 181, 0.18);
+  transform: translateY(-1px);
+}
+
+.edit-invoice-modal .edit-apply-item-button:active,
+.edit-invoice-modal .edit-item-actions .danger-icon:active,
+.edit-invoice-modal .panel-actions button:active,
+.edit-invoice-modal .edit-change-customer-button:active {
+  transform: translateY(0);
+}
+
+.edit-invoice-modal .edit-item-actions .danger-icon {
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  color: #ff9aa6;
+  background: rgba(255, 95, 118, 0.08);
+  border: 1px solid rgba(255, 110, 130, 0.24);
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.edit-invoice-modal .edit-item-actions .danger-icon:hover {
+  color: #fff;
+  background: rgba(255, 91, 116, 0.2);
+  border-color: rgba(255, 123, 142, 0.58);
+  box-shadow: 0 3px 10px rgba(255, 91, 116, 0.1);
+}
+
+.edit-invoice-modal .panel-header > .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  color: #aebdd0;
+  background: #172538;
+  border: 1px solid #33465d;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.edit-invoice-modal .panel-header > .icon-button:hover {
+  color: #fff;
+  background: #26394e;
+  border-color: #526a82;
+}
+
+.edit-invoice-modal .edit-change-customer-button {
+  min-height: 40px;
+  padding: 0 13px;
+  color: #c7d6e8;
+  background: #172538;
+  border: 1px solid #354a61;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.edit-invoice-modal .edit-change-customer-button:hover {
+  color: #f5fbff;
+  background: #20334a;
+  border-color: #4d6a85;
+}
+
+.edit-invoice-modal .edit-add-product-button {
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(43, 198, 181, 0.12);
+}
+
+.edit-invoice-modal .panel-actions {
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(91, 117, 147, 0.25);
+}
+
+.edit-invoice-modal .panel-actions button {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.edit-invoice-modal .panel-actions .primary-button {
+  box-shadow: 0 5px 15px rgba(43, 198, 181, 0.14);
+}
+
+.edit-invoice-modal .panel-actions .primary-button:hover:not(:disabled) {
+  box-shadow: 0 7px 18px rgba(43, 198, 181, 0.22);
+  transform: translateY(-1px);
+}
+
+.edit-invoice-modal .panel-actions .secondary-button:hover {
+  border-color: #526b85;
+  transform: translateY(-1px);
+}
+
+.edit-invoice-modal button:focus-visible {
+  outline: 2px solid #59e0ce;
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .edit-invoice-modal .table-wrapper.sales-history-table-scroll {
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .edit-invoice-modal .products-table {
+    width: 920px;
+    min-width: 920px;
+  }
+
+  .edit-invoice-modal .products-table th {
+    padding: 12px 11px;
+  }
+
+  .edit-invoice-modal .products-table td {
+    padding: 13px 11px;
+  }
+
+  .edit-invoice-modal .products-table th:first-child,
+  .edit-invoice-modal .products-table td:first-child {
+    padding-left: 13px;
+  }
+
+  .edit-invoice-modal .edit-number-input {
+    min-height: 36px;
+    padding: 0 8px;
+  }
+
+  .edit-invoice-modal .edit-apply-item-button {
+    min-width: 70px;
+    min-height: 34px;
+    padding: 0 8px;
+  }
+
+  .edit-invoice-modal .edit-item-actions .danger-icon {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+  }
+}
+
