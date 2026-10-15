@@ -26,6 +26,7 @@ function getProductBarcodes(product) {
     product?.reference,
     product?.ref,
     ...(Array.isArray(product?.barcodes) ? product.barcodes : []),
+    ...(Array.isArray(product?.barcodeAliases) ? product.barcodeAliases : []),
     ...(Array.isArray(product?.extraBarcodes)
       ? product.extraBarcodes
       : []),
@@ -115,6 +116,7 @@ export default function EditInvoiceProductPicker({
         product?.codebar,
         product?.codeBar,
         ...(Array.isArray(product?.barcodes) ? product.barcodes : []),
+        ...(Array.isArray(product?.barcodeAliases) ? product.barcodeAliases : []),
         ...(Array.isArray(product?.extraBarcodes)
           ? product.extraBarcodes
           : []),
