@@ -2374,3 +2374,226 @@
     width: 100%;
   }
 }
+
+
+/* Sales History — balanced table spacing and card-like framing */
+.history-page .products-panel {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.history-page .sales-history-main-table {
+  box-sizing: border-box;
+  margin: 18px 0 0;
+  padding: 7px;
+  border: 1px solid rgba(100, 126, 155, 0.24);
+  border-radius: 15px;
+  background: rgba(5, 12, 22, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.018);
+}
+
+.history-page .sales-history-main-table .products-table {
+  min-width: 1080px;
+  border-spacing: 0;
+  border-collapse: separate;
+}
+
+.history-page .sales-history-main-table .products-table thead th {
+  padding: 15px 16px;
+  color: #a8b9ce;
+  background: #172538;
+  border-top: 1px solid rgba(112, 139, 169, 0.16);
+  border-bottom: 1px solid rgba(112, 139, 169, 0.32);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.history-page .sales-history-main-table .products-table thead th:first-child {
+  border-radius: 9px 0 0 9px;
+}
+
+.history-page .sales-history-main-table .products-table thead th:last-child {
+  border-radius: 0 9px 9px 0;
+}
+
+.history-page .sales-history-main-table .products-table tbody td {
+  padding: 15px 16px;
+  color: #d5dfed;
+  background: rgba(15, 26, 40, 0.78);
+  border-bottom: 1px solid rgba(103, 128, 156, 0.16);
+  font-size: 12px;
+  line-height: 1.55;
+  vertical-align: middle;
+}
+
+.history-page .sales-history-main-table .products-table tbody tr:nth-child(even) td {
+  background: rgba(20, 32, 48, 0.78);
+}
+
+.history-page .sales-history-main-table .products-table tbody tr:hover td {
+  background: rgba(34, 53, 72, 0.82);
+}
+
+.history-page .sales-history-main-table .products-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:first-child strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 4px 9px;
+  color: #73e4d4;
+  background: rgba(67, 207, 191, 0.08);
+  border: 1px solid rgba(67, 207, 191, 0.16);
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(4) {
+  min-width: 125px;
+  color: #d5dfed;
+  line-height: 1.65;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(4) small {
+  color: #8599b1;
+  font-size: 10px;
+}
+
+.history-page .sales-history-main-table .products-table tbody td.price-cell,
+.history-page .sales-history-main-table .products-table tbody td:nth-child(6),
+.history-page .sales-history-main-table .products-table tbody td:nth-child(7) {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.history-page .sales-history-main-table .products-table tbody td.price-cell {
+  color: #77e5d6;
+}
+
+.history-page .sales-history-main-table .products-table tbody td:nth-child(7) {
+  color: #f0c779;
+}
+
+.history-page .sales-history-main-table .products-table th:last-child,
+.history-page .sales-history-main-table .products-table td:last-child {
+  min-width: 225px;
+  padding-right: 17px;
+  padding-left: 17px;
+}
+
+.history-page .history-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.history-page .history-row-actions .icon-button,
+.history-page .history-row-actions .history-delete-button {
+  flex: 0 0 auto;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 9px;
+}
+
+.history-page .history-row-actions .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #b8c9dc;
+  background: #172538;
+  border: 1px solid #33485f;
+}
+
+.history-page .history-row-actions .icon-button:hover {
+  color: #5fe1d0;
+  background: rgba(67, 207, 191, 0.1);
+  border-color: rgba(67, 207, 191, 0.48);
+}
+
+.history-page .history-row-actions .history-delete-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 82px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.history-page .sales-history-pagination {
+  margin-top: 14px;
+  padding: 13px 4px 2px;
+  border-top: 1px solid rgba(100, 126, 155, 0.18);
+}
+
+.history-page .sales-history-pagination > span {
+  color: #91a4ba;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.history-page .sales-history-page-controls button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.history-page .sales-history-page-controls button:hover:not(:disabled):not(.active) {
+  color: #f3f8ff;
+  background: #22354a;
+  border-color: #4c657e;
+}
+
+.history-page .sales-history-page-controls button.active {
+  box-shadow: 0 4px 12px rgba(67, 207, 191, 0.15);
+}
+
+@media (max-width: 720px) {
+  .history-page .products-panel {
+    border-radius: 14px;
+  }
+
+  .history-page .sales-history-main-table {
+    margin-top: 14px;
+    padding: 5px;
+    border-radius: 12px;
+  }
+
+  .history-page .sales-history-main-table .products-table {
+    min-width: 1080px;
+  }
+
+  .history-page .sales-history-main-table .products-table thead th {
+    padding: 13px 13px;
+    font-size: 9px;
+  }
+
+  .history-page .sales-history-main-table .products-table tbody td {
+    padding: 13px 13px;
+    font-size: 11px;
+  }
+
+  .history-page .sales-history-main-table .products-table th:last-child,
+  .history-page .sales-history-main-table .products-table td:last-child {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .history-page .sales-history-pagination {
+    gap: 10px;
+    padding: 12px 2px 0;
+  }
+}
+
