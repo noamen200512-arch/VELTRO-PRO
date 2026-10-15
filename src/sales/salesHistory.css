@@ -1727,3 +1727,187 @@
   }
 }
 
+/* Final phone layout for the edit-invoice dialog */
+.edit-invoice-backdrop {
+  box-sizing: border-box;
+}
+
+@media (max-width: 560px) {
+  .modal-backdrop.edit-invoice-backdrop {
+    align-items: flex-start;
+    justify-content: center;
+    padding: 5px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-backdrop.edit-invoice-backdrop > .edit-invoice-modal {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    max-height: calc(100dvh - 10px);
+    margin: 0;
+    padding: 12px 9px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 12px;
+    overscroll-behavior: contain;
+  }
+
+  .edit-invoice-modal .panel-header {
+    gap: 7px;
+    margin-bottom: 11px;
+    padding-bottom: 10px;
+  }
+
+  .edit-invoice-modal .panel-header h3 {
+    font-size: 17px;
+    line-height: 1.25;
+  }
+
+  .edit-invoice-modal .panel-description {
+    margin-top: 4px;
+    font-size: 10px;
+  }
+
+  .edit-invoice-modal .edit-invoice-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+
+  .edit-invoice-modal .edit-invoice-fields .edit-customer-field {
+    grid-column: auto;
+  }
+
+  .edit-invoice-modal .modal-field {
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .edit-invoice-modal .modal-field > span {
+    min-height: 0;
+  }
+
+  .edit-invoice-modal .modal-field input,
+  .edit-invoice-modal .edit-customer-control input {
+    height: 37px;
+    min-height: 37px;
+    padding: 0 9px;
+  }
+
+  .edit-invoice-modal .edit-customer-control {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .edit-invoice-modal .edit-change-customer-button {
+    width: 100%;
+    min-height: 36px;
+    height: auto;
+  }
+
+  .edit-invoice-modal .edit-products-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .edit-invoice-modal .edit-products-heading h4 {
+    font-size: 13px;
+  }
+
+  .edit-invoice-modal .edit-add-product-button {
+    width: 100%;
+    min-height: 36px;
+  }
+
+  .edit-invoice-modal .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .edit-invoice-modal .products-table {
+    width: 850px;
+    min-width: 850px;
+  }
+
+  .edit-invoice-modal .products-table th,
+  .edit-invoice-modal .products-table td {
+    padding: 8px 7px;
+  }
+
+  .edit-invoice-modal .edit-number-input {
+    height: 34px;
+    padding: 0 7px;
+    font-size: 12px;
+  }
+
+  .edit-invoice-modal .edit-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .edit-invoice-modal .edit-totals > div {
+    min-height: 56px;
+    padding: 8px;
+    gap: 5px;
+  }
+
+  .edit-invoice-modal .edit-totals span {
+    font-size: 9px;
+  }
+
+  .edit-invoice-modal .edit-totals strong {
+    font-size: 12px;
+  }
+
+  .edit-invoice-modal .form-error {
+    margin-top: 8px;
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .edit-invoice-modal .panel-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+
+  .edit-invoice-modal .panel-actions button,
+  .edit-invoice-modal .panel-actions .primary-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 37px;
+    padding: 7px 9px;
+    white-space: normal;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 360px) {
+  .modal-backdrop.edit-invoice-backdrop {
+    padding: 3px;
+  }
+
+  .modal-backdrop.edit-invoice-backdrop > .edit-invoice-modal {
+    max-height: calc(100dvh - 6px);
+    padding: 10px 7px;
+  }
+
+  .edit-invoice-modal .edit-totals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
