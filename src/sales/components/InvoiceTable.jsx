@@ -31,9 +31,16 @@ function EditablePriceInput({ item, value, onCommit }) {
       return;
     }
 
-    const roundedUpPrice = numeric > 0 ? Math.ceil(numeric * 100 - 1e-9) / 100 : 0;
-    onCommit(item, "price", roundedUpPrice);
-    setDraft(formatPrice(roundedUpPrice));
+    const decimalPart = normalized.split(".")[1] || "";
+    const cents = numeric * 100;
+    const roundedPrice = numeric <= 0
+      ? 0
+      : (decimalPart.length > 4
+          ? Math.ceil(cents - 1e-9)
+          : Math.round(cents)) / 100;
+
+    onCommit(item, "price", roundedPrice);
+    setDraft(formatPrice(roundedPrice));
   };
 
   return (
