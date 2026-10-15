@@ -576,7 +576,11 @@ const dictionaries = {
     "Purchases:": "Achats :",
     "Payments:": "Paiements :",
   },
-  ar: {
+
+    "Print": "Imprimer",
+    "Remove": "Retirer",
+    "Preview": "Aperçu",
+    "Details": "Détails",  ar: {
     "ANALYTICS": "التحليلات",
     "PURCHASE REGISTER": "سجل المشتريات",
     "No purchase records available for the chart.": "لا توجد بيانات مشتريات لعرضها في الرسم البياني.",
@@ -1105,6 +1109,10 @@ const dictionaries = {
     "Daily purchases and payments for the last 30 days": "المشتريات والمدفوعات اليومية خلال آخر 30 يومًا",
     "Purchases:": "المشتريات:",
     "Payments:": "المدفوعات:",
+    "Print": "طباعة",
+    "Remove": "إزالة",
+    "Preview": "معاينة",
+    "Details": "التفاصيل",
   }
 };
 
