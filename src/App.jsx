@@ -553,7 +553,7 @@ function PlaceholderPage({ title, locale }) {
    MAIN APP
 ========================================================= */
 
-export default function App({ onLogout }) {
+export default function App({ onLogout, currentUser }) {
   const [activePage, setActivePage] = useState("Dashboard");
   const [locale, setLocale] = useState(() => {
     try { const saved = window.localStorage.getItem("veltro-language"); return ["en","fr","ar"].includes(saved) ? saved : "en"; }
@@ -682,7 +682,7 @@ export default function App({ onLogout }) {
           ) : activePage === "Sales History" ? (
             <SalesHistory />
           ) : activePage === "Purchase History" ? (
-            <Purchases />
+            <Purchases currentUser={currentUser} />
           ) : activePage === "Suppliers List" ? (
             <Suppliers />
           ) : activePage === "Supplier Debts" ? (
