@@ -93,12 +93,12 @@ export default function AuthGate() {
     let mounted = true;
     supabase.auth.getSession().then(({ data, error: sessionError }) => {
       if (!mounted) return;
-      if (sessionError) setError(messages[locale].sessionError);
+      if (sessionError) setError("sessionError");
       setSession(data?.session ?? null);
       setLoading(false);
     }).catch(() => {
       if (!mounted) return;
-      setError(messages[locale].sessionError);
+      setError("sessionError");
       setLoading(false);
     });
 
@@ -126,9 +126,9 @@ export default function AuthGate() {
     } catch (err) {
       const message = String(err?.message || "");
       if (/invalid login credentials|invalid email or password/i.test(message)) {
-        setError(t.invalid);
+        setError("invalid");
       } else {
-        setError(t.loginError);
+        setError("loginError");
       }
     } finally {
       setBusy(false);
@@ -137,7 +137,7 @@ export default function AuthGate() {
 
   async function handleLogout() {
     const { error: logoutError } = await supabase.auth.signOut();
-    if (logoutError) setError(t.logoutError);
+    if (logoutError) setError("logoutError");
   }
 
   if (loading) {
@@ -204,7 +204,7 @@ export default function AuthGate() {
           dir="auto"
         />
 
-        {error && <p style={styles.error} role="alert">{error}</p>}
+        {error && <p style={styles.error} role="alert">{t[error] || error}</p>}
 
         <button type="submit" disabled={busy} style={{ ...styles.submit, opacity: busy ? 0.7 : 1 }}>
           {busy ? t.signingIn : t.login}
