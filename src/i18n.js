@@ -865,6 +865,7 @@ const dictionaries = {
     "تعذر تسجيل الخروج. حاول مرة أخرى.": "Déconnexion impossible. Réessayez.",
     "تعذر التحقق من الجلسة.": "Impossible de vérifier la session.",
     "أدخل كلمة المرور": "Saisissez le mot de passe",
+    "Manual Unit Profit Margin (%)": "Marge bénéficiaire manuelle par unité (%)",
   },
   ar: {
     "The customer ID is generated automatically and remains unchanged.": "يُنشأ معرّف العميل تلقائيًا ويبقى ثابتًا.",
@@ -1668,6 +1669,7 @@ const dictionaries = {
     "تعذر تسجيل الخروج. حاول مرة أخرى.": "تعذر تسجيل الخروج. حاول مرة أخرى.",
     "تعذر التحقق من الجلسة.": "تعذر التحقق من الجلسة.",
     "أدخل كلمة المرور": "أدخل كلمة المرور",
+    "Manual Unit Profit Margin (%)": "هامش ربح الوحدة يدويًا (%)",
   }
 };
 
