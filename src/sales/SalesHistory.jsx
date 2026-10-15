@@ -687,7 +687,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
                 );
               })}
               {draft.items.length === 0 && <tr><td colSpan={6} className="empty-state">No products in this invoice.</td></tr>}
-            </tbody>    </tbody>
+            </tbody>
           </table>
         </div>
 
