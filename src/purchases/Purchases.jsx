@@ -956,6 +956,8 @@ export default function Purchases({ currentUser = null }) {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showAccount, setShowAccount] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showPendingVouchers, setShowPendingVouchers] = useState(false);
+  const [pendingVouchers, setPendingVouchers] = useState(() => safeRead("veltro_purchase_pending_drafts_v1", []));
   const [showInfo, setShowInfo] = useState(null);
   const [viewInvoice, setViewInvoice] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
@@ -1701,6 +1703,29 @@ export default function Purchases({ currentUser = null }) {
     );
   });
 
+  const openPendingVoucher = record => {
+    setSupplier(record.supplier || "");
+    setSupplierPhone(record.phone || "");
+    setInvoiceNote(record.note || "");
+    setLines(Array.isArray(record.lines) ? record.lines.map(line => ({ ...line, lineId: line.lineId || makeId("LINE") })) : []);
+    setDraftProductChanges(record.draftProductChanges || {});
+    setEditingInvoice(record.editingInvoice || null);
+    setDraftInvoiceNumber(record.number || `PUR-${Date.now()}`);
+    setDraftCreatedBy(record.createdBy || getCurrentUserName());
+    setDraftCreatedAt(record.date || nowISO());
+    const next = pendingVouchers.filter(item => item.id !== record.id);
+    setPendingVouchers(next);
+    localStorage.setItem("veltro_purchase_pending_drafts_v1", JSON.stringify(next));
+    setShowPendingVouchers(false);
+    setShowInvoice(true);
+  };
+
+  const deletePendingVoucher = record => {
+    const next = pendingVouchers.filter(item => item.id !== record.id);
+    setPendingVouchers(next);
+    localStorage.setItem("veltro_purchase_pending_drafts_v1", JSON.stringify(next));
+  };
+
   const savePendingConfirmation = () => {
     if (!lines.length) {
       setNotice("Add at least one product before saving a pending voucher.");
@@ -1769,6 +1794,7 @@ export default function Purchases({ currentUser = null }) {
             </div>
             <div className="purchase-overview-hero-actions">
               <span className="purchase-overview-live"><i /> Live overview</span>
+              <Button onClick={() => { setPendingVouchers(safeRead("veltro_purchase_pending_drafts_v1", [])); setShowPendingVouchers(true); }}><Clock3 size={16} /> Pending Vouchers ({pendingVouchers.length})</Button>
               <Button variant="primary" onClick={openNewInvoice}><Plus size={17} /> New Purchase Voucher</Button>
             </div>
             <div className="purchase-hero-orb purchase-hero-orb-one" />
@@ -2293,6 +2319,30 @@ export default function Purchases({ currentUser = null }) {
               <CheckCircle2 size={16} /> Confirm Closure and Save Account
             </Button>
           </footer>
+        </Modal>
+      )}
+
+      {showPendingVouchers && (
+        <Modal title="Pending purchase vouchers" subtitle="Continue a saved voucher or remove it from the pending list." onClose={() => setShowPendingVouchers(false)} wide>
+          <div className="purchase-table-wrap purchase-picker-table-wrap">
+            <table className="purchase-table">
+              <thead><tr><th>Voucher ID</th><th>Supplier</th><th>Created by</th><th>Date and time</th><th>Total</th><th>Actions</th></tr></thead>
+              <tbody>
+                {pendingVouchers.map(record => <tr key={record.id}>
+                  <td><strong>{record.number || record.id}</strong></td>
+                  <td>{record.supplier || "Unknown supplier"}</td>
+                  <td>{record.createdBy || "—"}</td>
+                  <td>{record.date ? new Date(record.date).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US") : "—"}</td>
+                  <td>{money(record.total)}</td>
+                  <td><div className="purchase-row-actions">
+                    <button type="button" title="Resume voucher" aria-label="Resume voucher" onClick={() => openPendingVoucher(record)}><Pencil size={15} /></button>
+                    <button type="button" title="Delete pending voucher" aria-label="Delete pending voucher" className="danger" onClick={() => deletePendingVoucher(record)}><Trash2 size={15} /></button>
+                  </div></td>
+                </tr>)}
+                {!pendingVouchers.length && <tr><td colSpan="6" className="purchase-empty-row">No pending purchase vouchers.</td></tr>}
+              </tbody>
+            </table>
+          </div>
         </Modal>
       )}
 
