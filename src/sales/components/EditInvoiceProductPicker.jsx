@@ -172,9 +172,14 @@ export default function EditInvoiceProductPicker({
     detectorRef.current = null;
     if ("BarcodeDetector" in window) {
       try {
-        detectorRef.current = new window.BarcodeDetector({
-          formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf", "qr_code"],
-        });
+        const requestedFormats = ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf", "qr_code"];
+        const supportedFormats = typeof window.BarcodeDetector.getSupportedFormats === "function"
+          ? await window.BarcodeDetector.getSupportedFormats()
+          : requestedFormats;
+        const usableFormats = requestedFormats.filter((format) => supportedFormats.includes(format));
+        if (usableFormats.length) {
+          detectorRef.current = new window.BarcodeDetector({ formats: usableFormats });
+        }
       } catch (error) {
         console.warn("Barcode detection is not supported for the selected formats:", error);
       }
