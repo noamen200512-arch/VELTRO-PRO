@@ -148,11 +148,11 @@ export default function EditInvoiceProductPicker({
     setCameraOpen(false);
   }
 
-  function selectProduct(product) {
+  function selectProduct(product, mode = "unit") {
     if (!product) return;
 
     if (typeof onSelect === "function") {
-      onSelect(product.id ?? product.productId ?? product._id ?? product);
+      onSelect(product.id ?? product.productId ?? product._id ?? product, mode);
     }
 
     stopCamera();
@@ -402,6 +402,7 @@ export default function EditInvoiceProductPicker({
               const name = getProductName(product);
               const price = getProductPrice(product);
               const stock = getProductStock(product);
+              const cartonSize = Math.max(1, Math.floor(Number(product?.piecesPerCarton) || 1));
               const reference =
                 product.reference ||
                 product.ref ||
@@ -431,9 +432,33 @@ export default function EditInvoiceProductPicker({
 
                   <span className="edit-product-picker-item-right">
                     <strong>{formatPrice(price)}</strong>
-                    <span className="edit-product-picker-add">
-                      <Plus size={17} />
-                      Add
+                    <span className="edit-product-picker-item-actions">
+                      {cartonSize > 1 && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className="edit-product-picker-carton"
+                          title={`Add one carton (${cartonSize} units)`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            selectProduct(product, "carton");
+                          }}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              selectProduct(product, "carton");
+                            }
+                          }}
+                        >
+                          <Package size={14} />
+                          Add Carton
+                        </span>
+                      )}
+                      <span className="edit-product-picker-add">
+                        <Plus size={17} />
+                        Add
+                      </span>
                     </span>
                   </span>
                 </button>
