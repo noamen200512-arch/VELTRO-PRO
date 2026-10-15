@@ -835,7 +835,8 @@ function CameraScannerModal({ onClose, onDetected }) {
   const streamRef = useRef(null);
   const [cameraError, setCameraError] = useState("");
   const [manualCode, setManualCode] = useState("");
-  const [scanning, setScanning] = useState(true);
+  const detectedRef = useRef(onDetected);
+  detectedRef.current = onDetected;
 
   useEffect(() => {
     let stopped = false;
@@ -887,7 +888,7 @@ function CameraScannerModal({ onClose, onDetected }) {
             if (value) {
               stopped = true;
               stopCamera();
-              onDetected(value);
+              detectedRef.current?.(value);
               return;
             }
           } catch {
@@ -906,7 +907,7 @@ function CameraScannerModal({ onClose, onDetected }) {
       stopped = true;
       stopCamera();
     };
-  }, [onDetected]);
+  }, []);
 
   return (
     <Modal
@@ -923,7 +924,7 @@ function CameraScannerModal({ onClose, onDetected }) {
             value={manualCode}
             onChange={event => setManualCode(event.target.value)}
             onKeyDown={event => {
-              if (event.key === "Enter" && manualCode.trim()) onDetected(manualCode.trim());
+              if (event.key === "Enter" && manualCode.trim()) detectedRef.current?.(manualCode.trim());
             }}
             placeholder="Barcode number"
             inputMode="numeric"
@@ -935,7 +936,7 @@ function CameraScannerModal({ onClose, onDetected }) {
           <Button
             variant="primary"
             disabled={!manualCode.trim()}
-            onClick={() => onDetected(manualCode.trim())}
+            onClick={() => detectedRef.current?.(manualCode.trim())}
           >
             <ScanBarcode size={16} /> Use Barcode
           </Button>
