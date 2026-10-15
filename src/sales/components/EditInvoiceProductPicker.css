@@ -653,3 +653,81 @@
     font-size: 9px;
   }
 }
+
+/* Product picker: add unit or full carton from the same product row */
+.edit-product-picker-item-right {
+  min-width: 118px;
+  gap: 8px;
+}
+
+.edit-product-picker-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.edit-product-picker-add,
+.edit-product-picker-carton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.edit-product-picker-add {
+  color: #ffffff;
+  background: #111827;
+}
+
+.edit-product-picker-carton {
+  color: #087f72;
+  background: #e6fbf7;
+  border: 1px solid #9be8dc;
+  cursor: pointer;
+}
+
+.edit-product-picker-carton:hover,
+.edit-product-picker-carton:focus-visible {
+  color: #065f56;
+  background: #cff8ef;
+  outline: 2px solid rgba(13, 148, 136, .2);
+  outline-offset: 1px;
+}
+
+.edit-product-picker-item:hover .edit-product-picker-add {
+  background: #273449;
+}
+
+@media (max-width: 560px) {
+  .edit-product-picker-item {
+    align-items: flex-start;
+    gap: 9px;
+    padding: 13px 12px;
+  }
+
+  .edit-product-picker-item-right {
+    min-width: 96px;
+  }
+
+  .edit-product-picker-item-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edit-product-picker-add,
+  .edit-product-picker-carton {
+    width: 100%;
+    padding: 7px 6px;
+    font-size: 10px;
+  }
+}
+
