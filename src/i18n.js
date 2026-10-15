@@ -488,7 +488,6 @@ const dictionaries = {
     "No saved invoices yet":"Aucune facture enregistrée pour le moment",
     "No invoices pending":"Aucune facture en attente",
     "Open pending invoice":"Ouvrir la facture en attente",
-,
     "Quantity and Purchase Cost": "Quantité et coût d'achat",
     "VELTRO-PRO — Purchase Invoice": "VELTRO-PRO — Facture d'achat",
     "Product Price Labels": "Étiquettes de prix des produits",
