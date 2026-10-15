@@ -18,6 +18,9 @@ import {
   Plus,
   Trash2,
   Save,
+  UserRound,
+  Check,
+  Boxes,
 } from "lucide-react";
 
 import { getProducts } from "../productStore.js";
@@ -354,9 +357,12 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [productPickerOpen, setProductPickerOpen] = useState(false);
-  const [priceDrafts, setPriceDrafts] = useState(() =>
-    Object.fromEntries((invoice.items || []).map((item, index) => [index, String(item.price ?? 0)]))
+  const [itemDrafts, setItemDrafts] = useState(() =>
+    (invoice.items || []).map((item) => ({ qty: String(quantity(item)), price: String(item.price ?? 0), discount: String(item.discount ?? 0) }))
   );
+  const [customerPickerOpen, setCustomerPickerOpen] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerRecords, setCustomerRecords] = useState([]);
 
   const inventory = getProducts();
   const subtotal = invoiceSubtotal(draft.items);
@@ -389,11 +395,79 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     }));
   };
 
+  const updateItemDraft = (index, field, value) => {
+    setItemDrafts((old) => old.map((row, rowIndex) => rowIndex === index ? { ...row, [field]: value } : row));
+  };
+
+  const applyItem = (index) => {
+    const row = itemDrafts[index];
+    const item = draft.items[index];
+    if (!row || !item) return;
+    const qty = Math.max(1, Math.floor(Number(row.qty) || 1));
+    const rawPrice = String(row.price ?? item.price ?? 0).trim().replace(",", ".");
+    const numericPrice = Number(rawPrice);
+    const decimals = (rawPrice.split(".")[1] || "").length;
+    const price = !Number.isFinite(numericPrice) || numericPrice < 0 ? Math.max(0, Number(item.price) || 0)
+      : numericPrice === 0 ? 0 : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
+    const discount = Math.max(0, Number(String(row.discount ?? 0).replace(",", ".")) || 0);
+    setDraft((old) => ({ ...old, items: old.items.map((current, i) => i === index ? { ...current, qty, quantity: qty, price, discount } : current) }));
+    setItemDrafts((old) => old.map((current, i) => i === index ? { qty: String(qty), price: price.toFixed(2), discount: discount.toFixed(2) } : current));
+    setError("");
+  };
+
   const removeItem = (index) => {
-    setDraft((old) => ({
-      ...old,
-      items: old.items.filter((_, itemIndex) => itemIndex !== index),
-    }));
+    setDraft((old) => ({ ...old, items: old.items.filter((_, i) => i !== index) }));
+    setItemDrafts((old) => old.filter((_, i) => i !== index));
+  };
+
+  const addCartonToInvoice = (index) => {
+    const item = draft.items[index];
+    const id = productId(item || {});
+    const product = inventory.find((candidate) => String(candidate.id) === id);
+    if (!product) { setError("This product could not be found in inventory."); return; }
+    const cartonSize = Math.max(1, Math.floor(Number(product.piecesPerCarton) || 1));
+    if (cartonSize <= 1) { setError("No carton quantity is configured for this product."); return; }
+    const cartonPrice = Math.max(0, Number(product.cartonPrice) || 0);
+    const unitPrice = cartonPrice > 0 ? Math.ceil((cartonPrice / cartonSize) * 100 - 1e-9) / 100 : Math.max(0, Number(product.price) || 0);
+    const cartonLine = { ...product, id: `${id}-carton-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, productId: id, qty: cartonSize, quantity: cartonSize, price: unitPrice, discount: 0, piecesPerCarton: cartonSize, cartonPrice, isCartonLine: true };
+    setDraft((old) => ({ ...old, items: [...old.items, cartonLine] }));
+    setItemDrafts((old) => [...old, { qty: String(cartonSize), price: unitPrice.toFixed(2), discount: "0.00" }]);
+    setError("");
+  };
+
+  const openCustomerPicker = () => {
+    const records = [];
+    const seen = new Set();
+    const addRecord = (record) => {
+      if (!record || typeof record !== "object") return;
+      const name = String(record.name ?? record.customerName ?? record.label ?? "").trim();
+      if (!name || name.toLowerCase() === "anonyme") return;
+      const id = String(record.customerId ?? record.id ?? record.code ?? record.reference ?? name).trim();
+      const key = (id || name).toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      records.push({ ...record, name, customerId: id || name, phone: String(record.phone ?? record.phoneNumber ?? record.mobile ?? record.telephone ?? "").trim() });
+    };
+    ["veltro_customers", "veltro_clients", "veltro_customer_list", "customers", "clients"].forEach((key) => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+        (Array.isArray(parsed) ? parsed : Array.isArray(parsed?.customers) ? parsed.customers : []).forEach(addRecord);
+      } catch { /* Ignore unrelated storage values. */ }
+    });
+    getCompletedSales().forEach((sale) => addRecord({ name: sale.customerName, customerId: sale.customerId, phone: sale.customerPhone ?? sale.phone ?? "", code: sale.customerCode ?? sale.customerReference ?? "" }));
+    setCustomerRecords(records.sort((a, b) => a.name.localeCompare(b.name)));
+    setCustomerSearch("");
+    setCustomerPickerOpen(true);
+  };
+
+  const chooseCustomer = (record) => {
+    const name = String(record?.name || "Anonyme").trim() || "Anonyme";
+    const anonymous = name.toLowerCase() === "anonyme";
+    updateField("customerName", anonymous ? "Anonyme" : name);
+    updateField("customerId", anonymous ? "" : String(record.customerId ?? record.id ?? name));
+    updateField("customerPhone", anonymous ? "" : String(record.phone ?? record.phoneNumber ?? ""));
+    updateField("customerCode", anonymous ? "" : String(record.code ?? record.reference ?? ""));
+    setCustomerPickerOpen(false);
   };
 
   const addProduct = (id) => {
@@ -411,36 +485,15 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     );
 
     if (existingIndex >= 0) {
-      setDraft((old) => ({
-        ...old,
-        items: old.items.map((item, index) =>
-          index === existingIndex
-            ? {
-                ...item,
-                qty: quantity(item) + 1,
-                quantity: quantity(item) + 1,
-              }
-            : item
-        ),
-      }));
+      const nextQty = quantity(draft.items[existingIndex]) + 1;
+      setDraft((old) => ({ ...old, items: old.items.map((item, index) => index === existingIndex ? { ...item, qty: nextQty, quantity: nextQty } : item) }));
+      setItemDrafts((old) => old.map((row, index) => index === existingIndex ? { ...row, qty: String(nextQty) } : row));
       return;
     }
 
-    setDraft((old) => ({
-      ...old,
-      items: [
-        ...old.items,
-        {
-          ...product,
-          id: String(product.id),
-          productId: String(product.id),
-          qty: 1,
-          quantity: 1,
-          price: Math.max(0, Number(product.price) || 0),
-          discount: 0,
-        },
-      ],
-    }));
+    const newItem = { ...product, id: String(product.id), productId: String(product.id), qty: 1, quantity: 1, price: Math.max(0, Number(product.price) || 0), discount: 0 };
+    setDraft((old) => ({ ...old, items: [...old.items, newItem] }));
+    setItemDrafts((old) => [...old, { qty: "1", price: String(newItem.price), discount: "0" }]);
   };
 
   const save = () => {
@@ -525,15 +578,18 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
         </div>
 
         <div className="edit-invoice-fields">
-          <label className="modal-field">
-            <span>Customer name</span>
-            <input
-              value={draft.customerName || ""}
-              onChange={(event) =>
-                updateField("customerName", event.target.value)
-              }
-            />
-          </label>
+          <div className="modal-field edit-customer-field">
+            <span>Customer</span>
+            <div className="edit-customer-control">
+              <input value={draft.customerName || ""} onChange={(event) => {
+                updateField("customerName", event.target.value);
+                updateField("customerId", "");
+              }} />
+              <button className="secondary-button edit-change-customer-button" type="button" onClick={openCustomerPicker}>
+                <UserRound size={15} /> Change customer
+              </button>
+            </div>
+          </div>
 
           <label className="modal-field">
             <span>Amount paid (DA)</span>
@@ -581,115 +637,39 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
                 <th>QTY</th>
                 <th>PRICE</th>
                 <th>LINE DISCOUNT</th>
-                <th />
+                <th>PRODUCT TOTAL</th>
+                <th>ACTIONS</th>
               </tr>
             </thead>
 
             <tbody>
-              {draft.items.map((item, index) => (
-                <tr key={`${productId(item)}-${index}`}>
-                  <td>{item.name || "Product"}</td>
-
-                  <td>
-                    <input
-                      className="edit-number-input"
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={quantity(item)}
-                      onChange={(event) =>
-                        updateItem(index, "qty", event.target.value)
-                      }
-                    />
-                  </td>
-
-                  <td>
-                    <input
-                      className="edit-number-input"
-                      type="text"
-                      inputMode="decimal"
-                      autoComplete="off"
-                      value={priceDrafts[index] ?? String(item.price ?? 0)}
-                      onChange={(event) =>
-                        setPriceDrafts((old) => ({
-                          ...old,
-                          [index]: event.target.value.replace(/[^0-9.,]/g, ""),
-                        }))
-                      }
-                      onBlur={() => {
-                        const raw = String(priceDrafts[index] ?? item.price ?? 0).trim();
-                        const normalized = raw.replace(",", ".");
-                        const numeric = Number(normalized);
-
-                        if (raw === "" || !Number.isFinite(numeric) || numeric < 0) {
-                          setPriceDrafts((old) => ({
-                            ...old,
-                            [index]: Number(item.price || 0).toFixed(2),
-                          }));
-                          return;
-                        }
-
-                        const decimals = (normalized.split(".")[1] || "").length;
-                        const cents = numeric * 100;
-                        const rounded = numeric === 0 ? 0 : (
-                          decimals > 4 ? Math.ceil(cents - 1e-9) : Math.round(cents)
-                        ) / 100;
-
-                        updateItem(index, "price", rounded);
-                        setPriceDrafts((old) => ({
-                          ...old,
-                          [index]: rounded.toFixed(2),
-                        }));
-                      }}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") event.currentTarget.blur();
-                        if (event.key === "Escape") {
-                          setPriceDrafts((old) => ({
-                            ...old,
-                            [index]: Number(item.price || 0).toFixed(2),
-                          }));
-                          event.currentTarget.blur();
-                        }
-                      }}
-                    />
-                  </td>
-
-                  <td>
-                    <input
-                      className="edit-number-input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={Number(
-                        (Number(item.discount) || 0).toFixed(2)
-                      )}
-                      onChange={(event) =>
-                        updateItem(index, "discount", event.target.value)
-                      }
-                    />
-                  </td>
-
-                  <td>
-                    <button
-                      className="icon-button danger-icon"
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      aria-label={`Remove ${item.name || "product"}`}
-                    >
-                      <Trash2 size={17} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-              {draft.items.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="empty-state">
-                    No products in this invoice.
-                  </td>
-                </tr>
-              )}
-            </tbody>
+              {draft.items.map((item, index) => {
+                const row = itemDrafts[index] || { qty: String(quantity(item)), price: String(item.price ?? 0), discount: String(item.discount ?? 0) };
+                const previewQty = Math.max(1, Math.floor(Number(row.qty) || 1));
+                const previewPrice = Math.max(0, Number(String(row.price).replace(",", ".")) || 0);
+                const previewDiscount = Math.max(0, Number(String(row.discount).replace(",", ".")) || 0);
+                const lineTotal = Math.max(0, previewQty * previewPrice - previewDiscount);
+                const product = inventory.find((candidate) => String(candidate.id) === productId(item));
+                const cartonSize = Math.max(1, Math.floor(Number(item.piecesPerCarton ?? product?.piecesPerCarton) || 1));
+                return (
+                  <tr key={`${item.id || productId(item)}-${index}`}>
+                    <td className="edit-invoice-product-cell">
+                      <strong>{item.name || "Product"}</strong>
+                      {cartonSize > 1 && <button className="edit-add-carton-button" type="button" onClick={() => addCartonToInvoice(index)} title={`Add one carton (${cartonSize} units)`}><Boxes size={13} /> Add Carton</button>}
+                    </td>
+                    <td><input className="edit-number-input" type="number" min="1" step="1" value={row.qty} onChange={(event) => updateItemDraft(index, "qty", event.target.value)} /></td>
+                    <td><input className="edit-number-input" type="text" inputMode="decimal" autoComplete="off" value={row.price} onChange={(event) => updateItemDraft(index, "price", event.target.value.replace(/[^0-9.,]/g, ""))} onKeyDown={(event) => { if (event.key === "Enter") applyItem(index); }} /></td>
+                    <td><input className="edit-number-input" type="number" min="0" step="0.01" value={row.discount} onChange={(event) => updateItemDraft(index, "discount", event.target.value)} /></td>
+                    <td className="edit-product-line-total">{money(lineTotal)}</td>
+                    <td><div className="edit-item-actions">
+                      <button className="edit-apply-item-button" type="button" onClick={() => applyItem(index)}><Check size={14} /> Apply</button>
+                      <button className="icon-button danger-icon" type="button" onClick={() => removeItem(index)} aria-label={`Remove ${item.name || "product"}`}><Trash2 size={17} /></button>
+                    </div></td>
+                  </tr>
+                );
+              })}
+              {draft.items.length === 0 && <tr><td colSpan={6} className="empty-state">No products in this invoice.</td></tr>}
+            </tbody>    </tbody>
           </table>
         </div>
 
@@ -735,11 +715,23 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
         </div>
       </section>
 
-      {productPickerOpen && (
-        <EditInvoiceProductPicker
-          onSelect={addProduct}
-          onClose={() => setProductPickerOpen(false)}
-        />
+      {productPickerOpen && <EditInvoiceProductPicker onSelect={addProduct} onClose={() => setProductPickerOpen(false)} />}
+
+      {customerPickerOpen && (
+        <div className="edit-customer-picker-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCustomerPickerOpen(false); }}>
+          <section className="panel edit-customer-picker-modal" role="dialog" aria-modal="true" aria-label="Choose customer">
+            <div className="panel-header"><div><h3>Change customer</h3><p className="panel-description">Choose a saved customer or keep this invoice anonymous.</p></div><button className="icon-button" type="button" onClick={() => setCustomerPickerOpen(false)} aria-label="Close customer list"><X size={19} /></button></div>
+            <input className="edit-customer-search" type="search" value={customerSearch} onChange={(event) => setCustomerSearch(event.target.value)} placeholder="Search customer name, phone or reference..." autoComplete="off" />
+            <div className="edit-customer-list">
+              <button type="button" className="edit-customer-option" onClick={() => chooseCustomer({ name: "Anonyme" })}><span><strong>Anonyme</strong><small>Walk-in customer · no customer account</small></span><Check size={16} /></button>
+              {customerRecords.filter((record) => [record.name, record.phone, record.customerId, record.code, record.reference].some((value) => String(value ?? "").toLowerCase().includes(customerSearch.trim().toLowerCase()))).map((record) => (
+                <button type="button" className="edit-customer-option" key={record.customerId} onClick={() => chooseCustomer(record)}><span><strong>{record.name}</strong><small>{record.phone || record.code || record.customerId}</small></span><UserRound size={16} /></button>
+              ))}
+              {customerRecords.filter((record) => [record.name, record.phone, record.customerId, record.code, record.reference].some((value) => String(value ?? "").toLowerCase().includes(customerSearch.trim().toLowerCase()))).length === 0 && <p className="edit-customer-empty">No saved customers found. You can still type a customer name directly in the invoice.</p>}
+            </div>
+            <div className="panel-actions"><button className="secondary-button" type="button" onClick={() => setCustomerPickerOpen(false)}>Cancel</button></div>
+          </section>
+        </div>
       )}
     </div>
   );
