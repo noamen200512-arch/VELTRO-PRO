@@ -1323,82 +1323,133 @@
 }
 
 
-/* Purchase landing dashboard and today's voucher register */
-.purchase-live-datetime {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 13px;
-  color: var(--purchase-muted);
-  font-size: 12px;
+
+
+/* Rebuilt purchase landing page */
+.purchase-layout { --purchase-violet: #9585ff; --purchase-blue: #5b9cff; }
+.purchase-page-header {
+  display:flex; justify-content:space-between; align-items:flex-start; gap:24px;
+  padding:4px 0 22px; border-bottom:1px solid var(--purchase-border); margin-bottom:18px;
 }
-.purchase-live-datetime svg { color: var(--purchase-accent); }
-.purchase-live-datetime strong { color: var(--purchase-text); font-weight: 650; }
-.purchase-live-datetime > span {
-  padding: 5px 9px;
-  border: 1px solid var(--purchase-border);
-  border-radius: 7px;
-  background: rgba(50,214,197,.07);
-  color: var(--purchase-accent);
-  font-variant-numeric: tabular-nums;
+.purchase-header-info h1 { margin:7px 0 5px; font-size:clamp(25px,3vw,34px); letter-spacing:-.7px; }
+.purchase-header-info p { margin:0; max-width:620px; color:var(--purchase-muted); font-size:13px; line-height:1.6; }
+.purchase-eyebrow,.purchase-overview-kicker,.purchase-section-kicker {
+  color:var(--purchase-accent); font-size:10px; font-weight:800; letter-spacing:1.6px;
 }
-.purchase-stats-grid-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.purchase-stat-card-count { --stat-accent: #9b8cff; }
-.purchase-stat-card-paid { --stat-accent: #32d6c5; }
-.purchase-stat-card-debt { --stat-accent: #ffb86b; }
-.purchase-stats-grid-four .purchase-stat-card { position: relative; overflow: hidden; }
-.purchase-stats-grid-four .purchase-stat-card::after {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--stat-accent, #32d6c5);
+.purchase-header-buttons { display:flex; gap:9px; flex-wrap:wrap; }
+.purchase-tabs { display:flex; gap:9px; margin-bottom:20px; border:0; padding:0; }
+.purchase-tab { display:flex; flex-direction:row; align-items:center; gap:11px; min-width:190px; padding:12px 15px; border:1px solid var(--purchase-border); border-radius:12px; background:var(--purchase-panel); color:var(--purchase-muted); text-align:left; }
+.purchase-tab.active { border-color:rgba(50,214,197,.45); background:linear-gradient(120deg,rgba(50,214,197,.12),rgba(149,133,255,.07)); color:var(--purchase-text); box-shadow:inset 0 0 0 1px rgba(50,214,197,.04); }
+.purchase-tab-icon { display:grid; place-items:center; width:37px; height:37px; border-radius:10px; color:var(--purchase-accent); background:rgba(50,214,197,.09); }
+.purchase-tab strong,.purchase-tab small { display:block; }
+.purchase-tab strong { font-size:12px; }
+.purchase-tab small { margin-top:4px; color:var(--purchase-muted); font-size:10px; }
+.purchase-dashboard { display:grid; gap:19px; min-width:0; }
+.purchase-overview-hero {
+  position:relative; display:flex; justify-content:space-between; align-items:center; gap:24px;
+  min-height:185px; padding:26px 29px; overflow:hidden; border:1px solid rgba(50,214,197,.2);
+  border-radius:18px; background:radial-gradient(ellipse at 85% 10%,rgba(149,133,255,.16),transparent 38%),linear-gradient(112deg,#101d2b 0%,#101725 56%,#15152a 100%);
 }
-.purchase-voucher-heading { align-items: center; }
-.purchase-vouchers-scroll { max-height: min(62vh, 690px); }
-.purchase-vouchers-table { min-width: 1180px; }
-.purchase-vouchers-table th { white-space: nowrap; }
-.purchase-voucher-id {
-  display: inline-block;
-  max-width: 145px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  color: var(--purchase-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 10px;
+.purchase-overview-copy,.purchase-overview-hero-actions { position:relative; z-index:1; }
+.purchase-overview-copy h2 { margin:8px 0 7px; font-size:clamp(22px,2.4vw,30px); letter-spacing:-.7px; }
+.purchase-overview-copy>p { margin:0; max-width:600px; color:var(--purchase-muted); font-size:12px; line-height:1.7; }
+.purchase-live-datetime { display:flex; align-items:center; gap:10px; margin-top:18px; }
+.purchase-live-date-icon { display:grid; place-items:center; width:35px; height:35px; border:1px solid var(--purchase-border); border-radius:10px; color:var(--purchase-accent); background:rgba(50,214,197,.08); }
+.purchase-live-date-text strong,.purchase-live-date-text small { display:block; }
+.purchase-live-date-text strong { color:var(--purchase-text); font-size:12px; font-weight:700; }
+.purchase-live-date-text small { margin-top:3px; color:var(--purchase-accent); font-size:11px; font-variant-numeric:tabular-nums; }
+.purchase-overview-hero-actions { display:flex; flex-direction:column; align-items:flex-end; gap:16px; flex-shrink:0; }
+.purchase-overview-live { display:flex; align-items:center; gap:7px; color:#b5c5d7; font-size:10px; }
+.purchase-overview-live i,.purchase-register-footer i { display:inline-block; width:7px; height:7px; border-radius:50%; background:#32d6c5; box-shadow:0 0 12px rgba(50,214,197,.6); }
+.purchase-hero-orb { position:absolute; border-radius:50%; border:1px solid rgba(149,133,255,.15); pointer-events:none; }
+.purchase-hero-orb-one { width:250px; height:250px; right:10%; top:-145px; }
+.purchase-hero-orb-two { width:170px; height:170px; right:15%; bottom:-120px; border-color:rgba(50,214,197,.16); }
+.purchase-metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px; }
+.purchase-metric-card { --metric-color:#32d6c5; position:relative; min-width:0; padding:18px 18px 0; overflow:hidden; border:1px solid var(--purchase-border); border-radius:14px; background:linear-gradient(145deg,#111a29,#0d1420); }
+.purchase-metric-card::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:var(--metric-color); opacity:.9; }
+.metric-vouchers { --metric-color:#a293ff; } .metric-paid { --metric-color:#54d6a0; } .metric-debt { --metric-color:#ffb86b; }
+.purchase-metric-top { display:flex; align-items:center; justify-content:space-between; gap:10px; color:var(--purchase-muted); font-size:11px; font-weight:600; }
+.purchase-metric-icon { display:grid; place-items:center; width:35px; height:35px; flex-shrink:0; border-radius:10px; color:var(--metric-color); background:color-mix(in srgb,var(--metric-color) 11%,transparent); }
+.purchase-metric-card>strong { display:block; margin:14px 0 9px; font-size:clamp(18px,2vw,25px); letter-spacing:-.5px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.purchase-metric-card>small { display:flex; align-items:center; gap:7px; min-height:20px; color:var(--purchase-muted); font-size:10px; }
+.purchase-metric-dot { width:6px; height:6px; flex-shrink:0; border-radius:50%; background:var(--metric-color); }
+.purchase-metric-bottom { display:flex; justify-content:space-between; align-items:center; margin:17px -18px 0; padding:10px 18px; border-top:1px solid var(--purchase-border); color:#708096; font-size:9px; font-weight:800; letter-spacing:1px; }
+.purchase-metric-bottom svg { color:var(--metric-color); }
+.purchase-analytics-panel,.purchase-voucher-register { min-width:0; padding:21px; border:1px solid var(--purchase-border); border-radius:15px; background:var(--purchase-panel); }
+.purchase-section-heading,.purchase-register-header { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; }
+.purchase-section-heading h3,.purchase-register-header h3 { margin:6px 0 5px; font-size:17px; letter-spacing:-.25px; }
+.purchase-section-heading p,.purchase-register-header p { margin:0; color:var(--purchase-muted); font-size:11px; line-height:1.6; }
+.purchase-section-kicker { color:#8f9eb4; font-size:9px; letter-spacing:1.4px; }
+.purchase-segmented { display:flex; gap:4px; padding:4px; border:1px solid var(--purchase-border); border-radius:10px; background:#0a111d; }
+.purchase-segmented button { padding:8px 12px; border:0; border-radius:7px; color:var(--purchase-muted); background:transparent; font-size:10px; font-weight:700; }
+.purchase-segmented button.active { color:#071511; background:var(--purchase-accent); }
+.purchase-chart-redesigned { display:flex; align-items:stretch; gap:10px; min-height:210px; margin-top:20px; padding:10px 0 0; overflow-x:auto; }
+.purchase-chart-redesigned .purchase-chart-column { flex:1 0 54px; min-width:54px; display:grid; grid-template-rows:17px 1fr 20px; align-items:end; gap:7px; text-align:center; }
+.purchase-chart-value { color:#8e9bb0; font-size:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.purchase-chart-redesigned .purchase-chart-bars { display:flex; justify-content:center; align-items:flex-end; gap:5px; height:150px; padding:0 7px; border-bottom:1px solid var(--purchase-border); background:repeating-linear-gradient(to top,transparent 0,transparent 36px,rgba(148,163,184,.06) 37px,transparent 38px); }
+.purchase-chart-redesigned .purchase-chart-bar { width:min(16px,38%); min-height:3px; border-radius:5px 5px 2px 2px; }
+.purchase-chart-redesigned .purchase-chart-bar.total { background:linear-gradient(180deg,#32d6c5,#168c90); }
+.purchase-chart-redesigned .purchase-chart-bar.paid { background:linear-gradient(180deg,#a293ff,#6254c8); }
+.purchase-chart-redesigned .purchase-chart-column>small { color:var(--purchase-muted); font-size:9px; white-space:nowrap; }
+.purchase-chart-legend { display:flex; align-items:center; flex-wrap:wrap; gap:17px; margin-top:14px; padding-top:13px; border-top:1px solid var(--purchase-border); }
+.purchase-chart-legend span { display:flex; align-items:center; gap:7px; color:var(--purchase-muted); font-size:10px; }
+.purchase-chart-legend i { width:8px; height:8px; border-radius:3px; }
+.purchase-chart-legend i.total { background:#32d6c5; } .purchase-chart-legend i.paid { background:#9585ff; }
+.purchase-chart-legend .purchase-chart-period { margin-left:auto; color:#738198; }
+.purchase-register-header { align-items:center; margin-bottom:19px; }
+.purchase-register-header p strong { color:var(--purchase-accent); }
+.purchase-register-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+.purchase-voucher-table-frame { overflow:auto; max-height:min(58vh,650px); border:1px solid var(--purchase-border); border-radius:11px; scrollbar-width:thin; scrollbar-color:#34465d #0b1220; }
+.purchase-voucher-table-frame .purchase-table-wrap { overflow:visible; border:0; border-radius:0; }
+.purchase-vouchers-table { min-width:1320px; border-collapse:separate; border-spacing:0; }
+.purchase-vouchers-table thead { position:sticky; top:0; z-index:2; }
+.purchase-vouchers-table th { white-space:nowrap; padding:13px 12px; background:#172234; font-size:9px; letter-spacing:.45px; }
+.purchase-vouchers-table td { padding:13px 12px; font-size:11px; vertical-align:middle; }
+.purchase-vouchers-table tbody tr:hover { background:rgba(50,214,197,.035); }
+.purchase-voucher-number { color:#e6f0ff; font-size:11px; }
+.purchase-voucher-id { display:inline-block; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; color:#8c9ab0; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:9px; }
+.purchase-created-by { display:flex; align-items:center; gap:7px; white-space:nowrap; }
+.purchase-user-avatar { display:grid; place-items:center; width:25px; height:25px; flex-shrink:0; border-radius:8px; color:#b8adff; background:rgba(149,133,255,.13); font-size:10px; font-weight:800; }
+.purchase-voucher-date,.purchase-voucher-time { display:block; white-space:nowrap; }
+.purchase-voucher-time { margin-top:4px; color:var(--purchase-muted); font-size:10px; }
+.purchase-item-count { display:inline-grid; place-items:center; min-width:27px; height:26px; padding:0 6px; border:1px solid rgba(149,133,255,.2); border-radius:8px; color:#b7aaff; background:rgba(149,133,255,.08); font-weight:800; }
+.purchase-supplier-name { display:inline-block; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.purchase-voucher-total { color:var(--purchase-text); white-space:nowrap; }
+.purchase-paid-cell { color:#4fdaa8; white-space:nowrap; } .purchase-debt-cell { color:#ffbd73; white-space:nowrap; }
+.purchase-row-actions { display:flex; align-items:center; gap:5px; }
+.purchase-row-actions button { display:grid; place-items:center; width:30px; height:30px; border:1px solid var(--purchase-border); border-radius:8px; color:#9aaac0; background:#141e2d; }
+.purchase-row-actions button:hover { color:var(--purchase-accent); border-color:rgba(50,214,197,.45); background:rgba(50,214,197,.07); }
+.purchase-row-actions button.danger:hover { color:#fff; background:rgba(255,101,122,.18); border-color:rgba(255,101,122,.55); }
+.purchase-voucher-empty { display:grid; justify-items:center; gap:9px; padding:38px 15px; text-align:center; }
+.purchase-voucher-empty>span { display:grid; place-items:center; width:54px; height:54px; border:1px solid rgba(50,214,197,.18); border-radius:15px; color:var(--purchase-accent); background:rgba(50,214,197,.07); }
+.purchase-voucher-empty strong { color:var(--purchase-text); font-size:13px; }
+.purchase-voucher-empty small { color:var(--purchase-muted); font-size:11px; }
+.purchase-voucher-empty button { display:flex; align-items:center; gap:7px; margin-top:5px; padding:9px 12px; border:1px solid rgba(50,214,197,.3); border-radius:9px; color:var(--purchase-accent); background:rgba(50,214,197,.06); font-size:11px; font-weight:700; }
+.purchase-register-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:13px; color:#77869b; font-size:10px; }
+.purchase-register-footer span:first-child { display:flex; align-items:center; gap:8px; }
+.purchase-layout[dir="rtl"] .purchase-page-header,.purchase-layout[dir="rtl"] .purchase-overview-hero,.purchase-layout[dir="rtl"] .purchase-section-heading,.purchase-layout[dir="rtl"] .purchase-register-header { direction:rtl; }
+.purchase-layout[dir="rtl"] .purchase-tabs,.purchase-layout[dir="rtl"] .purchase-header-buttons,.purchase-layout[dir="rtl"] .purchase-register-actions { direction:rtl; }
+.purchase-layout[dir="rtl"] .purchase-vouchers-table th,.purchase-layout[dir="rtl"] .purchase-vouchers-table td { text-align:right; }
+.purchase-layout[dir="rtl"] .purchase-voucher-id { direction:ltr; text-align:left; }
+@media(max-width:1150px) { .purchase-metric-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .purchase-overview-hero { align-items:flex-start; } }
+@media(max-width:760px) {
+ .purchase-page-header { flex-direction:column; }
+ .purchase-header-buttons { width:100%; }
+ .purchase-header-buttons .purchase-button { flex:1; }
+ .purchase-overview-hero { flex-direction:column; align-items:stretch; padding:21px; }
+ .purchase-overview-hero-actions { align-items:flex-start; }
+ .purchase-overview-hero-actions .purchase-button { width:100%; }
+ .purchase-register-header,.purchase-section-heading { flex-direction:column; align-items:stretch; }
+ .purchase-register-actions { justify-content:stretch; }
+ .purchase-register-actions .purchase-button { flex:1; }
+ .purchase-analytics-panel,.purchase-voucher-register { padding:15px; }
+ .purchase-tabs { flex-wrap:wrap; }
+ .purchase-tab { flex:1; min-width:150px; }
 }
-.purchase-voucher-date, .purchase-voucher-time { display: block; white-space: nowrap; }
-.purchase-voucher-time { margin-top: 4px; color: var(--purchase-muted); font-size: 10px; }
-.purchase-item-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 26px;
-  border-radius: 8px;
-  color: var(--purchase-accent);
-  background: var(--purchase-accent-soft);
-  font-weight: 800;
-}
-.purchase-paid-cell { color: var(--purchase-accent); white-space: nowrap; }
-.purchase-debt-cell { color: #ffb86b; white-space: nowrap; }
-.purchase-voucher-table-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding-top: 13px;
-  color: var(--purchase-muted);
-  font-size: 11px;
-}
-@media (max-width: 1050px) {
-  .purchase-stats-grid-four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 600px) {
-  .purchase-stats-grid-four { grid-template-columns: 1fr; }
-  .purchase-voucher-heading { align-items: stretch; }
-  .purchase-voucher-table-footer { align-items: stretch; flex-direction: column; }
+@media(max-width:460px) {
+ .purchase-metric-grid { grid-template-columns:1fr; }
+ .purchase-overview-copy h2 { font-size:23px; }
+ .purchase-register-actions { flex-direction:column; }
+ .purchase-register-actions .purchase-button { width:100%; }
+ .purchase-chart-legend .purchase-chart-period { margin-left:0; }
 }
