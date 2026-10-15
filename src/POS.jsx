@@ -308,17 +308,24 @@ export default function POS() {
     ]
   );
 
-  // Save a non-empty invoice before starting another one.
+  // A new invoice can only be created after the current invoice has products.
+  // Non-empty invoices are saved as pending before the next invoice is created.
   const createNewInvoice = () => {
     if (busy) return;
+
+    if (items.length === 0) {
+      notify(
+        "Add at least one product to the current invoice before creating a new invoice.",
+        "error"
+      );
+      return;
+    }
 
     setShowPending(false);
     setShowEmptyWarning(false);
 
-    if (items.length > 0) {
-      if (!saveCurrentAsPending(true)) {
-        return;
-      }
+    if (!saveCurrentAsPending(true)) {
+      return;
     }
 
     setInvoice(createInvoice());
@@ -882,6 +889,7 @@ export default function POS() {
         onPending={() => setShowPending((current) => !current)}
         pendingCount={pendingInvoices.length}
         showPending={showPending}
+        newDisabled={items.length === 0}
         disabled={busy}
       />
 
