@@ -298,6 +298,7 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
   const totalDebt = previousDebt + remaining;
 
   const submit = () => {
+    if (anonymous) return;
     const value = paidDraft.trim() === "" ? 0 : Number(paidDraft);
     if (!Number.isFinite(value) || value < 0) {
       setError("Enter a valid amount paid.");
@@ -333,7 +334,7 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
           {anonymous ? (
             <div className="account-update-anonymous-note">
               <span><AlertTriangle size={17} /></span>
-              <div><strong>Anonymous customer</strong><p>No customer debt account is tracked for Anonyme. You can still correct the amount paid for this invoice.</p></div>
+              <div><strong>Anonymous customer</strong><p>Payment editing is unavailable for Anonyme. The amount paid on this invoice cannot be changed here.</p></div>
             </div>
           ) : (
             <div className="account-update-debt-card">
@@ -346,7 +347,7 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
           <div className="account-update-payment-card">
             <div className="account-update-field-heading"><span>Amount paid</span><small>Editable</small></div>
             <label className="account-update-paid-field">
-              <input type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} onChange={(event) => { setPaidDraft(event.target.value); setError(""); }} onFocus={(event) => event.target.select()} aria-label="Amount paid in DA" />
+              <input type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} readOnly={anonymous} disabled={anonymous} onChange={(event) => { if (anonymous) return; setPaidDraft(event.target.value); setError(""); }} onFocus={(event) => { if (!anonymous) event.target.select(); }} aria-label="Amount paid in DA" aria-readonly={anonymous} />
               <span>DA</span>
             </label>
             <div className="account-update-remaining"><span>Remaining on this invoice</span><strong>{money(remaining)}</strong></div>
@@ -355,8 +356,8 @@ function AccountUpdateModal({ invoice, onCancel, onSave }) {
         </div>
 
         <footer className="account-update-actions">
-          <button type="button" className="account-update-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
-          <button type="button" className="account-update-save" onClick={submit} disabled={saving}>{saving ? "Saving..." : <><Check size={16} /> {anonymous ? "Update invoice & close" : "Update account & close"}</>}</button>
+          <button type="button" className="account-update-cancel" onClick={onCancel} disabled={saving}>{anonymous ? "Close" : "Cancel"}</button>
+          {!anonymous && <button type="button" className="account-update-save" onClick={submit} disabled={saving}>{saving ? "Saving..." : <><Check size={16} /> Update account & close</>}</button>}
         </footer>
       </section>
     </div>
