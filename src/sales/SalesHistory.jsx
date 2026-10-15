@@ -456,6 +456,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
   const subtotal = invoiceSubtotal(draft.items);
   const total = invoiceTotal(draft);
   const paid = Number(draft.paid) || 0;
+  const anonymousCustomer = String(draft.customerName || "Anonyme").trim().toLowerCase() === "anonyme";
 
   const updateField = (field, value) => {
     setDraft((old) => ({ ...old, [field]: value }));
@@ -495,8 +496,10 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     const rawPrice = String(row.price ?? item.price ?? 0).trim().replace(",", ".");
     const numericPrice = rawPrice === "" ? Math.max(0, Number(item.price) || 0) : Number(rawPrice);
     const decimals = (rawPrice.split(".")[1] || "").length;
-    const price = !Number.isFinite(numericPrice) || numericPrice < 0 ? Math.max(0, Number(item.price) || 0)
-      : numericPrice === 0 ? 0 : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
+    const price = anonymousCustomer
+      ? Math.max(0, Number(item.price) || 0)
+      : !Number.isFinite(numericPrice) || numericPrice < 0 ? Math.max(0, Number(item.price) || 0)
+        : numericPrice === 0 ? 0 : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
     const discount = Math.max(0, Number(String(row.discount ?? 0).replace(",", ".")) || 0);
     setDraft((old) => ({ ...old, items: old.items.map((current, i) => i === index ? { ...current, qty, quantity: qty, price, discount } : current) }));
     setItemDrafts((old) => old.map((current, i) => i === index ? { qty: String(qty), price: price.toFixed(2), discount: discount.toFixed(2) } : current));
@@ -617,10 +620,12 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
       const rawPrice = String(row.price ?? item.price ?? 0).trim().replace(",", ".");
       const numericPrice = rawPrice === "" ? Math.max(0, Number(item.price) || 0) : Number(rawPrice);
       const decimals = (rawPrice.split(".")[1] || "").length;
-      const price = !Number.isFinite(numericPrice) || numericPrice < 0
+      const price = anonymousCustomer
         ? Math.max(0, Number(item.price) || 0)
-        : numericPrice === 0 ? 0
-          : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
+        : !Number.isFinite(numericPrice) || numericPrice < 0
+          ? Math.max(0, Number(item.price) || 0)
+          : numericPrice === 0 ? 0
+            : (decimals > 4 ? Math.ceil(numericPrice * 100 - 1e-9) : Math.round(numericPrice * 100)) / 100;
       const discount = Math.max(0, Number(String(row.discount ?? 0).replace(",", ".")) || 0);
       return { ...item, qty, quantity: qty, price, discount };
     });
@@ -738,7 +743,12 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
         </div>
 
         <div className="edit-products-heading">
-          <h4>Invoice items</h4>
+          <div className="edit-products-heading-copy">
+            <h4>Invoice items</h4>
+            {anonymousCustomer && (
+              <p className="edit-price-lock-note"><LockKeyhole size={13} /> Unit prices are locked for Anonyme. Select a named customer to adjust prices.</p>
+            )}
+          </div>
 
           <button
             className="edit-add-product-button"
@@ -777,7 +787,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
 
                     </td>
                     <td><input className="edit-number-input" type="number" min="1" step="1" value={row.qty} onChange={(event) => updateItemDraft(index, "qty", event.target.value)} /></td>
-                    <td><input className="edit-number-input" type="text" inputMode="decimal" autoComplete="off" value={row.price} onChange={(event) => updateItemDraft(index, "price", event.target.value.replace(/[^0-9.,]/g, ""))} onKeyDown={(event) => { if (event.key === "Enter") applyItem(index); }} /></td>
+                    <td><input className={`edit-number-input ${anonymousCustomer ? "edit-price-locked" : ""}`} type="text" inputMode="decimal" autoComplete="off" value={row.price} disabled={anonymousCustomer} title={anonymousCustomer ? "Select a named customer to edit the unit price." : "Edit unit price"} onChange={(event) => updateItemDraft(index, "price", event.target.value.replace(/[^0-9.,]/g, ""))} onKeyDown={(event) => { if (event.key === "Enter") applyItem(index); }} /></td>
                     <td><input className="edit-number-input" type="number" min="0" step="0.01" value={row.discount} onChange={(event) => updateItemDraft(index, "discount", event.target.value)} /></td>
                     <td className="edit-product-line-total">{money(lineTotal)}</td>
                     <td><div className="edit-item-actions">
