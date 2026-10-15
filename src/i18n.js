@@ -1259,7 +1259,8 @@ const dictionaries = {
     "Continue a saved voucher or remove it from the pending list.": "تابع بونًا محفوظًا أو احذفه من قائمة الانتظار.",
     "Resume voucher": "متابعة البون",
     "Delete pending voucher": "حذف البون المعلق",
-    "No pending purchase vouchers.": "لا توجد بونات شراء قيد الانتظار.",}
+    "No pending purchase vouchers.": "لا توجد بونات شراء قيد الانتظار.",
+  }
 };
 
 const attributes = ["placeholder", "title", "aria-label", "aria-description"];
