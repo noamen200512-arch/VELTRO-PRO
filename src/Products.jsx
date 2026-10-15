@@ -221,6 +221,11 @@ export default function Products() {
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const productsRef = useRef(products);
+
+  useEffect(() => {
+    productsRef.current = products;
+  }, [products]);
 
   // Load cloud products when the page opens.
   // Local products remain available if the cloud cannot be reached.
@@ -326,6 +331,24 @@ export default function Products() {
 
             if (results.length && results[0].rawValue) {
               const value = results[0].rawValue.trim();
+
+              // When adding a product, reuse the saved product record if its
+              // primary or secondary barcode is scanned instead of creating a duplicate.
+              if (scanTarget === "primary" && !editingId) {
+                const existingProduct = productsRef.current.find((product) =>
+                  [product.barcode, ...(product.barcodeAliases || [])]
+                    .some((code) => String(code || "").trim() === value)
+                );
+
+                if (existingProduct) {
+                  setScanOpen(false);
+                  openEditModal(existingProduct);
+                  setNotice(
+                    `Found saved product "${existingProduct.name}". Its packaging and purchase/selling prices have been loaded.`
+                  );
+                  return;
+                }
+              }
 
               setForm((previous) => {
                 if (scanTarget === "extra") {
