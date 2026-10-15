@@ -23,6 +23,8 @@ const copy = {
     nameRequired: "Please enter your name.", saving: "Saving…", createdAt: "Created on",
     team: "Team members", teamText: "Accounts linked to this organization.",
     searchUsers: "Search by name, phone, or role…", noUsers: "No team members were found.",
+    searchUsers: "Search by name, phone, or role…", noUsers: "No team members were found.",
+    addWorker: "Add worker", workerName: "Full name", workerEmail: "Email address", workerPhone: "Phone number", temporaryPassword: "Initial password", assignRole: "Assign role", createWorker: "Create account", workerCreated: "Worker account created successfully.", workerCreateError: "Could not create worker account",
     roleCatalog: "Role catalog", roleCatalogText: "Roles configured for this organization.",
     systemRole: "System role", customRole: "Custom role", noRoles: "No roles found.",
     addRole: "Create role", roleName: "Role name", roleDescription: "Description", createRole: "Create role",
@@ -61,6 +63,8 @@ const copy = {
     nameRequired: "Veuillez saisir votre nom.", saving: "Enregistrement…", createdAt: "Créé le",
     team: "Membres de l’équipe", teamText: "Comptes associés à cette organisation.",
     searchUsers: "Rechercher par nom, téléphone ou rôle…", noUsers: "Aucun membre trouvé.",
+    searchUsers: "Rechercher par nom, téléphone ou rôle…", noUsers: "Aucun membre trouvé.",
+    addWorker: "Ajouter un employé", workerName: "Nom complet", workerEmail: "Adresse e-mail", workerPhone: "Téléphone", temporaryPassword: "Mot de passe initial", assignRole: "Attribuer un rôle", createWorker: "Créer le compte", workerCreated: "Compte employé créé.", workerCreateError: "Impossible de créer le compte employé",
     roleCatalog: "Catalogue des rôles", roleCatalogText: "Rôles configurés pour cette organisation.",
     systemRole: "Rôle système", customRole: "Rôle personnalisé", noRoles: "Aucun rôle trouvé.",
     addRole: "Créer un rôle", roleName: "Nom du rôle", roleDescription: "Description", createRole: "Créer le rôle",
@@ -99,6 +103,8 @@ const copy = {
     nameRequired: "يرجى إدخال الاسم.", saving: "جارٍ الحفظ…", createdAt: "تاريخ الإنشاء",
     team: "أعضاء الفريق", teamText: "الحسابات المرتبطة بهذه المؤسسة.",
     searchUsers: "ابحث بالاسم أو الهاتف أو الدور…", noUsers: "لم يتم العثور على مستخدمين.",
+    searchUsers: "ابحث بالاسم أو الهاتف أو الدور…", noUsers: "لم يتم العثور على مستخدمين.",
+    addWorker: "إضافة عامل", workerName: "الاسم الكامل", workerEmail: "البريد الإلكتروني", workerPhone: "رقم الهاتف", temporaryPassword: "كلمة المرور الأولية", assignRole: "تعيين الدور", createWorker: "إنشاء الحساب", workerCreated: "تم إنشاء حساب العامل بنجاح.", workerCreateError: "تعذر إنشاء حساب العامل",
     roleCatalog: "قائمة الأدوار", roleCatalogText: "الأدوار المعرفة لهذه المؤسسة.",
     systemRole: "دور نظام", customRole: "دور مخصص", noRoles: "لا توجد أدوار.",
     addRole: "إنشاء دور", roleName: "اسم الدور", roleDescription: "الوصف", createRole: "إنشاء الدور",
@@ -157,6 +163,14 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [savingRole, setSavingRole] = useState(false);
   const [roleMessage, setRoleMessage] = useState("");
   const [roleError, setRoleError] = useState("");
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPhone, setNewUserPhone] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserRoleId, setNewUserRoleId] = useState("");
+  const [savingUser, setSavingUser] = useState(false);
+  const [userMessage, setUserMessage] = useState("");
+  const [userError, setUserError] = useState("");
   const [data, setData] = useState({
     organization: null, profile: null, users: [], roles: [], permissions: [],
     rolePermissions: [], branches: [],
@@ -181,7 +195,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       const organizationId = profile.organization_id;
       const results = await Promise.all([
         supabase.from("organizations").select("id, name, status, created_at").eq("id", organizationId).single(),
-        supabase.from("profiles").select("user_id, organization_id, role_id, full_name, phone, status, created_at").eq("organization_id", organizationId).order("created_at", { ascending: true }),
+        supabase.from("profiles").select("user_id, organization_id, role_id, full_name, phone, status, is_owner, created_at").eq("organization_id", organizationId).order("created_at", { ascending: true }),
         supabase.from("roles").select("id, organization_id, name, description, is_system, created_at").eq("organization_id", organizationId).order("name"),
         supabase.from("permissions").select("id, code, module, description").order("module").order("code"),
         supabase.from("role_permissions").select("role_id, permission_id"),
@@ -225,7 +239,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
           phone: profilePhone.trim(),
         })
         .eq("user_id", data.profile.user_id)
-        .select("user_id, organization_id, role_id, full_name, phone, status, created_at")
+        .select("user_id, organization_id, role_id, full_name, phone, status, is_owner, created_at")
         .single();
       if (updateError) throw updateError;
       setData((previous) => ({ ...previous, profile: updatedProfile }));
@@ -261,6 +275,40 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const isOwner = data.profile?.is_owner === true;
   const selectedRole = data.roles.find((role) => role.id === selectedRoleId) || null;
   const ownerRoleIds = new Set(data.users.filter((user) => user.is_owner).map((user) => user.role_id).filter(Boolean));
+
+  const createWorker = async (event) => {
+    event.preventDefault();
+    setUserMessage("");
+    setUserError("");
+    if (!isOwner) { setUserError(t.ownerOnly); return; }
+    if (!newUserRoleId) { setUserError(t.assignRole); return; }
+    setSavingUser(true);
+    try {
+      const { data: result, error: createError } = await supabase.functions.invoke("create-workspace-user", {
+        body: {
+          full_name: newUserName.trim(),
+          email: newUserEmail.trim(),
+          phone: newUserPhone.trim(),
+          password: newUserPassword,
+          role_id: newUserRoleId,
+        },
+      });
+      if (createError) throw createError;
+      if (result?.error) throw new Error(result.error);
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPhone("");
+      setNewUserPassword("");
+      setNewUserRoleId("");
+      await loadSettings();
+      setUserMessage(t.workerCreated);
+    } catch (err) {
+      console.error("Could not create worker:", err);
+      setUserError(err?.message || t.workerCreateError);
+    } finally {
+      setSavingUser(false);
+    }
+  };
 
   const startRoleEditing = (role) => {
     setSelectedRoleId(role.id);
@@ -432,6 +480,21 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
 
               {section === "users" && (
                 <>
+                  {isOwner && <div className="settings-card">
+                    <div className="settings-card-heading"><UserRound size={18} /><div><h4>{t.addWorker}</h4><p>{t.ownerOnly}</p></div></div>
+                    {userMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{userMessage}</div>}
+                    {userError && <div className="settings-feedback settings-feedback-error" role="alert"><AlertCircle size={15} />{userError}</div>}
+                    <form className="settings-profile-form" onSubmit={createWorker}>
+                      <div className="settings-detail-grid">
+                        <label className="settings-form-field"><span>{t.workerName}</span><input value={newUserName} onChange={(event) => setNewUserName(event.target.value)} maxLength={120} minLength={2} required autoComplete="name" /></label>
+                        <label className="settings-form-field"><span>{t.workerEmail}</span><input type="email" value={newUserEmail} onChange={(event) => setNewUserEmail(event.target.value)} required autoComplete="email" /></label>
+                        <label className="settings-form-field"><span>{t.workerPhone}</span><input value={newUserPhone} onChange={(event) => setNewUserPhone(event.target.value)} maxLength={40} autoComplete="tel" /></label>
+                        <label className="settings-form-field"><span>{t.temporaryPassword}</span><input type="password" value={newUserPassword} onChange={(event) => setNewUserPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+                        <label className="settings-form-field"><span>{t.assignRole}</span><select value={newUserRoleId} onChange={(event) => setNewUserRoleId(event.target.value)} required><option value="">{t.assignRole}</option>{data.roles.filter((role) => !ownerRoleIds.has(role.id)).map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></label>
+                      </div>
+                      <div className="settings-profile-actions"><button type="submit" className="settings-save-button" disabled={savingUser}><Save size={15} />{savingUser ? t.savingRole : t.createWorker}</button></div>
+                    </form>
+                  </div>}
                   <div className="settings-card">
                     <div className="settings-card-heading"><UsersRound size={18} /><div><h4>{t.team}</h4><p>{t.teamText}</p></div><span className="settings-count">{data.users.length}</span></div>
                     <div className="settings-table-tools"><label className="settings-search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.searchUsers} /></label></div>
