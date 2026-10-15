@@ -648,6 +648,11 @@ const dictionaries = {
     "Add at least one product before saving a pending voucher.": "Ajoutez au moins un produit avant d’enregistrer un bon en attente.",
     "Could not save the pending voucher. Check available storage.": "Impossible d’enregistrer le bon en attente. Vérifiez l’espace de stockage.",
     "Start typing a product name, reference, or barcode.": "Commencez à saisir un nom, une référence ou un code-barres.",
+    "Pending purchase vouchers": "Bons d’achat en attente",
+    "Continue a saved voucher or remove it from the pending list.": "Reprenez un bon enregistré ou supprimez-le de la liste d’attente.",
+    "Resume voucher": "Reprendre le bon",
+    "Delete pending voucher": "Supprimer le bon en attente",
+    "No pending purchase vouchers.": "Aucun bon d’achat en attente.",
   },
   ar: {
     "ANALYTICS": "التحليلات",
@@ -1249,7 +1254,12 @@ const dictionaries = {
     "Add at least one product before saving a pending voucher.": "أضف منتجًا واحدًا على الأقل قبل حفظ البون كقيد الانتظار.",
     "Could not save the pending voucher. Check available storage.": "تعذر حفظ البون المعلق. تحقق من مساحة التخزين المتاحة.",
     "Start typing a product name, reference, or barcode.": "ابدأ بكتابة اسم المنتج أو المرجع أو الباركود.",
-  }
+  
+    "Pending purchase vouchers": "بونات الشراء قيد الانتظار",
+    "Continue a saved voucher or remove it from the pending list.": "تابع بونًا محفوظًا أو احذفه من قائمة الانتظار.",
+    "Resume voucher": "متابعة البون",
+    "Delete pending voucher": "حذف البون المعلق",
+    "No pending purchase vouchers.": "لا توجد بونات شراء قيد الانتظار.",}
 };
 
 const attributes = ["placeholder", "title", "aria-label", "aria-description"];
@@ -1300,6 +1310,8 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `معاينة المنتج: ${match[1]}`;
       match = trimmed.match(/^Ref:\s*(.+?)\s*·\s*Barcode:\s*(.+)$/i);
       if (match) translated = `المرجع: ${match[1]} · الباركود: ${match[2]}`;
+      match = trimmed.match(/^Pending Vouchers \((\d+)\)$/i);
+      if (match) translated = `بونات الشراء قيد الانتظار (${match[1]})`;
     } else if (!dictionary[trimmed] && locale === "fr") {
       let match = trimmed.match(/^Print Selected \((\d+)\)$/i);
       if (match) translated = `Imprimer la sélection (${match[1]})`;
@@ -1317,6 +1329,8 @@ export function translatePage(locale, root = document.body) {
       if (match) translated = `Aperçu du produit : ${match[1]}`;
       match = trimmed.match(/^Ref:\s*(.+?)\s*·\s*Barcode:\s*(.+)$/i);
       if (match) translated = `Réf. : ${match[1]} · Code-barres : ${match[2]}`;
+      match = trimmed.match(/^Pending Vouchers \((\d+)\)$/i);
+      if (match) translated = `Bons d’achat en attente (${match[1]})`;
     }
 
     // Translate dynamic POS notices and count strings.
