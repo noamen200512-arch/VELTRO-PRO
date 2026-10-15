@@ -697,6 +697,7 @@ const dictionaries = {
     "e.g. Mineral Water": "ex. Eau minérale",
     "Scan or type barcode": "Scannez ou saisissez le code-barres",
     "e.g. Drinks": "ex. Boissons",
+
   },
   ar: {
     "ANALYTICS": "التحليلات",
@@ -1349,6 +1350,7 @@ const dictionaries = {
     "e.g. Mineral Water": "مثال: ماء معدني",
     "Scan or type barcode": "امسح الباركود أو اكتبه",
     "e.g. Drinks": "مثال: مشروبات",
+
   }
 };
 
