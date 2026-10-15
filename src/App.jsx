@@ -548,8 +548,9 @@ function Dashboard({ onNavigate, locale }) {
   const money = value => new Intl.NumberFormat(locale === "fr" ? "fr-FR" : locale === "ar" ? "ar-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number.isFinite(value) ? value : 0) + " DA";
   const number = value => new Intl.NumberFormat(locale === "fr" ? "fr-FR" : locale === "ar" ? "ar-DZ" : "en-US", { maximumFractionDigits: 0 }).format(value);
   const label = (en, fr, ar) => locale === "ar" ? ar : locale === "fr" ? fr : en;
-  const lastDays = Array.from({length: period === "30d" ? 30 : 7}, (_, index, array) => {
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (array.length - 1 - index));
+  const dayCount = period === "30d" ? 30 : 7;
+  const lastDays = Array.from({length: dayCount}, (_, index) => {
+    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (dayCount - 1 - index));
     const key = dayKey(date);
     const matches = sales.filter(sale => dayKey(dashboardDate(sale)) === key);
     const purchaseMatches = purchases.filter(purchase => dayKey(dashboardDate(purchase)) === key);
