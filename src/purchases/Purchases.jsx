@@ -4,7 +4,7 @@ import {
   CreditCard, Eye, Printer, Pencil, Barcode, Camera, Images,
   Save, History, CheckCircle2, AlertTriangle, Info, RotateCcw,
   FileText, ScanLine, ChevronDown, ChevronUp, CircleDollarSign, ReceiptText, Wallet,
-  UserRound, Hash, Clock3, ScanBarcode, ListFilter, Edit3
+  UserRound, Hash, Clock3, ScanBarcode, ListFilter
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
 import {
@@ -1331,10 +1331,19 @@ export default function Purchases({ currentUser = null }) {
     setLines(previous => previous.map(line => {
       if (line.lineId !== lineId) return line;
 
-      if (field === "quantity" || field === "unitPrice") {
+      if (field === "quantity") {
+        const quantity = Math.max(0, Number(value) || 0);
+        const piecesPerCarton = Math.max(1, Number(line.piecesPerCarton) || 1);
+        return { ...line, quantity, cartons: quantity / piecesPerCarton };
+      }
+
+      if (field === "unitPrice") {
+        const unitPrice = Math.max(0, Number(value) || 0);
+        const piecesPerCarton = Math.max(1, Number(line.piecesPerCarton) || 1);
         return {
           ...line,
-          [field]: Math.max(0, Number(value) || 0)
+          unitPrice,
+          cartonPrice: Number((unitPrice * piecesPerCarton).toFixed(2))
         };
       }
 
@@ -1749,6 +1758,7 @@ export default function Purchases({ currentUser = null }) {
     };
     try {
       localStorage.setItem(key, JSON.stringify([record, ...pending]));
+      setPendingVouchers([record, ...pending]);
       localStorage.removeItem(DRAFT_KEY);
       setShowInvoice(false);
       setNotice("Purchase voucher saved as pending confirmation. Inventory has not been updated.");
