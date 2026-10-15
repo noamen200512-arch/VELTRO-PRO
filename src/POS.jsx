@@ -25,6 +25,13 @@ function money(value) {
   return Math.max(0, Number(value) || 0);
 }
 
+// Prices in the sales invoice use two decimals and are rounded upward.
+function roundPriceUp(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return 0;
+  return Math.ceil(numeric * 100 - 1e-9) / 100;
+}
+
 function getQuantity(item) {
   return Math.max(0, Number(item.qty ?? item.quantity) || 0);
 }
@@ -452,7 +459,7 @@ export default function POS() {
 
           return {
             ...item,
-            [field]: money(numericValue),
+            [field]: field === "price" ? roundPriceUp(numericValue) : money(numericValue),
           };
         }),
         status: "Draft",
@@ -528,8 +535,8 @@ export default function POS() {
     const cartonPrice = money(inventoryProduct.cartonPrice);
     const regularPrice = money(inventoryProduct.price);
 
-    const cartonUnitPrice = Number(
-      (cartonPrice > 0 ? cartonPrice / cartonSize : regularPrice).toFixed(2)
+    const cartonUnitPrice = roundPriceUp(
+      cartonPrice > 0 ? cartonPrice / cartonSize : regularPrice
     );
 
     const cartonLine = {
