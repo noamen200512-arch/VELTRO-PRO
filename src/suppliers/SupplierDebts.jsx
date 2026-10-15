@@ -10,7 +10,7 @@ const normalize = (value) =>
   String(value ?? "").trim().toLowerCase();
 
 const money = (value) =>
-  `${Number(value || 0).toLocaleString("en-US", {
+  `${Number(value || 0).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", {
     maximumFractionDigits: 2,
   })} DA`;
 
