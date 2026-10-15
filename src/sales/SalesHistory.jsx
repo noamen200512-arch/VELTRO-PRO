@@ -20,7 +20,6 @@ import {
   Save,
   UserRound,
   Check,
-  Boxes,
 } from "lucide-react";
 
 import { getProducts } from "../productStore.js";
@@ -420,21 +419,6 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
     setItemDrafts((old) => old.filter((_, i) => i !== index));
   };
 
-  const addCartonToInvoice = (index) => {
-    const item = draft.items[index];
-    const id = productId(item || {});
-    const product = inventory.find((candidate) => String(candidate.id) === id);
-    if (!product) { setError("This product could not be found in inventory."); return; }
-    const cartonSize = Math.max(1, Math.floor(Number(product.piecesPerCarton) || 1));
-    if (cartonSize <= 1) { setError("No carton quantity is configured for this product."); return; }
-    const cartonPrice = Math.max(0, Number(product.cartonPrice) || 0);
-    const unitPrice = cartonPrice > 0 ? Math.ceil((cartonPrice / cartonSize) * 100 - 1e-9) / 100 : Math.max(0, Number(product.price) || 0);
-    const cartonLine = { ...product, id: `${id}-carton-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, productId: id, qty: cartonSize, quantity: cartonSize, price: unitPrice, discount: 0, piecesPerCarton: cartonSize, cartonPrice, isCartonLine: true };
-    setDraft((old) => ({ ...old, items: [...old.items, cartonLine] }));
-    setItemDrafts((old) => [...old, { qty: String(cartonSize), price: unitPrice.toFixed(2), discount: "0.00" }]);
-    setError("");
-  };
-
   const openCustomerPicker = () => {
     const records = [];
     const seen = new Set();
@@ -605,7 +589,7 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
   };
 
   return (
-    <div className="modal-backdrop">
+    <div className="modal-backdrop edit-invoice-backdrop">
       <section className="panel edit-invoice-modal">
         <div className="panel-header">
           <div>
@@ -697,13 +681,11 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
                 const previewPrice = Math.max(0, Number(String(row.price).replace(",", ".")) || 0);
                 const previewDiscount = Math.max(0, Number(String(row.discount).replace(",", ".")) || 0);
                 const lineTotal = Math.max(0, previewQty * previewPrice - previewDiscount);
-                const product = inventory.find((candidate) => String(candidate.id) === productId(item));
-                const cartonSize = Math.max(1, Math.floor(Number(product?.piecesPerCarton ?? item.piecesPerCarton) || 1));
                 return (
                   <tr key={`${item.id || productId(item)}-${index}`}>
                     <td className="edit-invoice-product-cell">
                       <strong>{item.name || "Product"}</strong>
-                      {cartonSize > 1 && <button className="edit-add-carton-button" type="button" onClick={() => addCartonToInvoice(index)} title={`Add one carton (${cartonSize} units)`}><Boxes size={13} /> Add Carton</button>}
+
                     </td>
                     <td><input className="edit-number-input" type="number" min="1" step="1" value={row.qty} onChange={(event) => updateItemDraft(index, "qty", event.target.value)} /></td>
                     <td><input className="edit-number-input" type="text" inputMode="decimal" autoComplete="off" value={row.price} onChange={(event) => updateItemDraft(index, "price", event.target.value.replace(/[^0-9.,]/g, ""))} onKeyDown={(event) => { if (event.key === "Enter") applyItem(index); }} /></td>
