@@ -1176,3 +1176,153 @@
     width: auto;
   }
 }
+
+
+/* Sales History invoice editor: customer selection and per-line controls */
+.history-page .edit-invoice-modal .edit-customer-field {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.history-page .edit-invoice-modal .edit-customer-control {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.history-page .edit-invoice-modal .edit-customer-control input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.history-page .edit-invoice-modal .edit-change-customer-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 11px;
+  white-space: nowrap;
+  font-size: 11px;
+}
+.history-page .edit-invoice-modal .edit-invoice-product-cell {
+  min-width: 155px;
+  white-space: normal;
+}
+.history-page .edit-invoice-modal .edit-invoice-product-cell > strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.history-page .edit-invoice-modal .edit-add-carton-button,
+.history-page .edit-invoice-modal .edit-apply-item-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 29px;
+  margin-top: 7px;
+  padding: 0 8px;
+  color: #b7fff4;
+  background: rgba(43, 198, 181, .12);
+  border: 1px solid rgba(67, 207, 191, .4);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.history-page .edit-invoice-modal .edit-add-carton-button:hover,
+.history-page .edit-invoice-modal .edit-apply-item-button:hover {
+  background: rgba(43, 198, 181, .23);
+  border-color: #43cfbf;
+}
+.history-page .edit-invoice-modal .edit-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.history-page .edit-invoice-modal .edit-apply-item-button {
+  margin-top: 0;
+  min-height: 32px;
+  color: #071713;
+  background: linear-gradient(135deg, #72f4df, #2bc6b5);
+  border-color: #48deca;
+}
+.history-page .edit-invoice-modal .edit-product-line-total {
+  color: #72f4df;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.history-page .edit-invoice-modal .products-table {
+  min-width: 850px;
+}
+.edit-customer-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(3, 8, 18, .78);
+  backdrop-filter: blur(5px);
+}
+.edit-customer-picker-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 520px);
+  max-height: min(82dvh, 680px);
+  padding: 18px;
+  overflow: hidden;
+  background: #101725;
+  color: #edf4ff;
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 15px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+}
+.edit-customer-picker-modal .panel-header { flex-shrink: 0; }
+.edit-customer-search {
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 42px;
+  margin: 12px 0;
+  padding: 0 12px;
+  color: #edf4ff;
+  background: #0b1220;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  outline: none;
+}
+.edit-customer-search:focus { border-color: #43cfbf; }
+.edit-customer-list {
+  min-height: 70px;
+  overflow-y: auto;
+  border: 1px solid rgba(148, 163, 184, .15);
+  border-radius: 10px;
+}
+.edit-customer-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  color: #edf4ff;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, .12);
+  cursor: pointer;
+}
+.edit-customer-option:last-child { border-bottom: 0; }
+.edit-customer-option:hover { background: rgba(67, 207, 191, .1); }
+.edit-customer-option > span { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+.edit-customer-option strong { overflow-wrap: anywhere; font-size: 13px; }
+.edit-customer-option small { color: #8d9bb0; font-size: 11px; }
+.edit-customer-option > svg { flex-shrink: 0; color: #43cfbf; }
+.edit-customer-empty { padding: 16px; color: #8d9bb0; font-size: 12px; line-height: 1.6; }
+@media (max-width: 560px) {
+  .history-page .edit-invoice-modal .edit-customer-control { flex-direction: column; }
+  .history-page .edit-invoice-modal .edit-change-customer-button { width: 100%; }
+  .edit-customer-picker-backdrop { align-items: flex-end; padding: 0; }
+  .edit-customer-picker-modal { width: 100%; max-height: 88dvh; border-radius: 16px 16px 0 0; }
+}
