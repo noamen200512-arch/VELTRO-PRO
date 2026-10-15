@@ -134,6 +134,37 @@ const nav = [
 
 const localeName = { en: "English", fr: "Français", ar: "العربية" };
 
+const frenchRoleLabels = {
+  accountant: {
+    name: "Comptable",
+    description: "Paiements, soldes des comptes et rapports financiers.",
+  },
+  admin: {
+    name: "Administrateur",
+    description: "Accès complet à VELTRO-PRO.",
+  },
+  cashier: {
+    name: "Caissier",
+    description: "Opérations de point de vente et gestion des ventes quotidiennes.",
+  },
+  employee: {
+    name: "Employé",
+    description: "Accès limité aux tâches quotidiennes.",
+  },
+  "inventory manager": {
+    name: "Responsable des stocks",
+    description: "Gestion du catalogue de produits et contrôle des stocks.",
+  },
+  "purchasing officer": {
+    name: "Responsable des achats",
+    description: "Gestion des fournisseurs et des achats.",
+  },
+  "store manager": {
+    name: "Gérant du magasin",
+    description: "Gestion quotidienne du magasin avec un accès contrôlé aux rapports et à l’équipe.",
+  },
+};
+
 const arabicRoleLabels = {
   accountant: {
     name: "محاسب",
@@ -167,9 +198,9 @@ const arabicRoleLabels = {
 
 function getRoleLabel(role, locale, field = "name") {
   if (!role) return "";
-  if (locale !== "ar") return role[field] || "";
   const key = String(role.name || "").trim().toLowerCase();
-  const translation = arabicRoleLabels[key];
+  const translations = locale === "ar" ? arabicRoleLabels : locale === "fr" ? frenchRoleLabels : null;
+  const translation = translations?.[key];
   if (!translation) return role[field] || "";
   return translation[field] || role[field] || "";
 }
