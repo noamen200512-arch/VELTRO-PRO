@@ -342,6 +342,18 @@ const dictionaries = {
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"Les clients des factures précédentes apparaîtront ici. Vous pouvez toujours choisir Anonyme pour une vente rapide.",
     "Choose a customer to link this invoice to their account.":"Choisissez un client pour associer cette facture à son compte."
 
+    "Choose a saved invoice to continue working on it.":"Choisissez une facture enregistrée pour continuer à travailler dessus.",
+    "INVOICE DETAILS":"DÉTAILS DE LA FACTURE",
+    "AMOUNT":"MONTANT",
+    "item line(s)":"ligne(s) d’article",
+    "saved invoice":"facture enregistrée",
+    "saved invoices":"factures enregistrées",
+    "Reference:":"Référence :",
+    "No pending invoices":"Aucune facture en attente",
+    "No saved invoices yet":"Aucune facture enregistrée pour le moment",
+    "No invoices pending":"Aucune facture en attente",
+    "Open pending invoice":"Ouvrir la facture en attente"
+
   },
   ar: {
     "Warning: selling below purchase cost":"تحذير: البيع بسعر أقل من تكلفة الشراء",
@@ -682,6 +694,18 @@ const dictionaries = {
     "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.":"سيظهر هنا الزبائن من الفواتير السابقة. يمكنك أيضًا استخدام «Anonyme» لإتمام بيع سريع.",
     "Choose a customer to link this invoice to their account.":"اختر زبونًا لربط هذه الفاتورة بحسابه."
 
+    "Choose a saved invoice to continue working on it.":"اختر فاتورة محفوظة لمواصلة العمل عليها.",
+    "INVOICE DETAILS":"تفاصيل الفاتورة",
+    "AMOUNT":"المبلغ",
+    "item line(s)":"سطر من المنتجات",
+    "saved invoice":"فاتورة محفوظة",
+    "saved invoices":"فواتير محفوظة",
+    "Reference:":"المرجع:",
+    "No pending invoices":"لا توجد فواتير معلّقة",
+    "No saved invoices yet":"لا توجد فواتير محفوظة حتى الآن",
+    "No invoices pending":"لا توجد فواتير معلّقة",
+    "Open pending invoice":"فتح الفاتورة المعلّقة"
+
   }
 };
 
@@ -726,6 +750,12 @@ export function translatePage(locale, root = document.body) {
       match = trimmed.match(/^(\d+) product loaded from your inventory\.$/i);
       if (match) translated = `تم تحميل ${match[1]} منتج من المخزون.`;
     } else if (!dictionary[trimmed] && locale === "fr") {
+      let pendingMatch = trimmed.match(/^(\d+) item line\(s\)$/i);
+      if (pendingMatch) translated = Number(pendingMatch[1]) === 1 ? "1 ligne d’article" : `${pendingMatch[1]} lignes d’articles`;
+      pendingMatch = trimmed.match(/^(\d+) saved invoices?$/i);
+      if (pendingMatch) translated = Number(pendingMatch[1]) === 1 ? "1 facture enregistrée" : `${pendingMatch[1]} factures enregistrées`;
+      pendingMatch = trimmed.match(/^Reference:\s*(.+)$/i);
+      if (pendingMatch) translated = `Référence : ${pendingMatch[1]}`;
       let match = trimmed.match(/^Qty:\s*(\d+)\s*·\s*Loss per unit:\s*(.+?)\s+DA$/i);
       if (match) translated = `Qté : ${match[1]} · Perte par unité : ${match[2]} DA`;
       match = trimmed.match(/^Added one carton of (.+) at (.+)\.$/i);
@@ -738,6 +768,12 @@ export function translatePage(locale, root = document.body) {
 
     // Translate common count/pagination labels whose numbers change at runtime.
     if (!dictionary[trimmed] && locale === "ar") {
+      let pendingMatch = trimmed.match(/^(\d+) item line\(s\)$/i);
+      if (pendingMatch) translated = pendingMatch[1] === "1" ? "سطر منتج واحد" : `${pendingMatch[1]} أسطر من المنتجات`;
+      pendingMatch = trimmed.match(/^(\d+) saved invoices?$/i);
+      if (pendingMatch) translated = Number(pendingMatch[1]) === 1 ? "فاتورة محفوظة واحدة" : `${pendingMatch[1]} فواتير محفوظة`;
+      pendingMatch = trimmed.match(/^Reference:\s*(.+)$/i);
+      if (pendingMatch) translated = `المرجع: ${pendingMatch[1]}`;
       let match = trimmed.match(/^(\d+)\s+customers?$/i);
       if (match) translated = Number(match[1]) === 1 ? "زبون واحد" : `${match[1]} زبائن`;
       match = trimmed.match(/^Showing\s+(\d+)\s+invoices?$/i);
