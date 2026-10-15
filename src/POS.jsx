@@ -25,11 +25,20 @@ function money(value) {
   return Math.max(0, Number(value) || 0);
 }
 
-// Prices in the sales invoice use two decimals and are rounded upward.
+// Keep ordinary prices rounded to cents. Very precise fractional prices
+// (for example, a carton price divided across many units) round upward so
+// the per-unit price does not undercut the calculated value.
 function roundPriceUp(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric <= 0) return 0;
-  return Math.ceil(numeric * 100 - 1e-9) / 100;
+
+  const decimalPart = String(value).replace(",", ".").split(".")[1] || "";
+  const cents = numeric * 100;
+  const rounded = decimalPart.length > 4
+    ? Math.ceil(cents - 1e-9)
+    : Math.round(cents);
+
+  return rounded / 100;
 }
 
 function getQuantity(item) {
