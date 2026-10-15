@@ -976,6 +976,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
   const [productSearch, setProductSearch] = useState("");
   const [supplierSearch, setSupplierSearch] = useState("");
   const [supplier, setSupplier] = useState("");
+  const [supplierId, setSupplierId] = useState("");
   const [supplierPhone, setSupplierPhone] = useState("");
   const [invoiceNote, setInvoiceNote] = useState("");
   const [lines, setLines] = useState([]);
@@ -1167,6 +1168,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
     const draft = {
       supplier,
+      supplierId,
       supplierPhone,
       invoiceNote,
       lines,
@@ -1188,6 +1190,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     showInvoice,
     showAccount,
     supplier,
+    supplierId,
     supplierPhone,
     invoiceNote,
     lines,
@@ -1200,6 +1203,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
   const resetDraft = (removeSaved = true) => {
     setSupplier("");
+    setSupplierId("");
     setSupplierPhone("");
     setInvoiceNote("");
     setLines([]);
@@ -1230,6 +1234,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     }
 
     setSupplier(draft.supplier || "");
+    setSupplierId(draft.supplierId || "");
     setSupplierPhone(draft.supplierPhone || "");
     setInvoiceNote(draft.invoiceNote || "");
     setLines(draft.lines || []);
@@ -1255,9 +1260,11 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     setNotice("");
   };
 
-  const selectSupplier = name => {
-    const found = suppliers.find(item => normalize(item.name) === normalize(name));
+  const selectSupplier = value => {
+    const found = typeof value === "object" ? value : suppliers.find(item => normalize(item.name) === normalize(value));
+    const name = found?.name || String(value || "");
     setSupplier(name);
+    setSupplierId(found?.id || "");
     setSupplierPhone(found?.phone || "");
     setSupplierSearch("");
     setShowSupplierList(false);
@@ -1389,6 +1396,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     setDraftInvoiceNumber(invoice.number || "");
     setDraftCreatedBy(invoice.createdBy || getCurrentUserName());
     setSupplier(invoice.supplier || "");
+    setSupplierId(invoice.supplierId || suppliers.find(item => normalize(item.name) === normalize(invoice.supplier))?.id || "");
     setSupplierPhone(invoice.phone || "");
     setInvoiceNote(invoice.note || "");
 
@@ -1504,6 +1512,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
       id: existing?.id || makeId("PUR"),
       number: existing?.number || draftInvoiceNumber || `PUR-${Date.now()}`,
       supplier: supplier.trim(),
+      supplierId: supplierId || suppliers.find(item => normalize(item.name) === normalize(supplier))?.id || "",
       phone: supplierPhone.trim(),
       date: existing?.date || timestamp,
       updatedAt: timestamp,
@@ -1543,7 +1552,8 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
 
     const isUnknownSupplier = normalize(supplier) === normalize("Unknown Supplier");
     const nextSupplier = {
-      id: previousSupplier?.id || makeId("SUP"),
+      id: previousSupplier?.id || supplierId || makeId("SUP"),
+      reference: previousSupplier?.reference || ("SUP-" + String(suppliers.length + 1).padStart(6, "0")),
       name: supplier.trim(),
       phone: supplierPhone.trim() || previousSupplier?.phone || "",
       debt: newDebt,
@@ -1782,6 +1792,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
       number: draftInvoiceNumber || `PUR-${Date.now()}`,
       status: "Pending confirmation",
       supplier: supplier || "Unknown Supplier",
+      supplierId: supplierId || suppliers.find(item => normalize(item.name) === normalize(supplier))?.id || "",
       phone: supplierPhone,
       date: draftCreatedAt || nowISO(),
       createdBy: draftCreatedBy || getCurrentUserName(),
@@ -2200,7 +2211,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
               <tbody>
                 {visibleSuppliers.map(item => <tr key={item.id || item.name}>
                   <td><strong>{item.name}</strong></td><td>{item.phone || "—"}</td><td>{item.reference || item.id || "—"}</td><td>{money(item.debt)}</td><td>{money(item.credit)}</td>
-                  <td><Button variant="primary" onClick={() => selectSupplier(item.name)}><CheckCircle2 size={15} /> Select</Button></td>
+                  <td><Button variant="primary" onClick={() => selectSupplier(item)}><CheckCircle2 size={15} /> Select</Button></td>
                 </tr>)}
                 {!visibleSuppliers.length && <tr><td colSpan="6" className="purchase-empty-row">No suppliers match your search.</td></tr>}
               </tbody>
