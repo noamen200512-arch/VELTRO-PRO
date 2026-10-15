@@ -134,6 +134,46 @@ const nav = [
 
 const localeName = { en: "English", fr: "Français", ar: "العربية" };
 
+const arabicRoleLabels = {
+  accountant: {
+    name: "محاسب",
+    description: "المدفوعات وأرصدة الحسابات والتقارير المالية.",
+  },
+  admin: {
+    name: "مسؤول النظام",
+    description: "وصول كامل إلى جميع وظائف VELTRO-PRO.",
+  },
+  cashier: {
+    name: "أمين الصندوق",
+    description: "عمليات نقطة البيع وإدارة المبيعات اليومية.",
+  },
+  employee: {
+    name: "الموظف",
+    description: "صلاحيات محدودة للمهام اليومية.",
+  },
+  "inventory manager": {
+    name: "مسؤول المخزون",
+    description: "إدارة المنتجات ومراقبة المخزون.",
+  },
+  "purchasing officer": {
+    name: "مسؤول المشتريات",
+    description: "إدارة الموردين وعمليات الشراء.",
+  },
+  "store manager": {
+    name: "مدير المتجر",
+    description: "إدارة عمليات المتجر اليومية بصلاحيات مضبوطة للتقارير والفريق.",
+  },
+};
+
+function getRoleLabel(role, locale, field = "name") {
+  if (!role) return "";
+  if (locale !== "ar") return role[field] || "";
+  const key = String(role.name || "").trim().toLowerCase();
+  const translation = arabicRoleLabels[key];
+  if (!translation) return role[field] || "";
+  return translation[field] || role[field] || "";
+}
+
 function formatModule(value = "") {
   return value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
@@ -463,7 +503,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                         <div className="settings-detail"><span>{t.profileName}</span><strong>{data.profile?.full_name || "—"}</strong></div>
                         <div className="settings-detail"><span>{t.email}</span><strong>{currentUser?.email || t.noEmail}</strong></div>
                         <div className="settings-detail"><span>{t.phone}</span><strong>{data.profile?.phone || t.noPhone}</strong></div>
-                        <div className="settings-detail"><span>{t.role}</span><strong>{roleById[data.profile?.role_id]?.name || "—"}</strong></div>
+                        <div className="settings-detail"><span>{t.role}</span><strong>{getRoleLabel(roleById[data.profile?.role_id], locale) || "—"}</strong></div>
                       </div>
                     )}
                   </div>
@@ -486,7 +526,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                         <label className="settings-form-field"><span>{t.workerEmail}</span><input type="email" value={newUserEmail} onChange={(event) => setNewUserEmail(event.target.value)} required autoComplete="email" /></label>
                         <label className="settings-form-field"><span>{t.workerPhone}</span><input value={newUserPhone} onChange={(event) => setNewUserPhone(event.target.value)} maxLength={40} autoComplete="tel" /></label>
                         <label className="settings-form-field"><span>{t.temporaryPassword}</span><input type="password" value={newUserPassword} onChange={(event) => setNewUserPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-                        <label className="settings-form-field"><span>{t.assignRole}</span><select value={newUserRoleId} onChange={(event) => setNewUserRoleId(event.target.value)} required><option value="">{t.assignRole}</option>{data.roles.filter((role) => !ownerRoleIds.has(role.id)).map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}</select></label>
+                        <label className="settings-form-field"><span>{t.assignRole}</span><select value={newUserRoleId} onChange={(event) => setNewUserRoleId(event.target.value)} required><option value="">{t.assignRole}</option>{data.roles.filter((role) => !ownerRoleIds.has(role.id)).map((role) => <option key={role.id} value={role.id}>{getRoleLabel(role, locale)}</option>)}</select></label>
                       </div>
                       <div className="settings-profile-actions"><button type="submit" className="settings-save-button" disabled={savingUser}><Save size={15} />{savingUser ? t.savingRole : t.createWorker}</button></div>
                     </form>}
@@ -501,7 +541,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   </div>
                   <div className="settings-card">
                     <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.roleCatalog}</h4><p>{t.roleCatalogText}</p></div>{isOwner && <button type="button" className="settings-save-button" onClick={() => { setShowRoleForm((value) => !value); setRoleError(""); }}><KeyRound size={15} />{showRoleForm ? t.cancel : t.addRole}</button>}</div>
-                    <div className="settings-role-list">{data.roles.map((role) => <div className="settings-role-row" key={role.id}><span className="settings-role-icon"><ShieldCheck size={17} /></span><span className="settings-role-copy"><strong>{role.name}</strong><small>{role.description || "—"}</small></span><span className="settings-role-permissions">{permissionCountByRole[role.id] || 0} / {data.permissions.length}</span><span className="settings-role-type">{role.is_system ? t.systemRole : t.customRole}</span>{isOwner && !ownerRoleIds.has(role.id) && <button type="button" className="settings-edit-button" onClick={() => startRoleEditing(role)}>{t.editPermissions}</button>}</div>)}{!data.roles.length && <p className="settings-empty">{t.noRoles}</p>}</div>
+                    <div className="settings-role-list">{data.roles.map((role) => <div className="settings-role-row" key={role.id}><span className="settings-role-icon"><ShieldCheck size={17} /></span><span className="settings-role-copy"><strong>{getRoleLabel(role, locale)}</strong><small>{getRoleLabel(role, locale, "description") || "—"}</small></span><span className="settings-role-permissions">{permissionCountByRole[role.id] || 0} / {data.permissions.length}</span><span className="settings-role-type">{role.is_system ? t.systemRole : t.customRole}</span>{isOwner && !ownerRoleIds.has(role.id) && <button type="button" className="settings-edit-button" onClick={() => startRoleEditing(role)}>{t.editPermissions}</button>}</div>)}{!data.roles.length && <p className="settings-empty">{t.noRoles}</p>}</div>
                     {isOwner && showRoleForm && <form className="settings-profile-form" onSubmit={createRole}>
                       <div className="settings-card-heading"><KeyRound size={18} /><div><h4>{t.addRole}</h4><p>{t.ownerOnly}</p></div></div>
                       <div className="settings-detail-grid">
@@ -511,7 +551,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                       <div className="settings-profile-actions"><button type="submit" className="settings-save-button" disabled={savingRole}><Save size={15} />{savingRole ? t.savingRole : t.createRole}</button></div>
                     </form>}
                     {isOwner && selectedRole && !ownerRoleIds.has(selectedRole.id) && <div className="settings-role-editor">
-                      <div className="settings-card-heading"><ShieldCheck size={18} /><div><h4>{t.editPermissions}: {selectedRole.name}</h4><p>{t.chooseRole}</p></div><button type="button" className="settings-cancel-button" onClick={() => setSelectedRoleId("")}>{t.cancelEdit}</button></div>
+                      <div className="settings-card-heading"><ShieldCheck size={18} /><div><h4>{t.editPermissions}: {getRoleLabel(selectedRole, locale)}</h4><p>{t.chooseRole}</p></div><button type="button" className="settings-cancel-button" onClick={() => setSelectedRoleId("")}>{t.cancelEdit}</button></div>
                       <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{formatModule(module)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <label className="settings-permission-row" key={permission.id}><input type="checkbox" checked={selectedPermissionCodes.includes(permission.code)} onChange={(event) => setSelectedPermissionCodes((previous) => event.target.checked ? [...new Set([...previous, permission.code])] : previous.filter((code) => code !== permission.code))} /><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{permission.description}</small></span></label>)}</div></section>)}</div>
                       <div className="settings-profile-actions"><button type="button" className="settings-save-button" onClick={saveRolePermissions} disabled={savingRole}><Save size={15} />{savingRole ? t.savingRole : t.savePermissions}</button></div>
                     </div>}
