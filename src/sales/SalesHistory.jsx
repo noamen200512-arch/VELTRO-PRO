@@ -354,6 +354,9 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [productPickerOpen, setProductPickerOpen] = useState(false);
+  const [priceDrafts, setPriceDrafts] = useState(() =>
+    Object.fromEntries((invoice.items || []).map((item, index) => [index, String(item.price ?? 0)]))
+  );
 
   const inventory = getProducts();
   const subtotal = invoiceSubtotal(draft.items);
@@ -603,15 +606,51 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
                   <td>
                     <input
                       className="edit-number-input"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={Number(
-                        (Number(item.price) || 0).toFixed(2)
-                      )}
+                      type="text"
+                      inputMode="decimal"
+                      autoComplete="off"
+                      value={priceDrafts[index] ?? String(item.price ?? 0)}
                       onChange={(event) =>
-                        updateItem(index, "price", event.target.value)
+                        setPriceDrafts((old) => ({
+                          ...old,
+                          [index]: event.target.value.replace(/[^0-9.,]/g, ""),
+                        }))
                       }
+                      onBlur={() => {
+                        const raw = String(priceDrafts[index] ?? item.price ?? 0).trim();
+                        const normalized = raw.replace(",", ".");
+                        const numeric = Number(normalized);
+
+                        if (raw === "" || !Number.isFinite(numeric) || numeric < 0) {
+                          setPriceDrafts((old) => ({
+                            ...old,
+                            [index]: Number(item.price || 0).toFixed(2),
+                          }));
+                          return;
+                        }
+
+                        const decimals = (normalized.split(".")[1] || "").length;
+                        const cents = numeric * 100;
+                        const rounded = numeric === 0 ? 0 : (
+                          decimals > 4 ? Math.ceil(cents - 1e-9) : Math.round(cents)
+                        ) / 100;
+
+                        updateItem(index, "price", rounded);
+                        setPriceDrafts((old) => ({
+                          ...old,
+                          [index]: rounded.toFixed(2),
+                        }));
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") event.currentTarget.blur();
+                        if (event.key === "Escape") {
+                          setPriceDrafts((old) => ({
+                            ...old,
+                            [index]: Number(item.price || 0).toFixed(2),
+                          }));
+                          event.currentTarget.blur();
+                        }
+                      }}
                     />
                   </td>
 
