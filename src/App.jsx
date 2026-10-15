@@ -181,7 +181,7 @@ function Sidebar({
 }) {
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
-    Purchases: activePage === "Purchase History",
+    Purchases: activePage === "Purchases" || activePage === "Purchase History",
     "Suppliers List": activePage === "Supplier Debts",
     Products:
       activePage === "Products" ||
@@ -253,7 +253,7 @@ function Sidebar({
                         }
 
                         if (item.label === "Purchases") {
-                          onNavigate("Purchase History");
+                          onNavigate("Purchases");
                           onClose();
                           return;
                         }
@@ -369,7 +369,8 @@ function Header({
     "Point of Sale": "Create and manage sales invoices.",
     Products: "Manage your products and inventory.",
     "Sales History": "Review, print and edit completed sales.",
-    "Purchase History": "Create and manage purchase invoices.",
+    "Purchases": "Manage purchase invoices, supplier accounts, and incoming inventory.",
+    "Purchase History": "Search and review all purchase invoices.",
     "Suppliers List": "Manage supplier names and phone numbers.",
     "Supplier Debts": "Review supplier invoices and outstanding balances.",
     "Product Purchase History": "Review purchase movements for each product.",
@@ -681,8 +682,10 @@ export default function App({ onLogout, currentUser }) {
             <Products />
           ) : activePage === "Sales History" ? (
             <SalesHistory />
+          ) : activePage === "Purchases" ? (
+            <Purchases view="dashboard" currentUser={currentUser} />
           ) : activePage === "Purchase History" ? (
-            <Purchases currentUser={currentUser} />
+            <Purchases view="history" currentUser={currentUser} />
           ) : activePage === "Suppliers List" ? (
             <Suppliers />
           ) : activePage === "Supplier Debts" ? (
