@@ -4659,3 +4659,69 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     padding: 7px 8px;
   }
 }
+
+
+/* Keep the selected-product card visible even when the invoice is empty,
+   and use the reclaimed toolbar space to tighten and align the POS cards. */
+.pos-page .sales-workspace {
+  gap: 10px !important;
+}
+.pos-page .pos-selected-product-preview {
+  flex: 0 0 auto;
+  width: 100%;
+  min-height: 62px;
+  transition: border-color .18s ease, background .18s ease;
+}
+.pos-page .pos-selected-product-preview.is-empty {
+  min-height: 58px;
+  border-color: rgba(148, 163, 184, .25) !important;
+  background: linear-gradient(110deg, rgba(16, 23, 34, .88), rgba(18, 24, 39, .82)) !important;
+}
+.pos-page .pos-selected-product-empty {
+  min-height: 40px;
+}
+@media (min-width: 761px) {
+  .pos-page .sales-sidebar {
+    gap: 12px;
+    padding: 14px;
+  }
+  .pos-page .sales-side-section {
+    margin-bottom: 0;
+  }
+  .pos-page .product-entry,
+  .pos-page .invoice-table-section,
+  .pos-page .invoice-summary {
+    padding: 14px;
+  }
+  .pos-page .pos-selected-product-preview {
+    min-height: 56px;
+  }
+  .pos-page .pos-selected-product-preview.is-empty {
+    min-height: 52px;
+  }
+  .pos-page:fullscreen .sales-sidebar,
+  .pos-page.pos-fullscreen-active .sales-sidebar {
+    padding: 11px;
+  }
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-summary,
+  .pos-page.pos-fullscreen-active .invoice-summary {
+    padding: 11px !important;
+  }
+}
+@media (max-width: 760px) {
+  .pos-page .sales-workspace {
+    gap: 10px !important;
+  }
+  .pos-page .pos-selected-product-preview {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .pos-page .pos-selected-product-empty {
+    align-items: flex-start !important;
+    text-align: start !important;
+  }
+}
