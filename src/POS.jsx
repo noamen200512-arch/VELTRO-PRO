@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList, Maximize2, Minimize2 } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -353,6 +353,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
   const [keyboardDialog, setKeyboardDialog] = useState(null);
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [selectedCartIndex, setSelectedCartIndex] = useState(0);
   const [productPickerSearch, setProductPickerSearch] = useState("");
   const [productPickerPage, setProductPickerPage] = useState(1);
@@ -1375,6 +1376,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       const target = e.target;
       const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT","TEXTAREA","SELECT"].includes(target.tagName));
       const stop = () => { e.preventDefault(); e.stopPropagation(); };
+      if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === "i") {
+        stop(); setShowShortcutsHelp((current) => !current); return;
+      }
+      if (showShortcutsHelp) { if (e.key === "Escape") { stop(); setShowShortcutsHelp(false); } return; }
       const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
       if (keyboardDialog) {
         if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else if (keyboardDialog==="quantity"||keyboardDialog==="price") setKeyboardDialog("options"); else setKeyboardDialog(null); return; }
@@ -1445,6 +1450,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         onUndo={removedItem ? () => undoRemove(removedItem.item) : undefined}
         undoLabel={translatePosMessage("Undo", locale)}
         dismissLabel={translatePosMessage("Dismiss message", locale)}
+        locale={locale}
+        onShortcuts={() => setShowShortcutsHelp(true)}
       />
 
       {showEmptyWarning && (
@@ -1775,6 +1782,39 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               <span><Users size={14} /> {locale === "ar" ? "اختر زبونًا لربط الفاتورة بحسابه." : locale === "fr" ? "Choisissez un client pour associer la facture à son compte." : "Choose a customer to link this invoice to their account."}</span>
               <button type="button" onClick={() => setShowCustomerPicker(false)}>{locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}</button>
             </footer>
+          </section>
+        </div>
+      )}
+
+
+      {showShortcutsHelp && (
+        <div className="pos-shortcuts-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowShortcutsHelp(false); }}>
+          <section className="pos-shortcuts-modal" role="dialog" aria-modal="true" aria-labelledby="pos-shortcuts-title" dir={locale === "ar" ? "rtl" : "ltr"}>
+            <header className="pos-shortcuts-header">
+              <div className="pos-shortcuts-heading"><span className="pos-shortcuts-icon"><Keyboard size={22} /></span><div>
+                <span className="pos-shortcuts-eyebrow">VELTRO-PRO · POS</span>
+                <h2 id="pos-shortcuts-title">{locale === "ar" ? "دليل اختصارات لوحة المفاتيح" : locale === "fr" ? "Guide des raccourcis clavier" : "Keyboard shortcuts guide"}</h2>
+                <p>{locale === "ar" ? "أنجز عمليات البيع بسرعة دون مغادرة لوحة المفاتيح." : locale === "fr" ? "Accélérez vos ventes sans quitter le clavier." : "Move through sales faster without leaving the keyboard."}</p>
+              </div></div>
+              <button type="button" className="pos-shortcuts-close" onClick={() => setShowShortcutsHelp(false)} aria-label={locale === "ar" ? "إغلاق الدليل" : locale === "fr" ? "Fermer le guide" : "Close guide"}><X size={19}/></button>
+            </header>
+            <div className="pos-shortcuts-tip"><HelpCircle size={16}/><span>{locale === "ar" ? "اضغط Enter للتأكيد وEscape للإلغاء أو الرجوع في النوافذ المنبثقة." : locale === "fr" ? "Appuyez sur Entrée pour confirmer et Échap pour annuler ou revenir dans les fenêtres." : "Press Enter to confirm and Escape to cancel or go back in dialogs."}</span></div>
+            <div className="pos-shortcuts-grid">
+              {(locale === "ar" ? [
+                ["البيع والفاتورة", [["F1","إنشاء بون جديد"],["F2","طباعة الفاتورة"],["F3","اختيار زبون"],["F4","فتح البونات المعلّقة"],["F12","تأكيد البيع؛ وفي نافذة التأكيد طباعة الوصل"]]],
+                ["المنتجات والسلة", [["F5","فتح قائمة المنتجات والبحث"],["↑ / ↓","التنقل بين المنتجات أو أسطر السلة"],["Enter","اختيار المنتج أو تأكيد الاختيار"],["F1 / F2","تغيير صفحة المنتجات أثناء فتح القائمة"],["F6","خيارات المنتج المحدد وتحويله إلى كرتونة"],["F7","تعديل الكمية"],["F8","تعديل السعر"]]],
+                ["أدوات إضافية", [["F9","فتح درج النقود"],["Ctrl + I","فتح هذا الدليل"],["Escape","إغلاق النافذة أو الرجوع"],["Enter","تأكيد الإجراء داخل النافذة"]]]
+              ] : locale === "fr" ? [
+                ["Vente et facture", [["F1","Nouvelle facture"],["F2","Imprimer la facture"],["F3","Choisir un client"],["F4","Ouvrir les factures en attente"],["F12","Confirmer la vente ; dans la confirmation, imprimer le reçu"]]],
+                ["Produits et panier", [["F5","Ouvrir la liste et rechercher un produit"],["↑ / ↓","Naviguer entre les produits ou lignes du panier"],["Entrée","Choisir un produit ou confirmer"],["F1 / F2","Changer de page dans la liste des produits"],["F6","Options du produit sélectionné et conversion en carton"],["F7","Modifier la quantité"],["F8","Modifier le prix"]]],
+                ["Outils", [["F9","Ouvrir le tiroir-caisse"],["Ctrl + I","Ouvrir ce guide"],["Échap","Fermer ou revenir en arrière"],["Entrée","Confirmer l'action dans une fenêtre"]]]
+              ] : [
+                ["Sale & invoice", [["F1","Create a new invoice"],["F2","Print invoice"],["F3","Choose customer"],["F4","Open pending invoices"],["F12","Confirm sale; press again in confirmation to print receipt"]]],
+                ["Products & basket", [["F5","Open product list and search"],["↑ / ↓","Navigate products or basket rows"],["Enter","Choose product or confirm selection"],["F1 / F2","Change product-list page"],["F6","Selected product options and convert to carton"],["F7","Edit quantity"],["F8","Edit price"]]],
+                ["More tools", [["F9","Open cash drawer"],["Ctrl + I","Open this guide"],["Escape","Close dialog or go back"],["Enter","Confirm an action in a dialog"]]]
+              ]).map(([group, rows]) => <section className="pos-shortcuts-group" key={group}><h3>{group}</h3>{rows.map(([key, label]) => <div className="pos-shortcuts-row" key={key + label}><kbd>{key}</kbd><span>{label}</span></div>)}</section>)}
+            </div>
+            <footer className="pos-shortcuts-footer"><span>{locale === "ar" ? "تلميح: افتح هذا الدليل في أي وقت باستخدام Ctrl + I." : locale === "fr" ? "Astuce : ouvrez ce guide à tout moment avec Ctrl + I." : "Tip: reopen this guide anytime with Ctrl + I."}</span><button type="button" onClick={() => setShowShortcutsHelp(false)}>{locale === "ar" ? "فهمت" : locale === "fr" ? "Compris" : "Got it"}</button></footer>
           </section>
         </div>
       )}
