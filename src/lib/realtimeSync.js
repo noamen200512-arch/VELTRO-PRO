@@ -1,4 +1,12 @@
 import { supabase } from "./supabase.js";
+import { loadProductsFromCloud } from "./productCloud.js";
+import { loadCustomersFromCloud } from "./customerCloud.js";
+import { loadSuppliersFromCloud } from "./supplierCloud.js";
+import { saveSaleToCloud } from "./salesCloud.js";
+import { savePurchaseInvoiceToCloud } from "./purchaseCloud.js";
+import { getProducts } from "../productStore.js";
+import { getCompletedSales, getPendingInvoices } from "../sales/salesStore.js";
+import { getPurchaseInvoices, getPurchaseSuppliers } from "../purchases/purchaseService.js";
 
 const ORGANIZATION_TABLES = [
   "organizations",
@@ -32,6 +40,103 @@ const CACHE_KEYS = [
 let refreshTimer = null;
 let refreshInFlight = false;
 let refreshAgain = false;
+const bootstrapPromises = new Map();
+const bootstrapReadyOrganizations = new Set();
+
+function readLocalArray(key) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Preserve existing browser data when an organization first connects.
+ * Legacy local records are copied only if the corresponding cloud table is empty.
+ */
+async function bootstrapLocalData(organizationId) {
+  if (bootstrapPromises.has(organizationId)) return bootstrapPromises.get(organizationId);
+
+  const task = (async () => {
+    let safeToClearEmptyCaches = true;
+
+    try {
+      await loadProductsFromCloud(getProducts());
+    } catch (error) {
+      safeToClearEmptyCaches = false;
+      console.warn("VELTRO-PRO product bootstrap deferred:", error?.message || error);
+    }
+    try {
+      await loadCustomersFromCloud(readLocalArray("veltro_customers"));
+    } catch (error) {
+      safeToClearEmptyCaches = false;
+      console.warn("VELTRO-PRO customer bootstrap deferred:", error?.message || error);
+    }
+    try {
+      await loadSuppliersFromCloud(getPurchaseSuppliers());
+    } catch (error) {
+      safeToClearEmptyCaches = false;
+      console.warn("VELTRO-PRO supplier bootstrap deferred:", error?.message || error);
+    }
+
+    const salesCount = await supabase
+      .from("sales_invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId);
+
+    if (salesCount.error) {
+      safeToClearEmptyCaches = false;
+      console.warn("VELTRO-PRO could not check existing cloud sales:", salesCount.error.message);
+    } else if (salesCount.count === 0) {
+      const localSales = getCompletedSales();
+      const localPending = getPendingInvoices();
+      for (const sale of localSales) {
+        try {
+          await saveSaleToCloud(sale, { status: "posted" });
+        } catch (error) {
+          safeToClearEmptyCaches = false;
+          console.warn("VELTRO-PRO could not migrate a saved sale:", sale?.invoiceNumber, error?.message || error);
+        }
+      }
+      for (const sale of localPending) {
+        try {
+          await saveSaleToCloud(sale, { status: "pending" });
+        } catch (error) {
+          safeToClearEmptyCaches = false;
+          console.warn("VELTRO-PRO could not migrate a pending invoice:", sale?.invoiceNumber, error?.message || error);
+        }
+      }
+    }
+
+    const purchaseCount = await supabase
+      .from("purchase_invoices")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", organizationId);
+
+    if (purchaseCount.error) {
+      safeToClearEmptyCaches = false;
+      console.warn("VELTRO-PRO could not check existing cloud purchases:", purchaseCount.error.message);
+    } else if (purchaseCount.count === 0) {
+      const suppliers = getPurchaseSuppliers();
+      for (const invoice of getPurchaseInvoices()) {
+        try {
+          await savePurchaseInvoiceToCloud(invoice, suppliers, { replaceItems: true });
+        } catch (error) {
+          safeToClearEmptyCaches = false;
+          console.warn("VELTRO-PRO could not migrate a saved purchase:", invoice?.number, error?.message || error);
+        }
+      }
+    }
+
+    if (safeToClearEmptyCaches) bootstrapReadyOrganizations.add(organizationId);
+    return safeToClearEmptyCaches;
+  })().finally(() => bootstrapPromises.delete(organizationId));
+
+  bootstrapPromises.set(organizationId, task);
+  return task;
+}
 
 function number(value) {
   const parsed = Number(value);
@@ -224,7 +329,9 @@ export async function refreshOrganizationCache(organizationId) {
       }
     };
     const shouldReplace = (key, result) => !result.error && (
-      (Array.isArray(result.data) && result.data.length > 0) || cacheIsEmpty(key)
+      (Array.isArray(result.data) && result.data.length > 0) ||
+      cacheIsEmpty(key) ||
+      bootstrapReadyOrganizations.has(organizationId)
     );
 
     if (shouldReplace("veltro_products", productsResult)) {
@@ -301,7 +408,9 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
     window.dispatchEvent(new CustomEvent("veltro:realtime-status", {
       detail: { organizationId, status },
     }));
-    if (status === "SUBSCRIBED") void refreshOrganizationCache(organizationId);
+    if (status === "SUBSCRIBED") {
+      void bootstrapLocalData(organizationId).finally(() => refreshOrganizationCache(organizationId));
+    }
   });
 
   return () => {
