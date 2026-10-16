@@ -19,7 +19,7 @@ export function SalesSidebar({
   remaining,
   newAmount,
   invoiceDate,
-  currentUser = "Administrator",
+  currentUser = "User",
   previousDebt = 0,
 }) {
   const parsedDate = invoiceDate
@@ -44,7 +44,7 @@ export function SalesSidebar({
       ? displayInvoiceNumber
       : `INV-${displayInvoiceNumber}`;
 
-  const displayUser = String(currentUser || "Administrator");
+  const displayUser = String(currentUser || "User");
 
   const userInitial =
     displayUser.trim().charAt(0).toUpperCase() || "A";
