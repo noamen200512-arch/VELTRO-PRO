@@ -5,6 +5,48 @@ const PENDING_KEY = "veltro_pending_invoices";
 const SALES_KEY = "veltro_completed_sales";
 const COUNTER_KEY = "veltro_invoice_counter";
 
+/**
+ * Recover the last unconfirmed POS invoice after a refresh, tab close, or
+ * browser restart. This is separate from pending invoices so autosaving does
+ * not reserve inventory or create duplicate entries in the pending list.
+ */
+const AUTOSAVED_DRAFT_KEY = "veltro_pos_autosaved_draft";
+
+export function getAutoSavedDraft() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(AUTOSAVED_DRAFT_KEY) || "null");
+    if (!draft || typeof draft !== "object" || !draft.id || !Array.isArray(draft.items)) {
+      return null;
+    }
+    return { ...draft, status: "Draft" };
+  } catch {
+    return null;
+  }
+}
+
+export function saveAutoSavedDraft(invoice) {
+  if (!invoice?.id || !Array.isArray(invoice.items)) return false;
+  try {
+    localStorage.setItem(
+      AUTOSAVED_DRAFT_KEY,
+      JSON.stringify({ ...invoice, status: "Draft", updatedAt: new Date().toISOString() })
+    );
+    return true;
+  } catch (error) {
+    console.warn("VELTRO-PRO could not autosave the current invoice:", error);
+    return false;
+  }
+}
+
+export function clearAutoSavedDraft() {
+  try {
+    localStorage.removeItem(AUTOSAVED_DRAFT_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function readArray(key) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || "[]");
