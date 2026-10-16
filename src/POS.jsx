@@ -765,7 +765,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const available = Math.max(0, stock - othersReserved);
 
     if (currentQuantity + quantityToAdd > available) {
-      setWarningPayload({ type: "addProduct", product: inventoryProduct, requested: currentQuantity + quantityToAdd, available: Math.max(0, available - currentQuantity) });
+      setWarningPayload({ type: "addProduct", product: productForInvoice, quantity: quantityToAdd, requested: currentQuantity + quantityToAdd, available: Math.max(0, available - currentQuantity) });
       setKeyboardDialog("stockWarning");
       return;
     }
@@ -1419,7 +1419,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     } else if (w.type === "convertCarton") {
       applyCartonConversion(w.item, true);
     } else if (w.type === "addProduct") {
-      const existingIndex = items.findIndex((row) => getProductId(row) === getProductId(w.product));
+      const existingIndex = items.findIndex((row) => getProductId(row) === getProductId(w.product) && Boolean(row.weighedSale) === Boolean(w.product.weighedSale));
       setSelectedCartIndex(existingIndex >= 0 ? existingIndex : items.length);
       setInvoice((current) => ({ ...current, items: mergeItems(current.items || [], w.product, w.quantity || 1), status: "Draft", updatedAt: new Date().toISOString() }));
       setKeyboardDialog(null);
