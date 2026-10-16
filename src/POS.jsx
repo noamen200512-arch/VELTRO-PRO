@@ -798,14 +798,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     if (!currentItem) return;
 
     if (field === "quantity") {
-      const rawQuantity = Number(value);
-
-      if (!Number.isFinite(rawQuantity) || rawQuantity < 1) {
-        notify("Quantity must be at least one unit.", "error");
+      const rawQuantity = Number(String(value).replace(",", "."));
+      const weighed = Boolean(currentItem.weighedSale || currentItem.unitLabel);
+      if (!Number.isFinite(rawQuantity) || (weighed ? rawQuantity <= 0 : rawQuantity < 1)) {
+        notify(weighed ? "Measured quantity must be greater than zero." : "Quantity must be at least one unit.", "error");
         return;
       }
 
-      const quantity = Math.floor(rawQuantity);
+      const quantity = weighed ? Number(rawQuantity.toFixed(3)) : Math.floor(rawQuantity);
       if (quantity === getQuantity(currentItem)) return;
 
       const available = getAvailableForProduct(
@@ -1367,7 +1367,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const openQuantityEditor = () => {
     const item = items[selectedCartIndex];
-    if (item) { setQuantityDraft(String(getQuantity(item))); setKeyboardDialog("quantity"); }
+    if (item) {
+      setQuantityDraft(String(getQuantity(item)));
+      setPriceDraft(String((getQuantity(item) * money(item.price)).toFixed(2)));
+      setKeyboardDialog("quantity");
+    }
   };
   const openPriceEditor = () => {
     const item = items[selectedCartIndex];
@@ -1375,18 +1379,20 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
   const applyQuantityEditor = (raw) => {
     const item = items[selectedCartIndex];
-    const value = Number(String(raw).trim());
-    if (!item || !Number.isInteger(value) || value < 1) {
-      notify(locale === "ar" ? "أدخل كمية صحيحة لا تقل عن وحدة." : locale === "fr" ? "Saisissez une quantité entière valide." : "Enter a valid whole quantity.", "error");
+    const value = Number(String(raw).trim().replace(",", "."));
+    const weighed = Boolean(item?.weighedSale || item?.unitLabel);
+    if (!item || !Number.isFinite(value) || (weighed ? value <= 0 : !Number.isInteger(value) || value < 1)) {
+      notify(locale === "ar" ? (weighed ? "أدخل كمية قياس أكبر من صفر." : "أدخل كمية صحيحة لا تقل عن وحدة.") : locale === "fr" ? (weighed ? "Saisissez une quantité mesurée supérieure à zéro." : "Saisissez une quantité entière valide.") : (weighed ? "Enter a measured quantity greater than zero." : "Enter a valid whole quantity."), "error");
       return;
     }
+    const quantity = weighed ? Number(value.toFixed(3)) : value;
     const available = getAvailableForProduct(getProductId(item), item.id);
-    if (value > available) {
-      setWarningPayload({ type: "quantity", itemId: item.id, value, requested: value, available, returnTo: "quantity" });
+    if (quantity > available) {
+      setWarningPayload({ type: "quantity", itemId: item.id, value: quantity, requested: quantity, available, returnTo: "quantity" });
       setKeyboardDialog("stockWarning");
       return;
     }
-    updateItem(item.id, "quantity", value, { allowOversell: true });
+    updateItem(item.id, "quantity", quantity, { allowOversell: true });
     setKeyboardDialog(null);
   };
   const applyPriceEditor = (raw) => {
