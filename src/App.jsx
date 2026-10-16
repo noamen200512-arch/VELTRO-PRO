@@ -39,6 +39,7 @@ import Customers from "./customers/Customers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
 import SettingsPage from "./Settings.jsx";
+import { supabase } from "./lib/supabase.js";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -177,6 +178,7 @@ const navGroups = [
 
 function Sidebar({
   activePage,
+  canAccessPage,
   onNavigate,
   mobileOpen,
   onClose,
@@ -193,6 +195,13 @@ function Sidebar({
       activePage === "Product Purchase History" ||
       activePage === "Product Sales History",
   });
+  const visibleNavGroups = navGroups.map((group) => ({
+    ...group,
+    items: group.items.map((item) => ({
+      ...item,
+      children: item.children?.filter((child) => canAccessPage(child.page || child.label)),
+    })).filter((item) => canAccessPage(item.label) || Boolean(item.children?.length)),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -228,7 +237,7 @@ function Sidebar({
         </div>
 
         <nav className="sidebar-nav">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <div className="nav-group" key={group.title}>
               <p className="nav-group-title">{tr(locale, group.title)}</p>
 
@@ -678,8 +687,88 @@ function PlaceholderPage({ title, locale }) {
    MAIN APP
 ========================================================= */
 
+const pagePermissionOptions = {
+  Dashboard: ["dashboard.view"],
+  Settings: ["settings.manage", "users.view", "users.manage", "roles.manage"],
+  "Point of Sale": ["sales.create"],
+  "Sales History": ["sales.view"],
+  Purchases: ["purchases.view", "purchases.create"],
+  "Purchase History": ["purchases.view"],
+  Products: ["products.view"],
+  "Product Purchase History": ["products.view"],
+  "Product Sales History": ["products.view"],
+  Categories: ["products.view"],
+  Orders: ["sales.view"],
+  "Suppliers List": ["suppliers.view", "suppliers.create", "suppliers.edit", "suppliers.delete"],
+  "Supplier Debts": ["suppliers.debts.view"],
+  Customers: ["customers.view", "customers.create", "customers.edit", "customers.delete"],
+  "Cash Register": ["cash_register.view", "cash_register.manage", "cash_register.open_drawer", "cash_register.close"],
+  Reports: ["reports.view", "profits.view"],
+};
+
 export default function App({ onLogout, currentUser }) {
   const [activePage, setActivePage] = useState("Dashboard");
+  const [workspaceAccess, setWorkspaceAccess] = useState({ loading: true, error: "", profile: null, permissionCodes: [] });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadWorkspaceAccess() {
+      if (!currentUser?.id) {
+        setWorkspaceAccess({ loading: false, error: "No authenticated user was found.", profile: null, permissionCodes: [] });
+        return;
+      }
+      setWorkspaceAccess((previous) => ({ ...previous, loading: true, error: "" }));
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_id, organization_id, role_id, full_name, is_owner, status")
+          .eq("user_id", currentUser.id)
+          .single();
+        if (profileError) throw profileError;
+        if (!profile || profile.status !== "active") throw new Error("This workspace account is missing or disabled.");
+
+        const { data: permissions, error: permissionsError } = await supabase
+          .from("permissions")
+          .select("id, code");
+        if (permissionsError) throw permissionsError;
+
+        let permissionCodes = [];
+        if (profile.is_owner) {
+          permissionCodes = (permissions || []).map((permission) => permission.code);
+        } else if (profile.role_id) {
+          const { data: rolePermissions, error: rolePermissionsError } = await supabase
+            .from("role_permissions")
+            .select("permission_id")
+            .eq("role_id", profile.role_id);
+          if (rolePermissionsError) throw rolePermissionsError;
+          const assignedIds = new Set((rolePermissions || []).map((item) => item.permission_id));
+          permissionCodes = (permissions || []).filter((permission) => assignedIds.has(permission.id)).map((permission) => permission.code);
+        }
+        if (!cancelled) setWorkspaceAccess({ loading: false, error: "", profile, permissionCodes });
+      } catch (error) {
+        console.error("Unable to load workspace access:", error);
+        if (!cancelled) setWorkspaceAccess({ loading: false, error: error?.message || "Could not load this account's permissions.", profile: null, permissionCodes: [] });
+      }
+    }
+    loadWorkspaceAccess();
+    return () => { cancelled = true; };
+  }, [currentUser?.id]);
+
+  const canAccessPage = (page) => {
+    if (workspaceAccess.profile?.is_owner) return true;
+    const required = pagePermissionOptions[page] || [];
+    return required.some((code) => workspaceAccess.permissionCodes.includes(code));
+  };
+  const navigateToPage = (page) => {
+    if (canAccessPage(page)) setActivePage(page);
+    else window.alert("Access denied: your assigned role does not allow this section.");
+  };
+
+  useEffect(() => {
+    if (workspaceAccess.loading || workspaceAccess.error || canAccessPage(activePage)) return;
+    const fallback = ["Dashboard", "Point of Sale", "Products", "Purchases", "Customers", "Cash Register", "Settings"].find((page) => canAccessPage(page));
+    if (fallback) setActivePage(fallback);
+  }, [workspaceAccess.loading, workspaceAccess.error, workspaceAccess.profile, workspaceAccess.permissionCodes, activePage]);
   const [locale, setLocale] = useState(() => {
     try { const saved = window.localStorage.getItem("veltro-language"); return ["en","fr","ar"].includes(saved) ? saved : "en"; }
     catch { return "en"; }
@@ -758,6 +847,13 @@ export default function App({ onLogout, currentUser }) {
     }
   };
 
+  if (workspaceAccess.loading) {
+    return <div className="auth-loading-screen" role="status">Loading your workspace permissions…</div>;
+  }
+  if (workspaceAccess.error) {
+    return <div className="auth-loading-screen" role="alert"><p>Unable to load your workspace account: {workspaceAccess.error}</p><button type="button" onClick={onLogout}>Sign out</button></div>;
+  }
+
   return (
     <div
       className={`app-shell ${
@@ -770,7 +866,8 @@ export default function App({ onLogout, currentUser }) {
           activePage={activePage}
           locale={locale}
           onLocaleChange={setLocale}
-          onNavigate={setActivePage}
+          onNavigate={navigateToPage}
+          canAccessPage={canAccessPage}
           onLogout={onLogout}
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
@@ -803,7 +900,7 @@ export default function App({ onLogout, currentUser }) {
           ) : activePage === "Dashboard" ? (
             <Dashboard onNavigate={setActivePage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
-            <POS />
+            <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} />
           ) : activePage === "Products" ? (
             <Products />
           ) : activePage === "Sales History" ? (
