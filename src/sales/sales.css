@@ -2620,3 +2620,167 @@
  .pos-page .pending-invoices-list-heading { padding-right:8px; padding-left:8px; }
 }
 @media print { .pos-page .pending-invoices-backdrop { display:none !important; } }
+
+
+/* Dedicated POS full-screen mode: browser restores the original app on exit. */
+.pos-heading {
+  flex-wrap: wrap;
+}
+
+.pos-fullscreen-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid rgba(53, 214, 194, 0.38);
+  border-radius: 10px;
+  background: rgba(53, 214, 194, 0.1);
+  color: var(--pos-turquoise);
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.pos-fullscreen-button:hover {
+  background: rgba(53, 214, 194, 0.18);
+  border-color: var(--pos-turquoise);
+}
+
+.pos-page:fullscreen,
+.pos-page.pos-fullscreen-active {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  padding: 12px 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 0;
+  background:
+    radial-gradient(ellipse at 85% 0%, rgba(53, 214, 194, 0.07), transparent 35%),
+    radial-gradient(ellipse at 0% 45%, rgba(167, 139, 250, 0.045), transparent 35%),
+    var(--pos-bg);
+}
+
+.pos-page:fullscreen .pos-heading,
+.pos-page.pos-fullscreen-active .pos-heading {
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.pos-page:fullscreen .pos-heading h1,
+.pos-page.pos-fullscreen-active .pos-heading h1 {
+  font-size: 22px;
+}
+
+.pos-page:fullscreen .pos-heading p,
+.pos-page.pos-fullscreen-active .pos-heading p {
+  display: none;
+}
+
+.pos-page:fullscreen .pos-eyebrow,
+.pos-page.pos-fullscreen-active .pos-eyebrow {
+  margin-bottom: 3px;
+}
+
+.pos-page:fullscreen .sales-toolbar,
+.pos-page.pos-fullscreen-active .sales-toolbar {
+  gap: 10px;
+  padding: 9px 12px;
+  margin-bottom: 12px;
+}
+
+.pos-page:fullscreen .sales-toolbar-button,
+.pos-page.pos-fullscreen-active .sales-toolbar-button {
+  min-height: 36px;
+  padding: 7px 10px;
+}
+
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  grid-template-columns: minmax(245px, 0.78fr) minmax(0, 2fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.pos-page:fullscreen .sales-sidebar,
+.pos-page.pos-fullscreen-active .sales-sidebar,
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry,
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section,
+.pos-page:fullscreen .invoice-summary,
+.pos-page.pos-fullscreen-active .invoice-summary {
+  padding: 13px;
+  border-radius: 11px;
+}
+
+.pos-page:fullscreen .sales-sidebar,
+.pos-page.pos-fullscreen-active .sales-sidebar,
+.pos-page:fullscreen .sales-workspace,
+.pos-page.pos-fullscreen-active .sales-workspace {
+  gap: 11px;
+}
+
+.pos-page:fullscreen .product-entry-header,
+.pos-page.pos-fullscreen-active .product-entry-header {
+  margin-bottom: 12px;
+}
+
+.pos-page:fullscreen .product-barcode-field,
+.pos-page.pos-fullscreen-active .product-barcode-field {
+  min-height: 46px;
+  margin-bottom: 12px;
+}
+
+.pos-page:fullscreen .product-barcode-field input,
+.pos-page.pos-fullscreen-active .product-barcode-field input {
+  min-height: 42px;
+}
+
+.pos-page:fullscreen .product-entry-fields,
+.pos-page.pos-fullscreen-active .product-entry-fields {
+  gap: 8px;
+}
+
+.pos-page:fullscreen .product-search-results,
+.pos-page.pos-fullscreen-active .product-search-results {
+  margin-top: 10px;
+}
+
+@media (max-width: 900px) {
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.5fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width: 680px) {
+  .pos-page:fullscreen,
+  .pos-page.pos-fullscreen-active {
+    padding: 8px;
+  }
+
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pos-page:fullscreen .sales-sidebar,
+  .pos-page.pos-fullscreen-active .sales-sidebar {
+    order: 2;
+  }
+
+  .pos-page:fullscreen .sales-workspace,
+  .pos-page.pos-fullscreen-active .sales-workspace {
+    order: 1;
+  }
+
+  .pos-fullscreen-button {
+    min-height: 36px;
+    padding: 7px 9px;
+  }
+}
