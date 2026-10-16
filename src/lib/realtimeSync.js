@@ -202,21 +202,52 @@ export async function refreshOrganizationCache(organizationId) {
       supabase.from("purchase_invoice_items").select("*").eq("organization_id", organizationId),
     ]);
 
-    for (const result of [productsResult, customersResult, suppliersResult, salesResult, saleItemsResult, purchasesResult, purchaseItemsResult]) {
-      if (result.error) throw result.error;
+    const results = [
+      ["products", productsResult],
+      ["customers", customersResult],
+      ["suppliers", suppliersResult],
+      ["sales invoices", salesResult],
+      ["sales items", saleItemsResult],
+      ["purchase invoices", purchasesResult],
+      ["purchase items", purchaseItemsResult],
+    ];
+    for (const [label, result] of results) {
+      if (result.error) console.warn(`VELTRO-PRO could not refresh ${label} (the current role may not have access):`, result.error.message);
     }
 
-    const saleRows = salesResult.data || [];
-    const completedSales = saleRows.filter((row) => row.status === "posted").map((row) => saleFromRow(row, saleItemsResult.data || []));
-    const pendingSales = saleRows.filter((row) => row.status === "pending").map((row) => saleFromRow(row, saleItemsResult.data || []));
-    const purchaseRows = purchasesResult.data || [];
+    const cacheIsEmpty = (key) => {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        return !Array.isArray(value) || value.length === 0;
+      } catch {
+        return true;
+      }
+    };
+    const shouldReplace = (key, result) => !result.error && (
+      (Array.isArray(result.data) && result.data.length > 0) || cacheIsEmpty(key)
+    );
 
-    writeCache("veltro_products", (productsResult.data || []).map(productFromRow));
-    writeCache("veltro_customers", (customersResult.data || []).map(customerFromRow));
-    writeCache("veltro_purchase_suppliers", (suppliersResult.data || []).map(supplierFromRow));
-    writeCache("veltro_completed_sales", completedSales);
-    writeCache("veltro_pending_invoices", pendingSales);
-    writeCache("veltro_purchase_invoices", purchaseRows.map((row) => purchaseFromRow(row, purchaseItemsResult.data || [])));
+    if (shouldReplace("veltro_products", productsResult)) {
+      writeCache("veltro_products", (productsResult.data || []).map(productFromRow));
+    }
+    if (shouldReplace("veltro_customers", customersResult)) {
+      writeCache("veltro_customers", (customersResult.data || []).map(customerFromRow));
+    }
+    if (shouldReplace("veltro_purchase_suppliers", suppliersResult)) {
+      writeCache("veltro_purchase_suppliers", (suppliersResult.data || []).map(supplierFromRow));
+    }
+
+    if (!salesResult.error && !saleItemsResult.error && shouldReplace("veltro_completed_sales", salesResult)) {
+      const saleRows = salesResult.data || [];
+      const completedSales = saleRows.filter((row) => row.status === "posted").map((row) => saleFromRow(row, saleItemsResult.data || []));
+      const pendingSales = saleRows.filter((row) => row.status === "pending").map((row) => saleFromRow(row, saleItemsResult.data || []));
+      writeCache("veltro_completed_sales", completedSales);
+      writeCache("veltro_pending_invoices", pendingSales);
+    }
+
+    if (!purchasesResult.error && !purchaseItemsResult.error && shouldReplace("veltro_purchase_invoices", purchasesResult)) {
+      writeCache("veltro_purchase_invoices", (purchasesResult.data || []).map((row) => purchaseFromRow(row, purchaseItemsResult.data || [])));
+    }
 
     window.dispatchEvent(new CustomEvent("veltro:cloud-sync", {
       detail: { organizationId, refreshedAt: new Date().toISOString() },
