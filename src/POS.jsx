@@ -181,6 +181,31 @@ function translatePosMessage(message, locale = "en") {
     if (locale === "fr") return match[1] + " a " + match[2] + " DA d’impayés antérieurs.";
     if (locale === "ar") return "لدى " + match[1] + " ديون سابقة غير مدفوعة بقيمة " + match[2] + " دج.";
   }
+  if (message.startsWith("Added ") && message.endsWith(" to invoice.")) {
+    const productName = message.slice(6, message.length - " to invoice.".length);
+    if (locale === "fr") return productName + " ajouté à la facture.";
+    if (locale === "ar") return "تمت إضافة " + productName + " إلى الفاتورة.";
+  }
+  if (message.startsWith("Quantity updated for ")) {
+    const detail = message.slice("Quantity updated for ".length, -1);
+    const separator = detail.indexOf(": ");
+    if (separator >= 0) {
+      const productName = detail.slice(0, separator);
+      const values = detail.slice(separator + 2).split(" → ");
+      if (locale === "fr") return "Quantité de " + productName + " modifiée : " + (values[0] || "") + " → " + (values[1] || "") + ".";
+      if (locale === "ar") return "تم تغيير كمية " + productName + " من " + (values[0] || "") + " إلى " + (values[1] || "") + ".";
+    }
+  }
+  if (message.startsWith("Price updated for ")) {
+    const detail = message.slice("Price updated for ".length, -1);
+    const separator = detail.indexOf(": ");
+    if (separator >= 0) {
+      const productName = detail.slice(0, separator);
+      const values = detail.slice(separator + 2).replace(/ DA$/, "").split(" → ");
+      if (locale === "fr") return "Prix de " + productName + " modifié : " + (values[0] || "") + " → " + (values[1] || "") + " DA.";
+      if (locale === "ar") return "تم تغيير سعر " + productName + " من " + (values[0] || "") + " إلى " + (values[1] || "") + " دج.";
+    }
+  }
   return message;
 }
 
@@ -683,7 +708,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     }));
     setShowEmptyWarning(false);
     setRemovedItem(null);
-    notify(currentQuantity > 0 ? "Product quantity updated." : "Product added to invoice.", "success");
+    notify(currentQuantity > 0 ? "Quantity updated for " + inventoryProduct.name + ": " + currentQuantity + " → " + (currentQuantity + quantityToAdd) + "." : "Added " + inventoryProduct.name + " to invoice.", "success");
   };
 
   const updateItem = (id, field, value) => {
@@ -732,7 +757,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         updatedAt: new Date().toISOString(),
       }));
 
-      notify("Product quantity updated.", "success");
+      notify("Quantity updated for " + currentItem.name + ": " + getQuantity(currentItem) + " → " + quantity + ".", "success");
       return;
     }
 
@@ -762,7 +787,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         updatedAt: new Date().toISOString(),
       }));
 
-      if (field === "price") notify("Product price updated.", "success");
+      if (field === "price") notify("Price updated for " + currentItem.name + ": " + previousValue.toFixed(2) + " → " + nextValue.toFixed(2) + " DA.", "success");
     }
   };
 
