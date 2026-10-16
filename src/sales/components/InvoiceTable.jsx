@@ -83,7 +83,7 @@ function EditableQuantityInput({ item, value, onCommit }) {
   }, [value]);
 
   const commit = () => {
-    const normalized = String(draft).trim();
+    const normalized = String(draft).trim().replace(",", ".");
     const numeric = normalized === "" ? NaN : Number(normalized);
 
     const isWeighed = item.weighedSale || item.unitLabel === "kg";
