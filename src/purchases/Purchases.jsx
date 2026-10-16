@@ -225,6 +225,7 @@ function ProductModal({
     sku: product?.sku || "",
     category: product?.category || "",
     unit: product?.unit || "piece",
+    weighedSale: Boolean(product?.weighedSale),
     piecesPerCarton: String(product?.piecesPerCarton || 1),
     stock: Number(product?.stock || 0),
     purchasePrice: String(product?.purchasePrice ?? ""),
@@ -486,6 +487,7 @@ function ProductModal({
         ],
         category: form.category || "Other",
         unit: form.unit || "piece",
+        weighedSale: Boolean(form.weighedSale),
         piecesPerCarton: Math.max(1, Number(form.piecesPerCarton) || 1),
         purchasePrice: unitCost,
         price: Math.max(0, Number(form.price) || 0),
@@ -505,6 +507,7 @@ function ProductModal({
         quantity: quantityValue,
         cartons: Math.max(0, Number(cartons) || 0),
         unit: form.unit,
+        weighedSale: Boolean(form.weighedSale),
         piecesPerCarton: Math.max(1, Number(form.piecesPerCarton) || 1),
         unitPrice: unitCost,
         cartonPrice: Math.max(0, Number(buyCarton) || 0),
@@ -696,6 +699,12 @@ function ProductModal({
             <h3>Additional Details</h3>
           </div>
           <div className="purchase-product-fields">
+            <div className="purchase-product-full purchase-product-weighed-toggle">
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                <input type="checkbox" checked={Boolean(form.weighedSale)} onChange={e => update("weighedSale", e.target.checked)} style={{ width: 18, height: 18, marginTop: 2, accentColor: "#35D6D0" }} />
+                <span><strong>Sell by measured quantity</strong><small style={{ display: "block", marginTop: 4, opacity: .75 }}>Enable weight, volume, or length-based sales. The selling price is per selected unit.</small></span>
+              </label>
+            </div>
             <Field label="Unit of Measure">
               <div className="purchase-input-actions">
                 <select value={form.unit} onChange={e => update("unit", e.target.value)}>
