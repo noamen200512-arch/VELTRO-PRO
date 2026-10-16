@@ -40,6 +40,7 @@ import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
 import SettingsPage from "./Settings.jsx";
 import { supabase } from "./lib/supabase.js";
+import { startOrganizationRealtimeSync } from "./lib/realtimeSync.js";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -753,6 +754,18 @@ export default function App({ onLogout, currentUser }) {
     loadWorkspaceAccess();
     return () => { cancelled = true; };
   }, [currentUser?.id]);
+
+  useEffect(() => {
+    const organizationId = workspaceAccess.profile?.organization_id;
+    if (!organizationId || workspaceAccess.loading || workspaceAccess.error) return undefined;
+
+    const stopSync = startOrganizationRealtimeSync({
+      organizationId,
+      userId: currentUser?.id,
+    });
+
+    return () => stopSync?.();
+  }, [workspaceAccess.profile?.organization_id, workspaceAccess.loading, workspaceAccess.error, currentUser?.id]);
 
   const workspaceUser = workspaceAccess.profile
     ? {
