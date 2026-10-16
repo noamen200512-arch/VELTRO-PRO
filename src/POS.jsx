@@ -1352,17 +1352,43 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     window.print();
   };
 
-  const toggleFullscreen = () => {
-    setIsFullscreen((current) => !current);
+  const toggleFullscreen = async () => {
+    const page = posPageRef.current;
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+      if (page && typeof page.requestFullscreen === "function") {
+        await page.requestFullscreen({ navigationUI: "hide" });
+      } else {
+        // Fallback for browsers without the Fullscreen API.
+        setIsFullscreen((current) => !current);
+      }
+    } catch (error) {
+      console.warn("Native fullscreen was unavailable; using app fullscreen:", error);
+      setIsFullscreen((current) => !current);
+    }
   };
+
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      setIsFullscreen(document.fullscreenElement === posPageRef.current);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
+  }, []);
 
 
   useEffect(() => {
     const handler = (e) => {
       const target = e.target;
       const stop = () => { e.preventDefault(); e.stopPropagation(); };
-      if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === "i") {
-        stop(); setShowShortcutsHelp((current) => !current); return;
+      if (e.ctrlKey && !e.altKey && !e.metaKey && (e.code === "KeyI" || String(e.key || "").toLowerCase() === "i")) {
+        stop();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        setShowShortcutsHelp((current) => !current);
+        return;
       }
       if (showShortcutsHelp) { if (e.key === "Escape") { stop(); setShowShortcutsHelp(false); } return; }
       const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
