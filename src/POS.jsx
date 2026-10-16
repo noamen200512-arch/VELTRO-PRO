@@ -1566,7 +1566,30 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
-          onPending={() => { if (!closedInvoiceMode) setShowPending((current) => !current); }}
+          onPending={() => {
+            if (closedInvoiceMode === "review") {
+              // Leave read-only closed-invoice browsing before opening pending invoices.
+              const previousInvoice = invoiceBeforeClosedBrowseRef.current;
+              if (previousInvoice) setInvoice(previousInvoice);
+              setClosedInvoiceMode(null);
+              setClosedInvoiceIndex(-1);
+              invoiceBeforeClosedBrowseRef.current = null;
+              setShowPending(true);
+              return;
+            }
+            if (closedInvoiceMode === "editing") {
+              notify(
+                locale === "ar"
+                  ? "ألغِ تعديل البون المغلق أو أكمله قبل فتح البونات المعلّقة."
+                  : locale === "fr"
+                    ? "Annulez ou terminez la modification de la facture avant d’ouvrir les factures en attente."
+                    : "Cancel or complete the closed-invoice edit before opening pending invoices.",
+                "info"
+              );
+              return;
+            }
+            setShowPending((current) => !current);
+          }}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
           newDisabled={items.length === 0}
