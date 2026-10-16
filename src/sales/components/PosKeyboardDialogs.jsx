@@ -11,6 +11,7 @@ const COPY = {
     priceTitle: "Below-cost warning", priceText: "The selling price is below the purchase cost. Apply this price anyway?",
     requested: "Requested quantity", availableQty: "Available quantity", cost: "Purchase cost", selling: "Selling price",
     noProducts: "No matching products.", noSelection: "Select a product row first.", cartonUnavailable: "Carton size is not configured for this product.",
+    before: "Before", after: "After", currentQuantity: "Current quantity", newQuantity: "New quantity", currentPrice: "Current unit price", newPrice: "New unit price", lineTotal: "Line total", unchanged: "Changes are applied only after confirmation.",
     outTag: "OUT", lowTag: "LOW"
   },
   fr: {
@@ -22,6 +23,7 @@ const COPY = {
     priceTitle: "Alerte de vente à perte", priceText: "Le prix de vente est inférieur au coût d'achat. Appliquer ce prix quand même ?",
     requested: "Quantité demandée", availableQty: "Quantité disponible", cost: "Coût d'achat", selling: "Prix de vente",
     noProducts: "Aucun produit correspondant.", noSelection: "Sélectionnez d'abord une ligne de produit.", cartonUnavailable: "Le format carton n'est pas configuré pour ce produit.",
+    before: "Avant", after: "Après", currentQuantity: "Quantité actuelle", newQuantity: "Nouvelle quantité", currentPrice: "Prix unitaire actuel", newPrice: "Nouveau prix unitaire", lineTotal: "Total de la ligne", unchanged: "Les changements seront appliqués après confirmation.",
     outTag: "ÉPUISÉ", lowTag: "FAIBLE"
   },
   ar: {
@@ -33,6 +35,7 @@ const COPY = {
     priceTitle: "تنبيه البيع بأقل من التكلفة", priceText: "سعر البيع أقل من سعر الشراء. هل تريد اعتماد هذا السعر؟",
     requested: "الكمية المطلوبة", availableQty: "الكمية المتوفرة", cost: "سعر الشراء", selling: "سعر البيع",
     noProducts: "لا توجد منتجات مطابقة.", noSelection: "حدد صف المنتج أولًا.", cartonUnavailable: "لم يتم إعداد عدد القطع في الكرتونة لهذا المنتج.",
+    before: "قبل التعديل", after: "بعد التعديل", currentQuantity: "الكمية الحالية", newQuantity: "الكمية الجديدة", currentPrice: "سعر الوحدة الحالي", newPrice: "سعر الوحدة الجديد", lineTotal: "إجمالي السطر", unchanged: "لن تُطبّق التغييرات إلا بعد التأكيد.",
     outTag: "نفد", lowTag: "منخفض"
   }
 };
@@ -59,6 +62,15 @@ export function PosKeyboardDialogs({
   const selectedProduct = pageRows[Math.min(selectedProductIndex, Math.max(0, pageRows.length - 1))] || null;
   const stockOf = (p) => Number(p?.stock) || 0;
   const thresholdOf = (p) => Math.max(1, Number(p?.lowStockThreshold ?? p?.minStock ?? p?.minimumStock ?? p?.alertStock) || 5);
+  const currentQty = Math.max(0, Number(selectedItem?.quantity ?? selectedItem?.qty) || 0);
+  const currentPrice = Math.max(0, Number(selectedItem?.price) || 0);
+  const itemProductId = selectedItem?.productId ?? selectedItem?.product_id ?? selectedItem?.id;
+  const itemProduct = products.find((p) => String(p.id ?? p.productId) === String(itemProductId)) || selectedItem;
+  const cartonSize = Math.max(1, Number(itemProduct?.piecesPerCarton ?? itemProduct?.unitsPerCarton ?? selectedItem?.piecesPerCarton) || 1);
+  const cartonPrice = Math.max(0, Number(itemProduct?.cartonPrice ?? selectedItem?.cartonPrice) || 0);
+  const previewQty = dialog === "quantity" && Number(quantityDraft) > 0 ? Number(quantityDraft) : currentQty;
+  const previewPrice = dialog === "price" && Number(String(priceDraft).replace(",", ".")) >= 0 ? Number(String(priceDraft).replace(",", ".")) : currentPrice;
+  const moneyFormat = (n) => format(n) + " DA";
   const format = (n) => (Number(n) || 0).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 });
   const [keypadReplace, setKeypadReplace] = React.useState(true);
   React.useEffect(() => { setKeypadReplace(true); }, [dialog]);
@@ -109,14 +121,29 @@ export function PosKeyboardDialogs({
           <footer className="pos-keyboard-footer"><span>{t.page} {page} {t.of} {pageCount} · {filtered.length}</span><div><button type="button" onClick={() => { setProductPage(Math.max(1, page - 1)); setSelectedProductIndex(0); }} disabled={page <= 1}><ChevronLeft size={15}/>{t.previous}</button><button type="button" onClick={() => { setProductPage(Math.min(pageCount, page + 1)); setSelectedProductIndex(0); }} disabled={page >= pageCount}>{t.next}<ChevronRight size={15}/></button><button type="button" className="primary" disabled={!selectedProduct} onClick={() => selectedProduct && onSelectProduct(selectedProduct)}><Check size={15}/>{t.choose}</button></div></footer>
         </>}
 
-        {dialog === "options" && <div className="pos-keyboard-options">
-          <div className="pos-keyboard-selected-product"><Package size={21}/><div><small>{t.selected} · {selectedCartIndex + 1}</small><strong>{selectedItem?.name || t.noSelection}</strong><span>{t.stock}: {format(stockOf(products.find((p) => String(p.id) === String(selectedItem?.productId ?? selectedItem?.id)) || selectedItem))}</span></div></div>
-          <button type="button" onClick={onOpenQuantity}><Calculator size={18}/><span>{t.editQty}</span><kbd>F7</kbd></button>
-          <button type="button" onClick={onOpenPrice}><Banknote size={18}/><span>{t.editPrice}</span><kbd>F8</kbd></button>
-          <button type="button" onClick={onConvertCarton}><Boxes size={18}/><span>{t.carton}</span><kbd>F6</kbd></button>
+        {dialog === "options" && <div className="pos-keyboard-options pos-keyboard-options-redesigned">
+          <div className="pos-keyboard-selected-product pos-keyboard-product-hero"><Package size={23}/><div><small>{t.selected} · {selectedCartIndex + 1}</small><strong>{selectedItem?.name || t.noSelection}</strong><span>{t.stock}: {format(stockOf(itemProduct))}</span></div></div>
+          <div className="pos-keyboard-comparison">
+            <div className="pos-keyboard-comparison-heading"><span>{t.before}</span><span>{t.after}</span></div>
+            <div className="pos-keyboard-comparison-row"><span><small>{t.currentQuantity}</small><strong>{format(currentQty)}</strong></span><span><small>{t.newQuantity}</small><strong>{format(cartonSize)}</strong></span></div>
+            <div className="pos-keyboard-comparison-row"><span><small>{t.currentPrice}</small><strong>{moneyFormat(currentPrice)}</strong></span><span><small>{t.newPrice}</small><strong>{moneyFormat(cartonSize > 1 && cartonPrice > 0 ? cartonPrice / cartonSize : currentPrice)}</strong></span></div>
+            <div className="pos-keyboard-comparison-total"><span>{t.lineTotal}</span><strong>{moneyFormat(currentQty * currentPrice)} <ChevronRight size={14}/> {moneyFormat(cartonSize * (cartonSize > 1 && cartonPrice > 0 ? cartonPrice / cartonSize : currentPrice))}</strong></div>
+          </div>
+          <p className="pos-keyboard-no-change">{t.unchanged}</p>
+          <div className="pos-keyboard-options-actions">
+            <button type="button" onClick={onOpenQuantity}><Calculator size={18}/><span>{t.editQty}</span><kbd>F7</kbd></button>
+            <button type="button" onClick={onOpenPrice}><Banknote size={18}/><span>{t.editPrice}</span><kbd>F8</kbd></button>
+            <button type="button" onClick={onConvertCarton}><Boxes size={18}/><span>{t.carton}</span><kbd>F6</kbd></button>
+          </div>
         </div>}
 
-        {(dialog === "quantity" || dialog === "price") && <div className="pos-keyboard-editor">
+        {(dialog === "quantity" || dialog === "price") && <div className="pos-keyboard-editor pos-keyboard-editor-redesigned">
+          <div className="pos-keyboard-comparison pos-keyboard-live-comparison">
+            <div className="pos-keyboard-comparison-heading"><span>{t.before}</span><span>{t.after}</span></div>
+            <div className="pos-keyboard-comparison-row"><span><small>{t.currentQuantity}</small><strong>{format(currentQty)}</strong></span><span><small>{t.newQuantity}</small><strong>{format(previewQty)}</strong></span></div>
+            <div className="pos-keyboard-comparison-row"><span><small>{t.currentPrice}</small><strong>{moneyFormat(currentPrice)}</strong></span><span><small>{t.newPrice}</small><strong>{moneyFormat(previewPrice)}</strong></span></div>
+            <div className="pos-keyboard-comparison-total"><span>{t.lineTotal}</span><strong>{moneyFormat(currentQty * currentPrice)} <ChevronRight size={14}/> {moneyFormat(previewQty * previewPrice)}</strong></div>
+          </div>
           <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => { (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, "")); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
           <div className="pos-keyboard-keypad"><span>{t.keypad}</span><div>{keyButtons.map((key) => <button type="button" key={key} onClick={() => pushKey(key, dialog)}>{key}</button>)}</div></div>
           <footer className="pos-keyboard-footer"><span>{t.enter} · {t.esc}</span><button type="button" className="primary" onClick={() => dialog === "quantity" ? onApplyQuantity(quantityDraft) : onApplyPrice(priceDraft)}><Check size={15}/>{t.confirm}</button></footer>
