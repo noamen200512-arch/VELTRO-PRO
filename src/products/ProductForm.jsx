@@ -121,9 +121,9 @@ export default function ProductForm({
 
         <Section icon={ShoppingCart} title="Purchase Information">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))", gap: 13 }}>
-            <Field label="Purchase Price per Carton (DA)">
+            {!form.weighedSale && <Field label="Purchase Price per Carton (DA)">
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.purchaseCartonPrice} onChange={(e) => updateField("purchaseCartonPrice", e.target.value)} placeholder="0.00" />
-            </Field>
+            </Field>}
             <Field label={form.weighedSale ? `Purchase Price per ${form.unit || "kg"} (DA)` : "Purchase Price per Unit (DA)"}>
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.purchasePrice} onChange={(e) => updateField("purchasePrice", e.target.value)} placeholder="0.00" />
             </Field>
@@ -139,12 +139,14 @@ export default function ProductForm({
             <Field label="Manual Unit Profit Margin (%)">
               <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.retailProfit} onChange={(e) => updateField("retailProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
             </Field>
-            <Field label="Carton Selling Price (DA)">
-              <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.cartonPrice} onChange={(e) => updateField("cartonPrice", e.target.value)} placeholder="0.00" />
-            </Field>
-            <Field label="Manual Carton Profit Margin (%)">
-              <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.cartonProfit} onChange={(e) => updateField("cartonProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
-            </Field>
+            {!form.weighedSale && <>
+              <Field label="Carton Selling Price (DA)">
+                <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.cartonPrice} onChange={(e) => updateField("cartonPrice", e.target.value)} placeholder="0.00" />
+              </Field>
+              <Field label="Manual Carton Profit Margin (%)">
+                <div style={{ position: "relative" }}><input className="veltro-product-input" style={{ ...inputStyle, paddingRight: 35 }} type="number" step="any" value={form.cartonProfit} onChange={(e) => updateField("cartonProfit", e.target.value)} placeholder="0.00" /><Percent size={15} color={C.muted} style={{ position: "absolute", right: 12, top: 13, pointerEvents: "none" }} /></div>
+              </Field>
+            </>}
           </div>
           <div style={{ color: C.muted, fontSize: 11, marginTop: 10 }}>You can type the profit percentage yourself. The selling price updates automatically from the entered margin; you can also type the selling price directly.</div>
         </Section>
