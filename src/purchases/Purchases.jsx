@@ -1272,9 +1272,14 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     if (match) {
       openProductForPurchase(match);
     } else {
-      setProductPickerSearch(code);
-      setShowProductPicker(true);
-      setNotice("Barcode not found. Search for the product or create a new one.");
+      // A scanned unknown barcode should immediately open the purchase product form,
+      // with the scanned code prefilled as the primary barcode.
+      setEditingPurchaseLine(null);
+      setEditProduct({ barcode: code });
+      setShowProductPicker(false);
+      setProductPickerSearch("");
+      setShowProductModal(true);
+      setNotice("Barcode not found. Add the new product details to continue.");
     }
   };
 
