@@ -1432,7 +1432,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     if (closedInvoiceMode === null) {
       invoiceBeforeClosedBrowseRef.current = { ...invoice, items: (invoice.items || []).map(item => ({ ...item })) };
       saveAutoSavedDraft({ ...invoice, status: "Draft", subtotal, total, paid, remaining });
-      const firstIndex = direction === "previous" ? 0 : sales.length - 1;
+      const firstIndex = 0;
       setClosedInvoiceIndex(firstIndex);
       setInvoice({ ...sales[firstIndex], status: "Completed", items: (sales[firstIndex].items || []).map(item => ({ ...item })) });
       setClosedInvoiceMode("review");
@@ -1578,21 +1578,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         </button>
       </header>
 
-      {closedInvoiceMode && selectedClosedInvoice && (
-        <section className={`closed-invoice-inline-nav ${isReviewingClosedInvoice ? "is-reviewing" : "is-editing"}`} dir={locale === "ar" ? "rtl" : "ltr"} aria-label={locale === "ar" ? "التنقل بين البونات المغلقة" : "Navigate closed invoices"}>
-          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("previous")} disabled={closedInvoiceIndex >= closedInvoices.length - 1} title={locale === "ar" ? "البون السابق" : locale === "fr" ? "Facture précédente" : "Previous closed invoice"}><ChevronLeft size={20}/></button>
+      {closedInvoices.length > 0 && (
+        <section className={`closed-invoice-inline-nav ${isReviewingClosedInvoice ? "is-reviewing" : isEditingClosedInvoice ? "is-editing" : ""}`} dir={locale === "ar" ? "rtl" : "ltr"} aria-label={locale === "ar" ? "التنقل بين البونات المغلقة" : "Navigate closed invoices"}>
+          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("previous")} disabled={closedInvoiceMode !== null && closedInvoiceIndex >= closedInvoices.length - 1} title={locale === "ar" ? "البون السابق" : locale === "fr" ? "Facture précédente" : "Previous closed invoice"}><ChevronLeft size={20}/></button>
           <div className="closed-invoice-inline-info">
-            <span className="closed-invoice-inline-status">{isReviewingClosedInvoice ? (locale === "ar" ? "مراجعة بون مغلق" : locale === "fr" ? "Consultation facture clôturée" : "Closed invoice review") : (locale === "ar" ? "تعديل بون مغلق" : locale === "fr" ? "Modification facture clôturée" : "Editing closed invoice")}</span>
-            <strong>{selectedClosedInvoice.invoiceNumber || selectedClosedInvoice.id}</strong>
-            <small>{closedInvoiceIndex + 1} / {closedInvoices.length} · {selectedClosedInvoice.customerName || "Anonyme"}</small>
+            <span className="closed-invoice-inline-status">{isReviewingClosedInvoice ? (locale === "ar" ? "مراجعة بون مغلق" : locale === "fr" ? "Consultation facture clôturée" : "Closed invoice review") : isEditingClosedInvoice ? (locale === "ar" ? "تعديل بون مغلق" : locale === "fr" ? "Modification facture clôturée" : "Editing closed invoice") : (locale === "ar" ? "التنقل بين البونات المغلقة" : locale === "fr" ? "Navigation des factures clôturées" : "Browse closed invoices")}</span>
+            <strong>{selectedClosedInvoice ? (selectedClosedInvoice.invoiceNumber || selectedClosedInvoice.id) : (locale === "ar" ? "اختر البون بالسهمين" : locale === "fr" ? "Choisissez une facture" : "Choose an invoice with the arrows")}</strong>
+            <small>{selectedClosedInvoice ? `${closedInvoiceIndex + 1} / ${closedInvoices.length} · ${selectedClosedInvoice.customerName || "Anonyme"}` : `${closedInvoices.length} ${locale === "ar" ? "بون مغلق" : locale === "fr" ? "factures clôturées" : "closed invoices"}`}</small>
           </div>
-          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("next")} disabled={closedInvoiceIndex <= 0} title={locale === "ar" ? "البون التالي" : locale === "fr" ? "Facture suivante" : "Next closed invoice"}><ChevronRight size={20}/></button>
-          {isReviewingClosedInvoice ? (
+          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("next")} disabled={closedInvoiceMode !== null && closedInvoiceIndex <= 0} title={locale === "ar" ? "البون التالي" : locale === "fr" ? "Facture suivante" : "Next closed invoice"}><ChevronRight size={20}/></button>
+          {isReviewingClosedInvoice && selectedClosedInvoice ? (
             <button type="button" className="closed-invoice-reopen" onClick={reopenSelectedClosedInvoice}><RotateCcw size={16}/>{locale === "ar" ? "إعادة فتح البون" : locale === "fr" ? "Rouvrir la facture" : "Reopen invoice"}</button>
-          ) : (
+          ) : isEditingClosedInvoice ? (
             <span className="closed-invoice-edit-hint">{locale === "ar" ? "احفظ التغييرات بزر إتمام البيع" : locale === "fr" ? "Enregistrez via Finaliser la vente" : "Save changes using Complete Sale"}</span>
-          )}
-          <button type="button" className="closed-invoice-return" onClick={returnToCurrentInvoice}>{locale === "ar" ? "العودة للبون الحالي" : locale === "fr" ? "Revenir à la facture actuelle" : "Return to current invoice"}</button>
+          ) : null}
+          {closedInvoiceMode && <button type="button" className="closed-invoice-return" onClick={returnToCurrentInvoice}>{locale === "ar" ? "العودة للبون الحالي" : locale === "fr" ? "Revenir à la facture actuelle" : "Return to current invoice"}</button>}
         </section>
       )}
 
