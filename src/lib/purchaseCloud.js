@@ -40,11 +40,36 @@ export async function savePurchaseInvoiceToCloud(invoice, suppliers = [], option
   }
 
   const { userId, organizationId } = await getAccount();
-  const supplier = suppliers.find(
+  const localSupplier = suppliers.find(
     item => invoice.supplierId && String(item.id) === String(invoice.supplierId)
   ) || suppliers.find(
     item => normalize(item.name) === normalize(invoice.supplier)
   );
+  let supplierId = null;
+  if (localSupplier?.id) {
+    const { data: cloudSupplier, error: supplierError } = await supabase
+      .from("suppliers")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("id", String(localSupplier.id))
+      .maybeSingle();
+    if (!supplierError && cloudSupplier) supplierId = String(cloudSupplier.id);
+  }
+
+  const requestedProductIds = [...new Set(invoice.lines
+    .map((line) => String(line.productId || ""))
+    .filter(Boolean))];
+  const validProductIds = new Set();
+  if (requestedProductIds.length) {
+    const { data: cloudProducts, error: productError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .in("id", requestedProductIds);
+    if (productError) throw productError;
+    for (const product of cloudProducts || []) validProductIds.add(String(product.id));
+  }
+
   const total = Math.max(0, Number(invoice.total) || 0);
   const paid = Math.max(0, Number(invoice.paid) || 0);
   const remaining = Math.max(0, Number(invoice.remaining ?? total - paid) || 0);
@@ -53,7 +78,7 @@ export async function savePurchaseInvoiceToCloud(invoice, suppliers = [], option
     id: String(invoice.id),
     organization_id: organizationId,
     invoice_number: String(invoice.number || invoice.id),
-    supplier_id: supplier?.id ? String(supplier.id) : null,
+    supplier_id: supplierId,
     supplier_name: String(invoice.supplier || ""),
     employee_id: userId,
     status: "posted",
@@ -94,7 +119,7 @@ export async function savePurchaseInvoiceToCloud(invoice, suppliers = [], option
       id: stableLineId,
       organization_id: organizationId,
       invoice_id: String(invoice.id),
-      product_id: line.productId ? String(line.productId) : null,
+      product_id: line.productId && validProductIds.has(String(line.productId)) ? String(line.productId) : null,
       product_name: String(line.name || ""),
       sku: String(line.sku || ""),
       barcode: String(line.barcode || ""),
