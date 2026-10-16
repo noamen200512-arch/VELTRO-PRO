@@ -10,7 +10,7 @@ import { getProducts, saveProducts, createProductId } from "../productStore.js";
 import { loadProductsFromCloud } from "../lib/productCloud.js";
 import { saveProductsToCloud } from "../lib/productCloud.js";
 import { saveSuppliersToCloud } from "../lib/supplierCloud.js";
-import { savePurchaseInvoiceToCloud } from "../lib/purchaseCloud.js";
+import { savePurchaseInvoiceToCloud, deletePurchaseInvoiceFromCloud } from "../lib/purchaseCloud.js";
 import {
   getPurchaseInvoices,
   getPurchaseSuppliers,
@@ -1674,6 +1674,10 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
     if (savePurchaseInvoices(next)) {
       setInvoices(next);
       setNotice("Invoice record deleted. Inventory was not adjusted automatically.");
+      void deletePurchaseInvoiceFromCloud(invoice.id).catch((error) => {
+        console.error("VELTRO-PRO could not sync the deleted purchase invoice:", error);
+        setNotice("Invoice was deleted on this device, but cloud synchronization failed.");
+      });
     }
   };
 
