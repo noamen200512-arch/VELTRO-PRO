@@ -118,6 +118,8 @@ function EditableQuantityInput({ item, value, onCommit }) {
 
 export function InvoiceTable({
   items = [],
+  selectedIndex = -1,
+  onSelectRow,
   onUpdate,
   onRemove,
   onUndoRemove,
@@ -270,7 +272,11 @@ export function InvoiceTable({
                 const looseUnits = quantity % cartonSize;
 
                 return (
-                  <tr key={item.id ?? index}>
+                  <tr
+                    key={item.id ?? index}
+                    className={selectedIndex === index ? "invoice-row-keyboard-selected" : ""}
+                    onClick={() => onSelectRow?.(index)}
+                  >
                     <td className="invoice-product-cell">
                       <div className="invoice-product-icon">
                         {item.image ? (
