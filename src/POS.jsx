@@ -8,6 +8,7 @@ import { ProductEntry } from "./sales/components/ProductEntry";
 import { InvoiceTable } from "./sales/components/InvoiceTable";
 import { InvoiceSummary } from "./sales/components/InvoiceSummary";
 import { PosKeyboardDialogs } from "./sales/components/PosKeyboardDialogs";
+import PosQuickSaleDialogs from "./sales/components/PosQuickSaleDialogs";
 
 import {
   createInvoice,
@@ -346,6 +347,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     try { const stored = JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]"); return Array.isArray(stored) ? stored.map(String) : []; }
     catch { return []; }
   });
+  const [quickSaleDialog, setQuickSaleDialog] = useState(null);
+  const [weighedProductIds, setWeighedProductIds] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } });
+  const [weighedCategories, setWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; } });
+  const [weighedCategoryList, setWeighedCategoryList] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]'); return Array.isArray(v) && v.length ? v : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
+  const [poundGrams, setPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
   const [showPending, setShowPending] = useState(false);
   const [closedInvoiceMode, setClosedInvoiceMode] = useState(null);
   const [closedInvoiceIndex, setClosedInvoiceIndex] = useState(-1);
