@@ -42,7 +42,7 @@ const idOf = (p) => String(p?.id ?? p?.productId ?? p?.sku ?? "");
 const priceOf = (p) => Number(p?.price ?? p?.retailPrice ?? p?.sellingPrice ?? 0) || 0;
 
 export default function PosQuickSaleDialogs({
-  dialog, locale = "en", products = [], favoriteIds = [], weighedIds = [], categoriesByProduct = {},
+  dialog, locale = "en", products = [], favoriteIds = [], weighedIds = [], weighedLayout = [], categoriesByProduct = {},
   categories = ["Nuts", "Grains", "Spices", "Other"], visibleWeighedCategories = categories, poundGrams = 500,
   onClose = () => {}, onAddProduct = () => {}, onToggleFavorite = () => {},
   onSaveSettings = () => {}
@@ -91,12 +91,23 @@ export default function PosQuickSaleDialogs({
   const filtered = useMemo(() => products.filter((p) => {
     const id = idOf(p);
     if (dialog === "favorites" && !favoriteSet.has(id)) return false;
-    if (dialog === "weigh" && !(p.weighedSale || weighedSet.has(id))) return false;
+    if (dialog === "weigh" && !(p.weighedSale === true || p.weighedSale === "true")) return false;
     const q = normalize(search);
     if (q && ![p.name, p.id, p.productId, p.sku, p.reference, p.barcode].some((v) => normalize(v).includes(q))) return false;
     if (dialog === "weigh" && categoryFilter !== "all" && (categoriesByProduct[id] || p.category || "") !== categoryFilter) return false;
     return true;
   }), [products, dialog, favoriteSet, weighedSet, search, categoryFilter, categoriesByProduct]);
+  const orderedProducts = useMemo(() => {
+    if (dialog !== "weigh") return filtered;
+    const positions = new Map(weighedLayout.map((id, index) => [String(id), index]));
+    return [...filtered].sort((a, b) => {
+      const aId = idOf(a);
+      const bId = idOf(b);
+      const aPosition = positions.has(aId) ? positions.get(aId) : Number.MAX_SAFE_INTEGER;
+      const bPosition = positions.has(bId) ? positions.get(bId) : Number.MAX_SAFE_INTEGER;
+      return aPosition - bPosition || String(a.name || aId).localeCompare(String(b.name || bId));
+    });
+  }, [filtered, dialog, weighedLayout]);
   const selected = products.find((p) => idOf(p) === selectedId) || null;
   const unitPrice = selected ? priceOf(selected) : 0;
   const measureUnit = String(selected?.unit || "kg").toLowerCase();
@@ -143,7 +154,7 @@ export default function PosQuickSaleDialogs({
     {["1","2","3","4","5","6","7","8","9","⌫","0",".","C"].map((key) => <button type="button" key={key} onClick={() => keypad(key, setter, current)}>{key}</button>)}
   </div>;
   const productTiles = <div className="pos-quick-tiles">
-    {filtered.map((p) => <button type="button" key={idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); }}>
+    {orderedProducts.map((p) => <button type="button" key={idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); }}>
       <span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
     </button>)}
