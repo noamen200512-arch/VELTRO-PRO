@@ -3342,3 +3342,75 @@
     font-size: clamp(27px, 7vw, 36px);
   }
 }
+
+
+/* Adaptive POS inventory panel:
+   keep the product list inside the available viewport and scroll its rows,
+   rather than allowing the whole checkout layout to grow below the screen. */
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  align-items: stretch;
+}
+
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.pos-page:fullscreen .product-inventory-list,
+.pos-page.pos-fullscreen-active .product-inventory-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.pos-page:fullscreen .product-search-list,
+.pos-page.pos-fullscreen-active .product-search-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pos-turquoise) #0b111b;
+}
+
+.pos-page:fullscreen .product-search-results-header,
+.pos-page.pos-fullscreen-active .product-search-results-header,
+.pos-page:fullscreen .product-inventory-filters,
+.pos-page.pos-fullscreen-active .product-inventory-filters,
+.pos-page:fullscreen .product-inventory-pagination,
+.pos-page.pos-fullscreen-active .product-inventory-pagination {
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .pos-page:fullscreen .product-inventory-list,
+  .pos-page.pos-fullscreen-active .product-inventory-list {
+    flex: initial;
+    max-height: 48dvh;
+  }
+
+  .pos-page:fullscreen .product-search-list,
+  .pos-page.pos-fullscreen-active .product-search-list {
+    flex: initial;
+    max-height: 28dvh;
+  }
+}
