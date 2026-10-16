@@ -508,29 +508,40 @@ export default function POS({ currentUserName = "" } = {}) {
   };
 
   const addCarton = (item) => {
-    const productId = getProductId(item);
-
-    const inventoryProduct = getProducts().find(
-      (product) => String(product.id) === productId
-    );
+    // Accept both product cards and invoice rows (whose display id may differ
+    // from the real inventory id), then always use the saved inventory record.
+    const productId = String(item?.productId ?? item?.id ?? "").trim();
+    const inventory = getProducts();
+    const inventoryProduct = inventory.find((product) => {
+      const identifiers = [
+        product?.id,
+        product?.productId,
+        product?.sku,
+      ].map((value) => String(value ?? "").trim()).filter(Boolean);
+      return identifiers.includes(productId) ||
+        (item?.sku && String(product.sku ?? "").trim() === String(item.sku).trim()) ||
+        (item?.barcode && String(product.barcode ?? "").trim() === String(item.barcode).trim());
+    });
 
     if (!inventoryProduct) {
-      notify("Product not found in the current inventory.", "error");
+      notify("Product not found in the current inventory. Refresh the product list and try again.", "error");
       return;
     }
 
-    const cartonSize = Math.max(
-      1,
-      Math.floor(Number(inventoryProduct.piecesPerCarton) || 1)
-    );
+    const cartonSize = Math.floor(Number(
+      inventoryProduct.piecesPerCarton ??
+      inventoryProduct.unitsPerCarton ??
+      inventoryProduct.cartonQuantity
+    ) || 0);
 
-    if (cartonSize <= 1) {
-      notify("This product has no carton quantity configured.", "error");
+    if (cartonSize < 2) {
+      notify("Carton sale is not configured for this product. Set Units per Carton to at least 2 in Products, then save.", "error");
       return;
     }
 
-    const currentQuantity = items.reduce((sum, currentItem) => {
-      return getProductId(currentItem) === productId
+    const resolvedProductId = String(inventoryProduct.id ?? inventoryProduct.productId ?? productId);
+    const currentQuantity = (invoice.items || []).reduce((sum, currentItem) => {
+      return getProductId(currentItem) === resolvedProductId
         ? sum + getQuantity(currentItem)
         : sum;
     }, 0);
@@ -538,44 +549,34 @@ export default function POS({ currentUserName = "" } = {}) {
     const othersReserved = getPendingInvoices()
       .filter((pending) => pending.id !== invoice.id)
       .reduce((sum, pending) => {
-        return sum + (pending.items || []).reduce(
-          (itemSum, pendingItem) => {
-            return getProductId(pendingItem) === productId
-              ? itemSum + getQuantity(pendingItem)
-              : itemSum;
-          },
-          0
-        );
+        return sum + (pending.items || []).reduce((itemSum, pendingItem) => {
+          return getProductId(pendingItem) === resolvedProductId
+            ? itemSum + getQuantity(pendingItem)
+            : itemSum;
+        }, 0);
       }, 0);
 
-    const available = Math.max(
-      0,
-      money(inventoryProduct.stock) - othersReserved
-    );
+    const available = Math.max(0, money(inventoryProduct.stock) - othersReserved);
+    const remainingStock = Math.max(0, available - currentQuantity);
 
-    if (currentQuantity + cartonSize > available) {
+    if (cartonSize > remainingStock) {
       notify(
-        `${inventoryProduct.name}: a carton requires ${cartonSize} units, but only ${Math.max(
-          0,
-          available - currentQuantity
-        )} are available.`,
+        `${inventoryProduct.name}: one carton needs ${cartonSize} units, but only ${remainingStock} units are available for this invoice.`,
         "error"
       );
-
       return;
     }
 
     const cartonPrice = money(inventoryProduct.cartonPrice);
     const regularPrice = money(inventoryProduct.price);
-
     const cartonUnitPrice = roundPriceUp(
       cartonPrice > 0 ? cartonPrice / cartonSize : regularPrice
     );
 
     const cartonLine = {
       ...normalizeItem(inventoryProduct, cartonSize),
-      id: `${productId}-carton-${Date.now()}`,
-      productId,
+      id: `${resolvedProductId}-carton-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      productId: resolvedProductId,
       qty: cartonSize,
       quantity: cartonSize,
       price: cartonUnitPrice,
@@ -594,11 +595,10 @@ export default function POS({ currentUserName = "" } = {}) {
 
     setMessage("");
     setRemovedItem(null);
-
     notify(
       cartonPrice > 0
-        ? `Added one carton of ${inventoryProduct.name} at ${cartonPrice.toLocaleString()} DA.`
-        : `Added ${cartonSize} units of ${inventoryProduct.name}.`,
+        ? `Added one carton of ${inventoryProduct.name} (${cartonSize} units).`
+        : `Added one carton of ${inventoryProduct.name} as ${cartonSize} units at the unit price.`,
       "success"
     );
   };
