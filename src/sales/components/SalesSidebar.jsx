@@ -106,7 +106,7 @@ export function SalesSidebar({
         </div>
       </section>
 
-      <section className="sales-side-section">
+      <section className="sales-side-section sales-account-section">
         <div className="sales-section-heading">
           <Wallet size={18} />
           <h3>Customer &amp; Account</h3>
