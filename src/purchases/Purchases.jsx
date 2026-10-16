@@ -636,7 +636,7 @@ function ProductModal({
             <h3>Packaging Information</h3>
           </div>
           <div className="purchase-product-fields purchase-product-packaging">
-            {form.weighedSale ? <Field label={\`Quantity received (\${form.unit || "kg"})\`}>
+            {form.weighedSale ? <Field label={`Quantity received (${form.unit || "kg"})`}>
               <input type="number" min="0" step="0.001" value={quantity} onChange={e => setQuantity(e.target.value)} />
             </Field> : <>
               <Field label="Cartons Received">
