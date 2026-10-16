@@ -230,7 +230,9 @@ function ProductModal({
     price: String(product?.price ?? ""),
     wholesalePrice: String(product?.wholesalePrice ?? ""),
     cartonPrice: String(product?.cartonPrice ?? ""),
-    image: product?.image || ""
+    image: product?.image || "",
+    expiryDate: product?.expiryDate || "",
+    minStock: String(product?.minStock ?? 5)
   }));
 
   const [cartons, setCartons] = useState(String(initialPurchase?.cartons ?? "1"));
@@ -487,7 +489,9 @@ function ProductModal({
         price: Math.max(0, Number(form.price) || 0),
         wholesalePrice: Math.max(0, Number(form.wholesalePrice) || 0),
         cartonPrice: Math.max(0, Number(form.cartonPrice) || 0),
-        stock: Number(form.stock || 0)
+        stock: Number(form.stock || 0),
+        expiryDate,
+        minStock: Math.max(0, Number(minStock) || 0)
       },
       purchase: {
         ...(initialPurchase?.lineId ? { lineId: initialPurchase.lineId } : {}),
@@ -506,7 +510,9 @@ function ProductModal({
         wholesalePrice: Math.max(0, Number(form.wholesalePrice) || 0),
         productCartonPrice: Math.max(0, Number(form.cartonPrice) || 0),
         image: form.image || "",
-        productSnapshot: { ...form }
+        expiryDate,
+        minStock: Math.max(0, Number(minStock) || 0),
+        productSnapshot: { ...form, expiryDate, minStock: Math.max(0, Number(minStock) || 0) }
       }
     };
 
@@ -550,292 +556,197 @@ function ProductModal({
     }
   };
 
+  const [expiryDate, setExpiryDate] = useState(String(product?.expiryDate || ""));
+  const [minStock, setMinStock] = useState(String(product?.minStock ?? 5));
+  const [unitMargin, setUnitMargin] = useState(String(profit(form.price, buyUnit).toFixed(2)));
+  const [cartonMargin, setCartonMargin] = useState(String(profit(form.cartonPrice, buyCarton).toFixed(2)));
+
+  const updateRetailPrice = value => {
+    update("price", value);
+    setUnitMargin(String(profit(value, buyUnit).toFixed(2)));
+  };
+
+  const updateUnitMargin = value => {
+    setUnitMargin(value);
+    const cost = Number(buyUnit);
+    if (value !== "" && cost >= 0) {
+      update("price", String(Number((cost * (1 + Number(value) / 100)).toFixed(2))));
+    }
+  };
+
+  const updateCartonPrice = value => {
+    update("cartonPrice", value);
+    setCartonMargin(String(profit(value, buyCarton).toFixed(2)));
+  };
+
+  const updateCartonMargin = value => {
+    setCartonMargin(value);
+    const cost = Number(buyCarton);
+    if (value !== "" && cost >= 0) {
+      update("cartonPrice", String(Number((cost * (1 + Number(value) / 100)).toFixed(2))));
+    }
+  };
+
   return (
     <Modal
-      title={existing ? "Edit Product Details" : "Add Product to Purchase"}
-      subtitle="Changes remain temporary until the purchase invoice is successfully closed."
+      title={existing ? "Edit Product Details" : "Add New Purchase Product"}
+      subtitle="Enter the product and purchase information below."
       onClose={onCancel}
       wide
     >
-      <div className="purchase-form-grid">
-        <div className="purchase-section-title full">
-          <Package size={18} /> Product Details and Barcode
-        </div>
-
-        <Field label="Product Name">
-          <input
-            value={form.name}
-            onChange={e => update("name", e.target.value)}
-            placeholder="Product name"
-          />
-        </Field>
-
-        <Field label="Primary Barcode">
-          <div className="purchase-input-actions">
-            <input
-              value={form.barcode}
-              onChange={e => update("barcode", e.target.value)}
-              placeholder="Scan or enter barcode"
-            />
-            <Button onClick={generateBarcode} title="Generate EAN-13">
-              <Barcode size={17} />
-            </Button>
+      <div className="purchase-product-form">
+        <section className="purchase-product-section">
+          <div className="purchase-product-section-heading">
+            <span><Barcode size={17} /></span>
+            <h3>Product Identity</h3>
           </div>
-          <small className="purchase-muted">
-            Generated barcodes are internal identifiers, not official GS1 numbers.
-          </small>
-        </Field>
-
-        <div className="full">
-          <button
-            className="purchase-expand"
-            onClick={() => setShowAliases(v => !v)}
-          >
-            <span>Additional Barcodes ({form.barcodeAliases.length})</span>
-            {showAliases ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
-          </button>
-
-          {showAliases && (
-            <div className="purchase-alias-panel">
-              {form.barcodeAliases.map(code => (
-                <div className="purchase-alias-row" key={code}>
-                  <Barcode size={16} />
-                  <span>{code}</span>
-                  <button
-                    onClick={() =>
-                      update(
-                        "barcodeAliases",
-                        form.barcodeAliases.filter(item => item !== code)
-                      )
-                    }
-                    aria-label="Remove barcode"
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-              ))}
-
+          <div className="purchase-product-fields">
+            <Field label="Product Name *">
+              <input value={form.name} onChange={e => update("name", e.target.value)} placeholder="e.g. Mineral Water" required />
+            </Field>
+            <Field label="Primary Barcode">
               <div className="purchase-input-actions">
-                <input
-                  value={newAlias}
-                  onChange={e => setNewAlias(e.target.value)}
-                  placeholder="New additional barcode"
-                />
-                <Button onClick={() => addAlias()}>
-                  <Plus size={16} /> Add
-                </Button>
-
-                <label className="purchase-button secondary purchase-file-button">
-                  <Camera size={16} /> Scan Barcode
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="Enter scanner result here"
-                    onChange={e => {
-                      if (e.target.value.length >= 8) {
-                        addAlias(e.target.value);
-                        e.target.value = "";
-                      }
-                    }}
-                  />
-                </label>
+                <input value={form.barcode} onChange={e => update("barcode", e.target.value)} placeholder="Scan or type barcode" />
+                <Button onClick={generateBarcode} title="Generate barcode"><Barcode size={16} /></Button>
               </div>
+            </Field>
+            <Field label="Product Reference (SKU)">
+              <input value={form.sku} onChange={e => update("sku", e.target.value)} placeholder="e.g. PRD-004" />
+            </Field>
+            <div className="purchase-product-full purchase-product-barcode-card">
+              <div className="purchase-product-barcode-copy">
+                <strong>Secondary Barcodes</strong>
+                <span>Manage additional barcodes here.</span>
+              </div>
+              <Button onClick={() => setShowAliases(v => !v)}>{showAliases ? <ChevronUp size={16} /> : <ChevronDown size={16} />} Manage Barcodes ({form.barcodeAliases.length})</Button>
+              {showAliases && (
+                <div className="purchase-product-aliases">
+                  {form.barcodeAliases.map(code => (
+                    <div className="purchase-alias-row" key={code}>
+                      <Barcode size={15} /><span>{code}</span>
+                      <button type="button" onClick={() => update("barcodeAliases", form.barcodeAliases.filter(item => item !== code))} aria-label="Remove barcode"><X size={15} /></button>
+                    </div>
+                  ))}
+                  <div className="purchase-input-actions">
+                    <input value={newAlias} onChange={e => setNewAlias(e.target.value)} placeholder="New secondary barcode" />
+                    <Button onClick={() => addAlias()}><Plus size={15} /> Add</Button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {warning && (
-          <div className="purchase-alert warning full">
-            <AlertTriangle size={17} /> {warning}
           </div>
-        )}
+        </section>
 
-        <div className="purchase-section-title full">
-          <Truck size={18} /> Quantity and Purchase Cost
-        </div>
-
-        <Field label="Number of Cartons">
-          <input
-            type="number"
-            min="0"
-            value={cartons}
-            onChange={e => setCartonCount(e.target.value)}
-          />
-        </Field>
-
-        <Field label="Units per Carton">
-          <input
-            type="number"
-            min="1"
-            value={form.piecesPerCarton}
-            onChange={e => setPiecesPerCarton(e.target.value)}
-          />
-        </Field>
-
-        <Field label="Total Units">
-          <input
-            type="number"
-            min="0"
-            value={quantity}
-            onChange={e => setQuantity(e.target.value)}
-          />
-        </Field>
-
-        <Field label="Carton Purchase Price (DA)">
-          <input
-            type="number"
-            min="0"
-            value={buyCarton}
-            onChange={e => updateBuyCarton(e.target.value)}
-          />
-        </Field>
-
-        <Field label="Unit Purchase Price (DA)">
-          <input
-            type="number"
-            min="0"
-            value={buyUnit}
-            onChange={e => updateBuyUnit(e.target.value)}
-          />
-        </Field>
-
-        <div className="purchase-alert info full">
-          <Info size={17} />
-          Changes are temporary. Product details are saved and stock is updated when the invoice is successfully closed.
-        </div>
-
-        <div className="purchase-section-title full">
-          <CircleDollarSign size={18} /> Sale Prices and Profit Margins
-        </div>
-
-        <Field label="Retail Sale Price (DA)">
-          <input
-            type="number"
-            min="0"
-            value={form.price}
-            onChange={e => update("price", e.target.value)}
-          />
-          <small className="purchase-muted">
-            Profit: {profit(form.price, buyUnit).toFixed(2)}%
-          </small>
-        </Field>
-
-        <Field label="Wholesale Sale Price (DA)">
-          <input
-            type="number"
-            min="0"
-            value={form.wholesalePrice}
-            onChange={e => update("wholesalePrice", e.target.value)}
-          />
-          <small className="purchase-muted">
-            Profit: {profit(form.wholesalePrice, buyUnit).toFixed(2)}%
-          </small>
-        </Field>
-
-        <Field label="Carton Sale Price (Manual)">
-          <input
-            type="number"
-            min="0"
-            value={form.cartonPrice}
-            onChange={e => update("cartonPrice", e.target.value)}
-          />
-          <small className="purchase-muted">
-            Profit: {profit(form.cartonPrice, buyCarton).toFixed(2)}%
-          </small>
-        </Field>
-
-        <div className="purchase-section-title full">
-          <Package size={18} /> Category and Image
-        </div>
-
-        <Field label="Product Category">
-          <div className="purchase-input-actions">
-            <select
-              value={form.category}
-              onChange={e => update("category", e.target.value)}
-            >
-              <option value="">Select Category</option>
-              {categoryOptions.map(item => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
-            <Button onClick={() => addOption("category")}>
-              <Plus size={16} />
-            </Button>
+        <section className="purchase-product-section">
+          <div className="purchase-product-section-heading">
+            <span><Package size={17} /></span>
+            <h3>Packaging Information</h3>
           </div>
-        </Field>
-
-        <Field label="Unit of Measure">
-          <div className="purchase-input-actions">
-            <select
-              value={form.unit}
-              onChange={e => update("unit", e.target.value)}
-            >
-              {unitOptions.map(item => (
-                <option key={item} value={item}>{item}</option>
-              ))}
-            </select>
-            <Button onClick={() => addOption("unit")}>
-              <Plus size={16} />
-            </Button>
-          </div>
-        </Field>
-
-        <Field label="Product Reference (Optional)">
-          <input
-            value={form.sku}
-            onChange={e => update("sku", e.target.value)}
-            placeholder="Reference number"
-          />
-        </Field>
-
-        <div className="purchase-image-picker full">
-          {form.image ? (
-            <img src={form.image} alt={form.name || "Product"} />
-          ) : (
-            <div className="purchase-image-placeholder">
-              <Images size={28} />
-              <span>Product Image</span>
+          <div className="purchase-product-fields purchase-product-packaging">
+            <Field label="Cartons Received">
+              <input type="number" min="0" step="1" value={cartons} onChange={e => setCartonCount(e.target.value)} placeholder="0" />
+            </Field>
+            <Field label="Units per Carton">
+              <input type="number" min="1" step="1" value={form.piecesPerCarton} onChange={e => setPiecesPerCarton(e.target.value)} />
+            </Field>
+            <div className="purchase-product-total">
+              <span>Total Units</span>
+              <strong>{Math.max(0, Number(cartons) || 0) * Math.max(1, Number(form.piecesPerCarton) || 1)}</strong>
+              <small>{Math.max(0, Number(cartons) || 0)} × {Math.max(1, Number(form.piecesPerCarton) || 1)}</small>
             </div>
-          )}
-
-          <div className="purchase-image-actions">
-            <label className="purchase-button secondary">
-              <Images size={16} /> Choose from Gallery
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImage}
-              />
-            </label>
-
-            <label className="purchase-button secondary">
-              <Camera size={16} /> Take Photo
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImage}
-              />
-            </label>
-
-            {form.image && (
-              <Button
-                variant="danger"
-                onClick={() => update("image", "")}
-              >
-                <Trash2 size={16} /> Remove Image
-              </Button>
-            )}
           </div>
-        </div>
+          <div className="purchase-product-fields purchase-product-quantity-extra">
+            <Field label="Total Units (Editable)">
+              <input type="number" min="0" step="any" value={quantity} onChange={e => setQuantity(e.target.value)} />
+            </Field>
+          </div>
+        </section>
+
+        <section className="purchase-product-section">
+          <div className="purchase-product-section-heading">
+            <span><Truck size={17} /></span>
+            <h3>Purchase Information</h3>
+          </div>
+          <div className="purchase-product-fields">
+            <Field label="Purchase Price per Carton (DA)">
+              <input type="number" min="0" step="any" value={buyCarton} onChange={e => updateBuyCarton(e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Purchase Price per Unit (DA)">
+              <input type="number" min="0" step="any" value={buyUnit} onChange={e => updateBuyUnit(e.target.value)} placeholder="0.00" />
+            </Field>
+          </div>
+          <p className="purchase-product-help">The unit purchase price is calculated automatically from the carton price and units per carton. You can also edit the unit price directly.</p>
+        </section>
+
+        <section className="purchase-product-section">
+          <div className="purchase-product-section-heading">
+            <span><CircleDollarSign size={17} /></span>
+            <h3>Sales Information</h3>
+          </div>
+          <div className="purchase-product-fields">
+            <Field label="Retail Selling Price per Unit (DA)">
+              <input type="number" min="0" step="any" value={form.price} onChange={e => updateRetailPrice(e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Manual Unit Profit Margin (%)">
+              <input type="number" step="any" value={unitMargin} onChange={e => updateUnitMargin(e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Carton Selling Price (DA)">
+              <input type="number" min="0" step="any" value={form.cartonPrice} onChange={e => updateCartonPrice(e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Manual Carton Profit Margin (%)">
+              <input type="number" step="any" value={cartonMargin} onChange={e => updateCartonMargin(e.target.value)} placeholder="0.00" />
+            </Field>
+          </div>
+          <p className="purchase-product-help">You can type the profit percentage yourself. The selling price updates automatically from the entered margin; you can also type the selling price directly.</p>
+        </section>
+
+        <section className="purchase-product-section">
+          <div className="purchase-product-section-heading">
+            <span><Package size={17} /></span>
+            <h3>Additional Details</h3>
+          </div>
+          <div className="purchase-product-fields">
+            <Field label="Unit of Measure">
+              <div className="purchase-input-actions">
+                <select value={form.unit} onChange={e => update("unit", e.target.value)}>
+                  {unitOptions.map(item => <option key={item} value={item}>{item}</option>)}
+                </select>
+                <Button onClick={() => addOption("unit")} title="Add unit"><Plus size={15} /></Button>
+              </div>
+            </Field>
+            <Field label="Product Category">
+              <div className="purchase-input-actions">
+                <select value={form.category} onChange={e => update("category", e.target.value)}>
+                  <option value="">General</option>
+                  {categoryOptions.map(item => <option key={item} value={item}>{item}</option>)}
+                </select>
+                <Button onClick={() => addOption("category")} title="Add category"><Plus size={15} /></Button>
+              </div>
+            </Field>
+            <div className="purchase-product-full purchase-product-image-card">
+              <div className="purchase-product-image-title"><Images size={17} /><strong>Product Image</strong></div>
+              <div className="purchase-image-actions">
+                <label className="purchase-button secondary"><Images size={15} /> Choose from Gallery<input type="file" accept="image/*" onChange={handleImage} /></label>
+                <label className="purchase-button secondary"><Camera size={15} /> Take Photo<input type="file" accept="image/*" capture="environment" onChange={handleImage} /></label>
+                {form.image && <Button variant="danger" onClick={() => update("image", "")}><Trash2 size={15} /> Remove Image</Button>}
+              </div>
+              {form.image && <img className="purchase-product-image-preview" src={form.image} alt={form.name || "Product"} />}
+            </div>
+            <Field label="Expiry Date (Optional)">
+              <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
+            </Field>
+            <Field label="Minimum Stock Alert">
+              <input type="number" min="0" step="1" value={minStock} onChange={e => setMinStock(e.target.value)} placeholder="5" />
+            </Field>
+          </div>
+        </section>
+
+        {warning && <div className="purchase-alert warning"><AlertTriangle size={17} /> {warning}</div>}
       </div>
 
       <footer className="purchase-modal-footer">
         <Button onClick={onCancel}>Cancel</Button>
-        <Button variant="primary" onClick={save}>
-          <Save size={16} /> Save and Add to Invoice
-        </Button>
+        <Button variant="primary" onClick={save}><Save size={16} /> Save Product</Button>
       </footer>
     </Modal>
   );
