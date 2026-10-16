@@ -341,7 +341,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     () => getPendingInvoices()
   );
 
-  const [showProducts, setShowProducts] = useState(true);
+  const [showProducts, setShowProducts] = useState(false);
+  const [favoriteProductIds, setFavoriteProductIds] = useState(() => {
+    try { const stored = JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]"); return Array.isArray(stored) ? stored.map(String) : []; }
+    catch { return []; }
+  });
   const [showPending, setShowPending] = useState(false);
   const [closedInvoiceMode, setClosedInvoiceMode] = useState(null);
   const [closedInvoiceIndex, setClosedInvoiceIndex] = useState(-1);
@@ -406,6 +410,17 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     }).catch(error => console.warn("Customer cloud sync unavailable:", error));
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem("veltro_pos_favorite_products", JSON.stringify(favoriteProductIds)); }
+    catch (error) { console.warn("Could not save POS favorite products:", error); }
+  }, [favoriteProductIds]);
+
+  const toggleFavoriteProduct = (product) => {
+    const id = String(product?.id ?? product?.productId ?? "");
+    if (!id) return;
+    setFavoriteProductIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  };
 
   const items = invoice.items || [];
   const closedInvoices = useMemo(() => [...getCompletedSales()].sort((a, b) => new Date(b.completedAt || b.createdAt || 0) - new Date(a.completedAt || a.createdAt || 0)), [closedInvoiceMode, closedInvoiceIndex, invoice.id]);
@@ -1501,8 +1516,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         setShowShortcutsHelp((current) => !current);
         return;
       }
-      // F10 toggles the POS app's fullscreen layout and suppresses the browser menu shortcut.
-      if (e.key === "F10") {
+      // F9 toggles the POS app's fullscreen layout.
+      if (e.key === "F9") {
         stop();
         if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
         setIsFullscreen((current) => !current);
@@ -1512,13 +1527,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
       if (keyboardDialog) {
         if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else if (keyboardDialog==="quantity"||keyboardDialog==="price") setKeyboardDialog("options"); else setKeyboardDialog(null); return; }
-        if (keyboardDialog==="products") {
+        if (keyboardDialog==="products" || keyboardDialog==="favorites") {
           if (e.key==="ArrowUp"||e.key==="ArrowDown") { stop(); const count=Math.min(12,Math.max(0,filtered().length-(productPickerPage-1)*12)); if(count)setSelectedProductIndex(v=>e.key==="ArrowDown"?(v+1)%count:(v-1+count)%count); }
           else if(e.key==="F1"||e.key==="F2") { stop(); const pages=Math.max(1,Math.ceil(filtered().length/12)); setProductPickerPage(v=>Math.min(pages,Math.max(1,v+(e.key==="F1"?-1:1)))); setSelectedProductIndex(0); }
           else if(e.key==="Enter") { stop(); const p=filtered().slice((productPickerPage-1)*12,productPickerPage*12)[selectedProductIndex]; if(p)chooseProductFromKeyboardList(p); }
           return;
         }
-        if(keyboardDialog==="options") { if(e.key==="F6"){stop();applyCartonConversion(items[selectedCartIndex]);} if(e.key==="F7"){stop();openQuantityEditor();} if(e.key==="F8"){stop();openPriceEditor();} return; }
+        if(keyboardDialog==="options") { if(e.key==="F3"){stop();applyCartonConversion(items[selectedCartIndex]);} if(e.key==="F4"){stop();openPriceEditor();} return; }
+        if(keyboardDialog==="quantity"&&e.key==="F3"){stop();setKeyboardDialog(null);applyCartonConversion(items[selectedCartIndex]);return;}
         if(keyboardDialog==="quantity"&&e.key==="Enter"){stop();applyQuantityEditor(quantityDraft);return;}
         if(keyboardDialog==="price"&&e.key==="Enter"){stop();applyPriceEditor(priceDraft);return;}
         if((keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning")&&e.key==="Enter"){stop();confirmKeyboardWarning();return;}
@@ -1538,13 +1554,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         return;
       }
       if(e.key==="F1"){stop();createNewInvoice();return;}
-      if(e.key==="F2"){stop();printInvoice();return;}
-      if(e.key==="F3"){stop();chooseCustomer();return;}
-      if(e.key==="F4"){stop();setSelectedPendingIndex(0);setShowPending(true);return;}
-      if(e.key==="F5"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("products");return;}
-      if(e.key==="F6"){stop();if(items.length)setKeyboardDialog("options");else notify(locale==="ar"?"أضف منتجًا إلى السلة أولًا.":locale==="fr"?"Ajoutez d'abord un produit au panier.":"Add a product to the basket first.","info");return;}
-      if(e.key==="F9"){stop();openCashDrawer();return;}
-      if(e.key==="F12"){stop();completeCurrentSale();return;}
+      if(e.key==="F2"){stop();if(isReviewingClosedInvoice && selectedClosedInvoice){setShowEditInvoiceConfirm(true);}else{notify(locale==="ar"?"اختر بونًا مغلقًا بالأسهم أولًا لتعديله.":locale==="fr"?"Sélectionnez d’abord une facture clôturée avec les flèches.":"Select a closed invoice with the arrows first to edit it.","info");}return;}
+      if(e.key==="F3"){stop();openQuantityEditor();return;}
+      if(e.key==="F4"){stop();openPriceEditor();return;}
+      if(e.key==="F5"){stop();openCashDrawer();return;}
+      if(e.key==="F6"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("products");return;}
+      if(e.key==="F7"){stop();completeCurrentSale();return;}
+      if(e.key==="F8"){stop();setSelectedPendingIndex(0);setShowPending(true);return;}
+      if(e.key==="F10"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("favorites");return;}
       if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
     };
     document.addEventListener("keydown",handler,true);
@@ -1980,17 +1997,17 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <div className="pos-shortcuts-tip"><HelpCircle size={16}/><span>{locale === "ar" ? "اضغط Enter للتأكيد وEscape للإلغاء أو الرجوع في النوافذ المنبثقة." : locale === "fr" ? "Appuyez sur Entrée pour confirmer et Échap pour annuler ou revenir dans les fenêtres." : "Press Enter to confirm and Escape to cancel or go back in dialogs."}</span></div>
             <div className="pos-shortcuts-grid">
               {(locale === "ar" ? [
-                ["البيع والفاتورة", [["F1","إنشاء بون جديد"],["F2","طباعة الفاتورة"],["F3","اختيار زبون"],["F4","فتح البونات المعلّقة"],["F12","تأكيد البيع؛ وفي نافذة التأكيد طباعة الوصل"]]],
-                ["المنتجات والسلة", [["F5","فتح قائمة المنتجات والبحث"],["↑ / ↓","التنقل بين المنتجات أو أسطر السلة"],["Enter","اختيار المنتج أو تأكيد الاختيار"],["F1 / F2","تغيير صفحة المنتجات أثناء فتح القائمة"],["F6","خيارات المنتج المحدد وتحويله إلى كرتونة"],["F7","تعديل الكمية"],["F8","تعديل السعر"]]],
-                ["أدوات إضافية", [["F9","فتح درج النقود"],["Ctrl + I","فتح هذا الدليل"],["Escape","إغلاق النافذة أو الرجوع"],["Enter","تأكيد الإجراء داخل النافذة"]]]
+                ["البون والبيع", [["F1","إنشاء بون جديد"],["F2","تعديل البون المغلق المحدد"],["F7","تأكيد البون وإتمام البيع"],["F8","فتح البونات المعلّقة"],["F9","الشاشة الكاملة"]]],
+                ["المنتجات", [["F3","تعديل الكمية؛ اضغط مرة ثانية للتحويل إلى كرتونة"],["F4","تعديل السعر"],["F5","فتح درج النقود"],["F6","فتح قائمة البحث عن المنتجات"],["F10","فتح المنتجات المفضلة"],["↑ / ↓","التنقل بين المنتجات أو أسطر البون"],["Enter","اختيار المنتج أو التأكيد"]]],
+                ["أدوات إضافية", [["Ctrl + I","فتح هذا الدليل"],["Escape","إغلاق النافذة أو الإلغاء"],["Enter","تأكيد الإجراء داخل النافذة"]]]
               ] : locale === "fr" ? [
-                ["Vente et facture", [["F1","Nouvelle facture"],["F2","Imprimer la facture"],["F3","Choisir un client"],["F4","Ouvrir les factures en attente"],["F12","Confirmer la vente ; dans la confirmation, imprimer le reçu"]]],
-                ["Produits et panier", [["F5","Ouvrir la liste et rechercher un produit"],["↑ / ↓","Naviguer entre les produits ou lignes du panier"],["Entrée","Choisir un produit ou confirmer"],["F1 / F2","Changer de page dans la liste des produits"],["F6","Options du produit sélectionné et conversion en carton"],["F7","Modifier la quantité"],["F8","Modifier le prix"]]],
-                ["Outils", [["F9","Ouvrir le tiroir-caisse"],["Ctrl + I","Ouvrir ce guide"],["Échap","Fermer ou revenir en arrière"],["Entrée","Confirmer l'action dans une fenêtre"]]]
+                ["Facture et vente", [["F1","Nouvelle facture"],["F2","Modifier la facture clôturée sélectionnée"],["F7","Confirmer et finaliser la vente"],["F8","Factures en attente"],["F9","Plein écran"]]],
+                ["Produits", [["F3","Modifier la quantité ; appuyer encore pour convertir en carton"],["F4","Modifier le prix"],["F5","Ouvrir le tiroir-caisse"],["F6","Rechercher un produit"],["F10","Produits favoris"],["↑ / ↓","Naviguer entre les produits ou lignes"],["Entrée","Choisir ou confirmer"]]],
+                ["Outils", [["Ctrl + I","Ouvrir ce guide"],["Échap","Fermer ou annuler"],["Entrée","Confirmer dans une fenêtre"]]]
               ] : [
-                ["Sale & invoice", [["F1","Create a new invoice"],["F2","Print invoice"],["F3","Choose customer"],["F4","Open pending invoices"],["F12","Confirm sale; press again in confirmation to print receipt"]]],
-                ["Products & basket", [["F5","Open product list and search"],["↑ / ↓","Navigate products or basket rows"],["Enter","Choose product or confirm selection"],["F1 / F2","Change product-list page"],["F6","Selected product options and convert to carton"],["F7","Edit quantity"],["F8","Edit price"]]],
-                ["More tools", [["F9","Open cash drawer"],["Ctrl + I","Open this guide"],["Escape","Close dialog or go back"],["Enter","Confirm an action in a dialog"]]]
+                ["Invoice & sale", [["F1","Create a new invoice"],["F2","Edit selected closed invoice"],["F7","Confirm and complete sale"],["F8","Pending invoices"],["F9","Full screen"]]],
+                ["Products", [["F3","Edit quantity; press again to convert to carton"],["F4","Edit price"],["F5","Open cash drawer"],["F6","Search products"],["F10","Favorite products"],["↑ / ↓","Navigate products or invoice rows"],["Enter","Select or confirm"]]],
+                ["More tools", [["Ctrl + I","Open this guide"],["Escape","Close or cancel"],["Enter","Confirm inside a dialog"]]]
               ]).map(([group, rows]) => <section className="pos-shortcuts-group" key={group}><h3>{group}</h3>{rows.map(([key, label]) => <div className="pos-shortcuts-row" key={key + label}><kbd>{key}</kbd><span>{label}</span></div>)}</section>)}
             </div>
             <footer className="pos-shortcuts-footer"><span>{locale === "ar" ? "تلميح: افتح هذا الدليل في أي وقت باستخدام Ctrl + I." : locale === "fr" ? "Astuce : ouvrez ce guide à tout moment avec Ctrl + I." : "Tip: reopen this guide anytime with Ctrl + I."}</span><button type="button" onClick={() => setShowShortcutsHelp(false)}>{locale === "ar" ? "فهمت" : locale === "fr" ? "Compris" : "Got it"}</button></footer>
@@ -2083,6 +2100,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         dialog={keyboardDialog}
         locale={locale}
         products={getProducts()}
+        favoriteProductIds={favoriteProductIds}
+        onToggleFavorite={toggleFavoriteProduct}
         selectedItem={items[selectedCartIndex] || null}
         selectedCartIndex={selectedCartIndex}
         productSearch={productPickerSearch}
