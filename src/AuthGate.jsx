@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Languages } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
+import { endTrackedSessionForUser } from "./lib/realtimeSync.js";
 import App from "./App.jsx";
 
 const messages = {
@@ -136,6 +137,8 @@ export default function AuthGate() {
   }
 
   async function handleLogout() {
+    try { await endTrackedSessionForUser(session?.user?.id, "signed_out"); }
+    catch (trackingError) { console.warn("Could not save session logout before signing out:", trackingError?.message || trackingError); }
     const { error: logoutError } = await supabase.auth.signOut();
     if (logoutError) setError("logoutError");
   }
