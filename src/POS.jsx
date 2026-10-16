@@ -350,6 +350,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [quickSaleDialog, setQuickSaleDialog] = useState(null);
   const [weighedProductIds, setWeighedProductIds] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } });
   const [weighedCategories, setWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; } });
+  const [weighedProductLayout, setWeighedProductLayout] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } });
   const [weighedCategoryList, setWeighedCategoryList] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]'); return Array.isArray(v) && v.length ? v : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
   const [visibleWeighedCategories, setVisibleWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null"); return Array.isArray(v) ? v : ["Nuts", "Grains", "Spices", "Other"]; } catch { return ["Nuts", "Grains", "Spices", "Other"]; } });
   const [poundGrams, setPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
@@ -2161,6 +2162,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         products={getProducts()}
         favoriteIds={favoriteProductIds}
         weighedIds={weighedProductIds}
+        weighedLayout={weighedProductLayout}
         categoriesByProduct={weighedCategories}
         categories={weighedCategoryList}
         visibleWeighedCategories={visibleWeighedCategories}
@@ -2172,6 +2174,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           setFavoriteProductIds(settings.favoriteIds);
           setWeighedProductIds(settings.weighedIds);
           setWeighedCategories(settings.categoriesByProduct);
+          if (Array.isArray(settings.weighedLayout)) {
+            setWeighedProductLayout(settings.weighedLayout.map(String));
+            try { localStorage.setItem("veltro_pos_weighed_layout", JSON.stringify(settings.weighedLayout.map(String))); } catch {}
+          }
           setWeighedCategoryList(settings.categories);
           setVisibleWeighedCategories(settings.visibleWeighedCategories);
           setPoundGrams(settings.poundGrams);
