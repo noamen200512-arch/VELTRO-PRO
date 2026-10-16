@@ -732,20 +732,6 @@ export function ProductEntry({
         </div>
       )}
 
-      {notice && (
-        <div className="product-entry-notice" role="status">
-          <span>{notice}</span>
-
-          <button
-            type="button"
-            aria-label="Dismiss message"
-            onClick={() => setNotice("")}
-          >
-            <X size={15} />
-          </button>
-        </div>
-      )}
-
       <div className="product-entry-footer">
         <div className="product-entry-hint">
           <Package size={16} />
