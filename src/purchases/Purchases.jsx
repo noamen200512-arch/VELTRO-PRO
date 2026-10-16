@@ -245,6 +245,8 @@ function ProductModal({
   );
   const [newAlias, setNewAlias] = useState("");
   const [showAliases, setShowAliases] = useState(false);
+  const [showAliasModal, setShowAliasModal] = useState(false);
+  const [showAliasScanner, setShowAliasScanner] = useState(false);
   const [warning, setWarning] = useState("");
 
   const [categoryOptions, setCategoryOptions] = useState(() =>
@@ -618,21 +620,9 @@ function ProductModal({
                 <strong>Secondary Barcodes</strong>
                 <span>Manage additional barcodes here.</span>
               </div>
-              <Button onClick={() => setShowAliases(v => !v)}>{showAliases ? <ChevronUp size={16} /> : <ChevronDown size={16} />} Manage Barcodes ({form.barcodeAliases.length})</Button>
-              {showAliases && (
-                <div className="purchase-product-aliases">
-                  {form.barcodeAliases.map(code => (
-                    <div className="purchase-alias-row" key={code}>
-                      <Barcode size={15} /><span>{code}</span>
-                      <button type="button" onClick={() => update("barcodeAliases", form.barcodeAliases.filter(item => item !== code))} aria-label="Remove barcode"><X size={15} /></button>
-                    </div>
-                  ))}
-                  <div className="purchase-input-actions">
-                    <input value={newAlias} onChange={e => setNewAlias(e.target.value)} placeholder="New secondary barcode" />
-                    <Button onClick={() => addAlias()}><Plus size={15} /> Add</Button>
-                  </div>
-                </div>
-              )}
+              <Button onClick={() => { setShowAliasModal(true); setWarning(""); }}>
+                <Barcode size={16} /> Manage Barcodes ({form.barcodeAliases.length})
+              </Button>
             </div>
           </div>
         </section>
@@ -748,6 +738,76 @@ function ProductModal({
         <Button onClick={onCancel}>Cancel</Button>
         <Button variant="primary" onClick={save}><Save size={16} /> Save Product</Button>
       </footer>
+
+      {showAliasModal && (
+        <Modal
+          title={`Secondary Barcodes (${form.barcodeAliases.length})`}
+          subtitle="Add, scan, or remove extra barcodes for this product."
+          onClose={() => { setShowAliasModal(false); setShowAliasScanner(false); }}
+          wide
+        >
+          <div className="purchase-secondary-barcode-modal">
+            {form.barcodeAliases.length ? (
+              <div className="purchase-secondary-barcode-list">
+                {form.barcodeAliases.map(code => (
+                  <div className="purchase-secondary-barcode-item" key={code}>
+                    <span className="purchase-secondary-barcode-icon"><Barcode size={17} /></span>
+                    <span className="purchase-secondary-barcode-value">{code}</span>
+                    <button
+                      type="button"
+                      className="purchase-secondary-barcode-remove"
+                      onClick={() => update("barcodeAliases", form.barcodeAliases.filter(item => item !== code))}
+                      aria-label={`Remove barcode ${code}`}
+                      title="Remove barcode"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="purchase-secondary-barcode-empty">
+                <Barcode size={28} />
+                <strong>No secondary barcodes yet</strong>
+                <span>Type a barcode below or scan it using your phone camera.</span>
+              </div>
+            )}
+
+            <Field label="Add secondary barcode">
+              <div className="purchase-input-actions purchase-secondary-barcode-entry">
+                <input
+                  value={newAlias}
+                  onChange={e => { setNewAlias(e.target.value); setWarning(""); }}
+                  onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addAlias(); } }}
+                  placeholder="Scan or type barcode"
+                  inputMode="numeric"
+                  autoFocus
+                />
+                <Button onClick={() => addAlias()}><Plus size={16} /> Add</Button>
+              </div>
+            </Field>
+
+            <Button onClick={() => { setWarning(""); setShowAliasScanner(true); }}>
+              <Camera size={16} /> Scan with Phone Camera
+            </Button>
+
+            {warning && <div className="purchase-alert warning"><AlertTriangle size={16} /> {warning}</div>}
+          </div>
+          <footer className="purchase-modal-footer">
+            <Button onClick={() => { setShowAliasModal(false); setShowAliasScanner(false); }}>Done</Button>
+          </footer>
+        </Modal>
+      )}
+
+      {showAliasScanner && showAliasModal && (
+        <CameraScannerModal
+          onClose={() => setShowAliasScanner(false)}
+          onDetected={code => {
+            setShowAliasScanner(false);
+            addAlias(code);
+          }}
+        />
+      )}
     </Modal>
   );
 }
