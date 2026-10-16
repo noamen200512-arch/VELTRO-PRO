@@ -591,6 +591,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
       setInvoice(result.invoice);
       refreshPending();
+      void saveSaleToCloud(result.invoice, { status: "pending" }).catch((cloudError) => {
+        console.error("VELTRO-PRO could not sync the pending invoice:", cloudError);
+        notify("Pending invoice saved on this device, but cloud synchronization failed.", "error");
+      });
 
       if (!silent) {
         notify("Invoice saved to Pending Invoices.", "success");
