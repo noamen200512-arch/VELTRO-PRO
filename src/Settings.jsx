@@ -138,6 +138,118 @@ function formatModule(value = "") {
   return value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+const permissionModuleLabels = {
+  ar: {
+    cash_register: "صندوق النقد", customers: "الزبائن", dashboard: "لوحة التحكم",
+    inventory: "المخزون", payments: "المدفوعات", products: "المنتجات",
+    profits: "الأرباح", purchases: "المشتريات", reports: "التقارير",
+    sales: "المبيعات", settings: "الإعدادات", suppliers: "الموردون",
+    users: "المستخدمون والأدوار",
+  },
+  fr: {
+    cash_register: "Caisse", customers: "Clients", dashboard: "Tableau de bord",
+    inventory: "Stock", payments: "Paiements", products: "Produits",
+    profits: "Bénéfices", purchases: "Achats", reports: "Rapports",
+    sales: "Ventes", settings: "Paramètres", suppliers: "Fournisseurs",
+    users: "Utilisateurs et rôles",
+  },
+};
+
+const permissionDescriptions = {
+  ar: {
+    "cash_register.close": "إغلاق جلسات صندوق النقد",
+    "cash_register.manage": "إدارة صندوق النقد",
+    "cash_register.open_drawer": "فتح درج النقود دون إجراء عملية بيع",
+    "cash_register.view": "عرض صندوق النقد",
+    "customers.create": "إضافة الزبائن",
+    "customers.debts.view": "عرض أرصدة الزبائن وديونهم",
+    "customers.delete": "حذف الزبائن",
+    "customers.edit": "تعديل بيانات الزبائن",
+    "customers.view": "عرض الزبائن",
+    "dashboard.view": "عرض لوحة التحكم",
+    "inventory.adjust": "تسوية المخزون وتعديل الكميات",
+    "inventory.view": "عرض المخزون",
+    "payments.manage": "إدارة تسديدات الحسابات",
+    "payments.view": "عرض المدفوعات وتسديدات الحسابات",
+    "products.create": "إضافة المنتجات",
+    "products.delete": "حذف المنتجات",
+    "products.edit": "تعديل المنتجات",
+    "products.view": "عرض المنتجات",
+    "profits.view": "عرض الأرباح",
+    "purchases.create": "إنشاء فواتير المشتريات",
+    "purchases.edit": "تعديل المشتريات",
+    "purchases.view": "عرض المشتريات",
+    "reports.view": "عرض التقارير",
+    "sales.create": "إنشاء عمليات البيع",
+    "sales.credit": "البيع بالدَّين على حساب الزبون",
+    "sales.delete": "حذف عمليات البيع",
+    "sales.discount": "تطبيق التخفيضات على الأسعار",
+    "sales.edit": "تعديل عمليات البيع",
+    "sales.price_override": "تغيير أسعار المنتجات يدويًا أثناء البيع",
+    "sales.view": "عرض عمليات البيع",
+    "sales.void": "إلغاء عملية بيع مكتملة مع تسجيل سبب الإلغاء في سجل المراجعة",
+    "settings.manage": "إدارة الإعدادات",
+    "suppliers.create": "إضافة الموردين",
+    "suppliers.debts.view": "عرض أرصدة الموردين وديونهم",
+    "suppliers.delete": "حذف الموردين",
+    "suppliers.edit": "تعديل بيانات الموردين",
+    "suppliers.view": "عرض الموردين",
+    "roles.manage": "إنشاء أدوار مخصصة وتحديد صلاحياتها",
+    "users.manage": "إدارة المستخدمين والأدوار",
+    "users.view": "عرض المستخدمين",
+  },
+  fr: {
+    "cash_register.close": "Clôturer les sessions de caisse",
+    "cash_register.manage": "Gérer la caisse",
+    "cash_register.open_drawer": "Ouvrir le tiroir-caisse sans vente",
+    "cash_register.view": "Consulter la caisse",
+    "customers.create": "Ajouter des clients",
+    "customers.debts.view": "Consulter les soldes et les dettes des clients",
+    "customers.delete": "Supprimer des clients",
+    "customers.edit": "Modifier les clients",
+    "customers.view": "Consulter les clients",
+    "dashboard.view": "Consulter le tableau de bord",
+    "inventory.adjust": "Ajuster les quantités en stock",
+    "inventory.view": "Consulter le stock",
+    "payments.manage": "Gérer les règlements de comptes",
+    "payments.view": "Consulter les paiements et règlements",
+    "products.create": "Ajouter des produits",
+    "products.delete": "Supprimer des produits",
+    "products.edit": "Modifier les produits",
+    "products.view": "Consulter les produits",
+    "profits.view": "Consulter les bénéfices",
+    "purchases.create": "Créer des bons d’achat",
+    "purchases.edit": "Modifier les achats",
+    "purchases.view": "Consulter les achats",
+    "reports.view": "Consulter les rapports",
+    "sales.create": "Créer des ventes",
+    "sales.credit": "Vendre à crédit sur le compte client",
+    "sales.delete": "Supprimer des ventes",
+    "sales.discount": "Appliquer des remises",
+    "sales.edit": "Modifier les ventes",
+    "sales.price_override": "Modifier manuellement les prix pendant la vente",
+    "sales.view": "Consulter les ventes",
+    "sales.void": "Annuler une vente finalisée en indiquant le motif dans le journal d’audit",
+    "settings.manage": "Gérer les paramètres",
+    "suppliers.create": "Ajouter des fournisseurs",
+    "suppliers.debts.view": "Consulter les soldes et les dettes des fournisseurs",
+    "suppliers.delete": "Supprimer des fournisseurs",
+    "suppliers.edit": "Modifier les fournisseurs",
+    "suppliers.view": "Consulter les fournisseurs",
+    "roles.manage": "Créer des rôles personnalisés et configurer leurs autorisations",
+    "users.manage": "Gérer les utilisateurs et les rôles",
+    "users.view": "Consulter les utilisateurs",
+  },
+};
+
+function getPermissionModuleLabel(value = "", locale = "en") {
+  return permissionModuleLabels[locale]?.[value] || formatModule(value);
+}
+
+function getPermissionDescription(permission, locale = "en") {
+  return permissionDescriptions[locale]?.[permission.code] || permission.description || "";
+}
+
 const arabicPermissionModules = {
   cash_register: "صندوق النقد",
   customers: "الزبائن",
