@@ -125,8 +125,39 @@ export function InvoiceTable({
   onUndoRemove,
   onAddUnit,
   onAddCarton,
+  locale = "en",
 }) {
   const [removedItem, setRemovedItem] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const deleteText = locale === "ar" ? {
+    title: "تأكيد حذف المنتج", description: "هل تريد حذف هذا المنتج من البون؟",
+    confirm: "حذف المنتج", cancel: "العودة", hint: "Enter للتأكيد · Esc للعودة"
+  } : locale === "fr" ? {
+    title: "Confirmer la suppression", description: "Voulez-vous supprimer ce produit de la facture ?",
+    confirm: "Supprimer le produit", cancel: "Retour", hint: "Entrée pour confirmer · Échap pour revenir"
+  } : {
+    title: "Confirm product removal", description: "Do you want to remove this product from the invoice?",
+    confirm: "Delete product", cancel: "Go back", hint: "Enter to confirm · Esc to go back"
+  };
+
+  useEffect(() => {
+    if (!pendingDelete) return;
+    const handler = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setPendingDelete(null);
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
+        const item = pendingDelete;
+        setPendingDelete(null);
+        removeItem(item);
+      }
+    };
+    document.addEventListener("keydown", handler, true);
+    return () => document.removeEventListener("keydown", handler, true);
+  }, [pendingDelete]);
 
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -402,7 +433,7 @@ export function InvoiceTable({
                         className="invoice-remove-button"
                         aria-label={`Remove ${item.name}`}
                         title="Remove product"
-                        onClick={() => removeItem(item)}
+                        onClick={() => setPendingDelete(item)}
                       >
                         <Trash2 size={17} />
                       </button>
@@ -412,6 +443,22 @@ export function InvoiceTable({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pendingDelete && (
+        <div className="invoice-delete-confirm-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingDelete(null); }}>
+          <section className="invoice-delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-delete-confirm-title" dir={locale === "ar" ? "rtl" : "ltr"}>
+            <div className="invoice-delete-confirm-icon"><Trash2 size={23} /></div>
+            <h3 id="invoice-delete-confirm-title">{deleteText.title}</h3>
+            <p>{deleteText.description}</p>
+            <div className="invoice-delete-confirm-product"><strong>{pendingDelete.name}</strong><span>{Number(pendingDelete.quantity ?? pendingDelete.qty) || 0} {locale === "ar" ? "وحدة" : locale === "fr" ? "unité(s)" : "unit(s)"}</span></div>
+            <div className="invoice-delete-confirm-actions">
+              <button type="button" className="invoice-delete-cancel" onClick={() => setPendingDelete(null)}>{deleteText.cancel} <kbd>Esc</kbd></button>
+              <button type="button" className="invoice-delete-accept" onClick={() => { const item = pendingDelete; setPendingDelete(null); removeItem(item); }}>{deleteText.confirm} <kbd>Enter</kbd></button>
+            </div>
+            <small>{deleteText.hint}</small>
+          </section>
         </div>
       )}
 
