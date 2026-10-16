@@ -149,7 +149,13 @@ export default function SessionCenter({ locale = "en", organizationId, currentUs
     const q = search.trim().toLowerCase();
     const match = !q || [account.full_name, account.user_id, role, account.phone].some((value) => String(value || "").toLowerCase().includes(q));
     return match && (filter === "all" || (filter === "online" && online) || (filter === "offline" && !online) || (filter === "suspended" && account.status !== "active"));
-  }), [accounts, onlineByUser, search, filter, roleById, t.owner, t.user]);
+  }).sort((a, b) => {
+    if (Boolean(a.is_owner) !== Boolean(b.is_owner)) return a.is_owner ? -1 : 1;
+    const aActive = a.status === "active";
+    const bActive = b.status === "active";
+    if (aActive !== bActive) return aActive ? -1 : 1;
+    return String(a.full_name || "").localeCompare(String(b.full_name || ""), locale === "ar" ? "ar" : locale === "fr" ? "fr" : "en", { sensitivity: "base" });
+  }), [accounts, onlineByUser, search, filter, roleById, t.owner, t.user, locale]);
 
   const openSessionHistory = async (account) => {
     setSessionModalAccount(account); setSessionRows([]); setSessionHistoryError(""); setSessionHistoryLoading(true);
