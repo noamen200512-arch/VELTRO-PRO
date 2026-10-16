@@ -738,7 +738,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       : Math.max(1, Math.floor(Number(product.quantity) || 1));
     if (quantityToAdd <= 0) return;
     const productForInvoice = product.weighedSale
-      ? { ...inventoryProduct, price: money(product.price ?? inventoryProduct.price), weighedSale: true, weighedCategory: product.weighedCategory || "", unitLabel: "kg" }
+      ? { ...inventoryProduct, price: money(product.price ?? inventoryProduct.price), weighedSale: true, weighedCategory: product.weighedCategory || "", unitLabel: product.unitLabel || ({ kg: "kg", g: "g", liter: "L", ml: "ml", meter: "m", cm: "cm" })[inventoryProduct.unit] || inventoryProduct.unit || "kg" }
       : inventoryProduct;
 
     const currentQuantity = items.reduce((sum, item) => {
