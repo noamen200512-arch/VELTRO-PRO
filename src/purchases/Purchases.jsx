@@ -636,23 +636,27 @@ function ProductModal({
             <h3>Packaging Information</h3>
           </div>
           <div className="purchase-product-fields purchase-product-packaging">
-            <Field label="Cartons Received">
-              <input type="number" min="0" step="1" value={cartons} onChange={e => setCartonCount(e.target.value)} placeholder="0" />
-            </Field>
-            <Field label="Units per Carton">
-              <input type="number" min="1" step="1" value={form.piecesPerCarton} onChange={e => setPiecesPerCarton(e.target.value)} />
-            </Field>
-            <div className="purchase-product-total">
-              <span>Total Units</span>
-              <strong>{Math.max(0, Number(cartons) || 0) * Math.max(1, Number(form.piecesPerCarton) || 1)}</strong>
-              <small>{Math.max(0, Number(cartons) || 0)} × {Math.max(1, Number(form.piecesPerCarton) || 1)}</small>
-            </div>
+            {form.weighedSale ? <Field label={\`Quantity received (\${form.unit || "kg"})\`}>
+              <input type="number" min="0" step="0.001" value={quantity} onChange={e => setQuantity(e.target.value)} />
+            </Field> : <>
+              <Field label="Cartons Received">
+                <input type="number" min="0" step="1" value={cartons} onChange={e => setCartonCount(e.target.value)} placeholder="0" />
+              </Field>
+              <Field label="Units per Carton">
+                <input type="number" min="1" step="1" value={form.piecesPerCarton} onChange={e => setPiecesPerCarton(e.target.value)} />
+              </Field>
+              <div className="purchase-product-total">
+                <span>Total Units</span>
+                <strong>{Math.max(0, Number(cartons) || 0) * Math.max(1, Number(form.piecesPerCarton) || 1)}</strong>
+                <small>{Math.max(0, Number(cartons) || 0)} × {Math.max(1, Number(form.piecesPerCarton) || 1)}</small>
+              </div>
+            </>}
           </div>
-          <div className="purchase-product-fields purchase-product-quantity-extra">
-            <Field label={form.weighedSale ? `Total Quantity (${form.unit || "kg"}) (Editable)` : "Total Units (Editable)"}>
+          {!form.weighedSale && <div className="purchase-product-fields purchase-product-quantity-extra">
+            <Field label="Total Units (Editable)">
               <input type="number" min="0" step="any" value={quantity} onChange={e => setQuantity(e.target.value)} />
             </Field>
-          </div>
+          </div>}
         </section>
 
         <section className="purchase-product-section">
