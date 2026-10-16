@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X, Package, AlertTriangle, Boxes, Calculator, Banknote, ChevronLeft, ChevronRight, Check, Barcode } from "lucide-react";
+import { Search, X, Package, AlertTriangle, Boxes, Calculator, Banknote, ChevronLeft, ChevronRight, Check, Barcode, Star } from "lucide-react";
 
 const COPY = {
   en: {
@@ -10,7 +10,7 @@ const COPY = {
     keypad: "Touch keypad", stockTitle: "Stock warning", stockText: "The requested quantity exceeds the available stock. Continue with a negative stock balance?",
     priceTitle: "Below-cost warning", priceText: "The selling price is below the purchase cost. Apply this price anyway?",
     requested: "Requested quantity", availableQty: "Available quantity", cost: "Purchase cost", selling: "Selling price",
-    noProducts: "No matching products.", noSelection: "Select a product row first.", cartonUnavailable: "Carton size is not configured for this product.",
+    noProducts: "No matching products.", noFavorites: "No favorite products yet. Open F6 and mark products with the star.", favorite: "Favorite", noSelection: "Select a product row first.", cartonUnavailable: "Carton size is not configured for this product.",
     before: "Before", after: "After", currentQuantity: "Current quantity", newQuantity: "New quantity", currentPrice: "Current unit price", newPrice: "New unit price", lineTotal: "Line total", unchanged: "Changes are applied only after confirmation.",
     outTag: "OUT", lowTag: "LOW"
   },
@@ -22,7 +22,7 @@ const COPY = {
     keypad: "Clavier tactile", stockTitle: "Alerte de stock", stockText: "La quantité demandée dépasse le stock disponible. Continuer avec un stock négatif ?",
     priceTitle: "Alerte de vente à perte", priceText: "Le prix de vente est inférieur au coût d'achat. Appliquer ce prix quand même ?",
     requested: "Quantité demandée", availableQty: "Quantité disponible", cost: "Coût d'achat", selling: "Prix de vente",
-    noProducts: "Aucun produit correspondant.", noSelection: "Sélectionnez d'abord une ligne de produit.", cartonUnavailable: "Le format carton n'est pas configuré pour ce produit.",
+    noProducts: "Aucun produit correspondant.", noFavorites: "Aucun favori. Ouvrez F6 et marquez les produits avec l’étoile.", favorite: "Favori", noSelection: "Sélectionnez d'abord une ligne de produit.", cartonUnavailable: "Le format carton n'est pas configuré pour ce produit.",
     before: "Avant", after: "Après", currentQuantity: "Quantité actuelle", newQuantity: "Nouvelle quantité", currentPrice: "Prix unitaire actuel", newPrice: "Nouveau prix unitaire", lineTotal: "Total de la ligne", unchanged: "Les changements seront appliqués après confirmation.",
     outTag: "ÉPUISÉ", lowTag: "FAIBLE"
   },
@@ -34,14 +34,14 @@ const COPY = {
     keypad: "لوحة أرقام للمس", stockTitle: "تنبيه المخزون", stockText: "الكمية المطلوبة أكبر من المخزون المتوفر. هل تريد المتابعة مع رصيد مخزون سالب؟",
     priceTitle: "تنبيه البيع بأقل من التكلفة", priceText: "سعر البيع أقل من سعر الشراء. هل تريد اعتماد هذا السعر؟",
     requested: "الكمية المطلوبة", availableQty: "الكمية المتوفرة", cost: "سعر الشراء", selling: "سعر البيع",
-    noProducts: "لا توجد منتجات مطابقة.", noSelection: "حدد صف المنتج أولًا.", cartonUnavailable: "لم يتم إعداد عدد القطع في الكرتونة لهذا المنتج.",
+    noProducts: "لا توجد منتجات مطابقة.", noFavorites: "لا توجد منتجات مفضلة بعد. افتح F6 واضغط النجمة بجانب المنتج لإضافته.", favorite: "مفضّل", noSelection: "حدد صف المنتج أولًا.", cartonUnavailable: "لم يتم إعداد عدد القطع في الكرتونة لهذا المنتج.",
     before: "قبل التعديل", after: "بعد التعديل", currentQuantity: "الكمية الحالية", newQuantity: "الكمية الجديدة", currentPrice: "سعر الوحدة الحالي", newPrice: "سعر الوحدة الجديد", lineTotal: "إجمالي السطر", unchanged: "لن تُطبّق التغييرات إلا بعد التأكيد.",
     outTag: "نفد", lowTag: "منخفض"
   }
 };
 
 export function PosKeyboardDialogs({
-  dialog, locale = "en", products = [], selectedItem = null, selectedCartIndex = 0,
+  dialog, locale = "en", products = [], favoriteProductIds = [], onToggleFavorite = () => {}, selectedItem = null, selectedCartIndex = 0,
   productSearch = "", setProductSearch = () => {}, productPage = 1, setProductPage = () => {},
   selectedProductIndex = 0, setSelectedProductIndex = () => {}, quantityDraft = "", setQuantityDraft = () => {},
   priceDraft = "", setPriceDraft = () => {}, warningPayload = null,
@@ -52,7 +52,10 @@ export function PosKeyboardDialogs({
   const t = COPY[locale] || COPY.en;
   if (!dialog) return null;
   const query = productSearch.trim().toLocaleLowerCase();
-  const filtered = products.filter((p) => [
+  const favoriteSet = new Set(favoriteProductIds.map(String));
+  const isProductList = dialog === "products" || dialog === "favorites";
+  const productSource = dialog === "favorites" ? products.filter((p) => favoriteSet.has(String(p.id ?? p.productId ?? ""))) : products;
+  const filtered = productSource.filter((p) => [
     p.name, p.id, p.productId, p.sku, p.barcode, ...(Array.isArray(p.barcodeAliases) ? p.barcodeAliases : [])
   ].some((v) => String(v ?? "").toLocaleLowerCase().includes(query)));
   const pageSize = 12;
@@ -88,7 +91,7 @@ export function PosKeyboardDialogs({
     setter(keypadReplace ? (key === "." ? "0." : key) : (current === "0" && key !== "." ? key : current + key));
     setKeypadReplace(false);
   };
-  const title = dialog === "products" ? t.products : dialog === "options" ? t.options : dialog === "quantity" ? t.editQty : dialog === "price" ? t.editPrice : dialog === "stockWarning" ? t.stockTitle : t.priceTitle;
+  const title = dialog === "products" ? t.products : dialog === "favorites" ? (locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products") : dialog === "options" ? t.options : dialog === "quantity" ? t.editQty : dialog === "price" ? t.editPrice : dialog === "stockWarning" ? t.stockTitle : t.priceTitle;
 
   return (
     <div className="pos-keyboard-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !["stockWarning","priceWarning"].includes(dialog)) onClose(); }}>
@@ -101,21 +104,21 @@ export function PosKeyboardDialogs({
           <div className="pos-keyboard-selected-product"><Package size={20}/><div><small>{t.selected}</small><strong>{selectedItem?.name || ""}</strong></div></div>
         </section>
       )}
-      <section className={`pos-keyboard-modal ${dialog === "products" ? "pos-keyboard-products" : "pos-keyboard-compact"}`} role="dialog" aria-modal="true" aria-label={title} dir={locale === "ar" ? "rtl" : "ltr"}>
+      <section className={`pos-keyboard-modal ${isProductList ? "pos-keyboard-products" : "pos-keyboard-compact"}`} role="dialog" aria-modal="true" aria-label={title} dir={locale === "ar" ? "rtl" : "ltr"}>
         <header className="pos-keyboard-header">
-          <div className="pos-keyboard-title-icon">{dialog === "products" ? <Package size={20}/> : dialog === "quantity" ? <Calculator size={20}/> : dialog === "price" ? <Banknote size={20}/> : dialog === "options" ? <Boxes size={20}/> : <AlertTriangle size={20}/>}</div>
-          <div className="pos-keyboard-title-copy"><h2>{title}</h2>{selectedItem && dialog !== "products" && <p>{selectedItem.name}</p>}</div>
+          <div className="pos-keyboard-title-icon">{isProductList ? <Package size={20}/> : dialog === "quantity" ? <Calculator size={20}/> : dialog === "price" ? <Banknote size={20}/> : dialog === "options" ? <Boxes size={20}/> : <AlertTriangle size={20}/>}</div>
+          <div className="pos-keyboard-title-copy"><h2>{title}</h2>{selectedItem && !isProductList && <p>{selectedItem.name}</p>}</div>
           <button type="button" className="pos-keyboard-close" onClick={onClose} aria-label={t.close}><X size={19}/></button>
         </header>
 
-        {dialog === "products" && <>
+        {isProductList && <>
           <label className="pos-keyboard-search"><Search size={18}/><input autoFocus value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setProductPage(1); setSelectedProductIndex(0); }} placeholder={t.search} aria-label={t.search}/><Barcode size={18}/></label>
           <div className="pos-keyboard-table-wrap">
-            <table className="pos-keyboard-table"><thead><tr><th>{t.name}</th><th>{t.barcode}</th><th>{t.stock}</th></tr></thead><tbody>
-              {pageRows.map((p, i) => { const stock = stockOf(p); const low = stock > 0 && stock <= thresholdOf(p); const out = stock <= 0; return <tr key={String(p.id ?? p.productId ?? p.barcode)} className={i === selectedProductIndex ? "is-selected" : ""} onMouseEnter={() => setSelectedProductIndex(i)} onDoubleClick={() => onSelectProduct(p)} onClick={() => setSelectedProductIndex(i)}>
-                <td><span className={out ? "pos-stock-out" : low ? "pos-stock-low" : ""}>{p.name || "—"}</span>{out && <small className="pos-stock-pill out">{t.outTag}</small>}{low && <small className="pos-stock-pill low">{t.lowTag}</small>}</td><td>{p.barcode || "—"}</td><td className={out ? "pos-stock-out" : low ? "pos-stock-low" : "pos-stock-ok"}>{format(stock)}</td>
+            <table className="pos-keyboard-table"><thead><tr><th>{t.name}</th><th>{t.barcode}</th><th>{t.stock}</th><th>{t.favorite}</th></tr></thead><tbody>
+              {pageRows.map((p, i) => { const stock = stockOf(p); const low = stock > 0 && stock <= thresholdOf(p); const out = stock <= 0; const favorite = favoriteSet.has(String(p.id ?? p.productId ?? "")); return <tr key={String(p.id ?? p.productId ?? p.barcode)} className={i === selectedProductIndex ? "is-selected" : ""} onMouseEnter={() => setSelectedProductIndex(i)} onDoubleClick={() => onSelectProduct(p)} onClick={() => setSelectedProductIndex(i)}>
+                <td><span className={out ? "pos-stock-out" : low ? "pos-stock-low" : ""}>{p.name || "—"}</span>{out && <small className="pos-stock-pill out">{t.outTag}</small>}{low && <small className="pos-stock-pill low">{t.lowTag}</small>}</td><td>{p.barcode || "—"}</td><td className={out ? "pos-stock-out" : low ? "pos-stock-low" : "pos-stock-ok"}>{format(stock)}</td><td><button type="button" aria-label={favorite ? "Remove favorite" : "Add favorite"} title={favorite ? "Remove favorite" : "Add favorite"} onClick={(event) => { event.stopPropagation(); onToggleFavorite(p); }} style={{ border: 0, background: "transparent", color: favorite ? "#fbbf24" : "#94a3b8", cursor: "pointer", padding: 6 }}><Star size={17} fill={favorite ? "currentColor" : "none"}/></button></td>
               </tr>; })}
-              {!pageRows.length && <tr><td colSpan="3" className="pos-keyboard-empty">{t.noProducts}</td></tr>}
+              {!pageRows.length && <tr><td colSpan="4" className="pos-keyboard-empty">{dialog === "favorites" ? t.noFavorites : t.noProducts}</td></tr>}
             </tbody></table>
           </div>
           <footer className="pos-keyboard-footer"><span>{t.page} {page} {t.of} {pageCount} · {filtered.length}</span><div><button type="button" onClick={() => { setProductPage(Math.max(1, page - 1)); setSelectedProductIndex(0); }} disabled={page <= 1}><ChevronLeft size={15}/>{t.previous}</button><button type="button" onClick={() => { setProductPage(Math.min(pageCount, page + 1)); setSelectedProductIndex(0); }} disabled={page >= pageCount}>{t.next}<ChevronRight size={15}/></button><button type="button" className="primary" disabled={!selectedProduct} onClick={() => selectedProduct && onSelectProduct(selectedProduct)}><Check size={15}/>{t.choose}</button></div></footer>
