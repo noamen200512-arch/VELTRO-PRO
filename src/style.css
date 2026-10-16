@@ -3512,3 +3512,21 @@ html[dir="rtl"] .settings-readonly-tag{direction:rtl}
   .settings-role-row { flex-wrap: wrap; }
   .settings-role-row .settings-edit-button { margin-left: 42px; }
 }
+
+/* Organization user table: aligned, readable, and direction-aware */
+.settings-table-wrap{max-width:100%;overflow:auto;overscroll-behavior-x:contain}
+.settings-table{width:100%;min-width:650px;table-layout:fixed;text-align:start}
+.settings-table th,.settings-table td{box-sizing:border-box;vertical-align:middle;text-align:start;overflow-wrap:anywhere}
+.settings-table th{position:sticky;top:0;z-index:1;white-space:normal;line-height:1.45}
+.settings-table th:nth-child(1){width:38%}
+.settings-table th:nth-child(2){width:22%}
+.settings-table th:nth-child(3){width:22%}
+.settings-table th:nth-child(4){width:18%}
+.settings-table td{white-space:normal;line-height:1.5}
+.settings-person{min-width:0}
+.settings-person>span:last-child{min-width:0;overflow-wrap:anywhere}
+.settings-person strong,.settings-person small{overflow-wrap:anywhere}
+.settings-page[dir="rtl"] .settings-table{direction:rtl}
+.settings-page[dir="rtl"] .settings-table th,.settings-page[dir="rtl"] .settings-table td{text-align:right}
+.settings-page[dir="rtl"] .settings-person{flex-direction:row}
+@media(max-width:760px){.settings-table{min-width:620px}.settings-table th,.settings-table td{padding:10px 9px}}
