@@ -244,7 +244,6 @@ function ProductModal({
     ))
   );
   const [newAlias, setNewAlias] = useState("");
-  const [showAliases, setShowAliases] = useState(false);
   const [showAliasModal, setShowAliasModal] = useState(false);
   const [showAliasScanner, setShowAliasScanner] = useState(false);
   const [warning, setWarning] = useState("");
