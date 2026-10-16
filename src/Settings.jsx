@@ -577,11 +577,17 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   }, [data.rolePermissions]);
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return data.users;
-    return data.users.filter((user) => [
+    const matches = !term ? [...data.users] : data.users.filter((user) => [
       user.full_name, user.phone, roleById[user.role_id]?.name, user.status,
     ].some((value) => String(value || "").toLowerCase().includes(term)));
-  }, [data.users, data.roles, search, roleById]);
+    return matches.sort((a, b) => {
+      if (Boolean(a.is_owner) !== Boolean(b.is_owner)) return a.is_owner ? -1 : 1;
+      const aActive = a.status === "active";
+      const bActive = b.status === "active";
+      if (aActive !== bActive) return aActive ? -1 : 1;
+      return String(a.full_name || "").localeCompare(String(b.full_name || ""), locale === "ar" ? "ar" : locale === "fr" ? "fr" : "en", { sensitivity: "base" });
+    });
+  }, [data.users, data.roles, search, roleById, locale]);
 
   const activeNav = nav.find((item) => item.id === section) || nav[0];
   const isOwner = data.profile?.is_owner === true;
