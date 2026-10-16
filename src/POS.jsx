@@ -1214,6 +1214,113 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     }
   };
 
+
+  const applyCartonConversion = (item, allowOversell = false) => {
+    if (!item) return;
+    const product = getProducts().find((p) => String(p.id) === String(getProductId(item)));
+    if (!product) return;
+    const size = Math.floor(Number(product.piecesPerCarton ?? product.unitsPerCarton ?? product.cartonQuantity) || 0);
+    if (size < 2) {
+      notify(locale === "ar" ? "لم يتم إعداد عدد القطع في الكرتونة." : locale === "fr" ? "Le format carton n'est pas configuré." : "Carton size is not configured.", "error");
+      return;
+    }
+    const available = getAvailableForProduct(getProductId(item), item.id);
+    if (size > available && !allowOversell) {
+      setWarningPayload({ type: "convertCarton", item, requested: size, available });
+      setKeyboardDialog("stockWarning");
+      return;
+    }
+    const cartonPrice = money(product.cartonPrice);
+    const price = roundPriceUp(cartonPrice > 0 ? cartonPrice / size : money(product.price));
+    setInvoice((current) => ({ ...current, items: (current.items || []).map((row) => String(row.id) === String(item.id) ? { ...row, qty: size, quantity: size, price, cartonPrice, piecesPerCarton: size, isCartonLine: true, discount: 0 } : row), status: "Draft", updatedAt: new Date().toISOString() }));
+    setKeyboardDialog(null);
+    setWarningPayload(null);
+  };
+
+  const openQuantityEditor = () => {
+    const item = items[selectedCartIndex];
+    if (item) { setQuantityDraft(String(getQuantity(item))); setKeyboardDialog("quantity"); }
+  };
+  const openPriceEditor = () => {
+    const item = items[selectedCartIndex];
+    if (item) { setPriceDraft(money(item.price).toFixed(2)); setKeyboardDialog("price"); }
+  };
+  const applyQuantityEditor = (raw) => {
+    const item = items[selectedCartIndex];
+    const value = Number(String(raw).trim());
+    if (!item || !Number.isInteger(value) || value < 1) {
+      notify(locale === "ar" ? "أدخل كمية صحيحة لا تقل عن وحدة." : locale === "fr" ? "Saisissez une quantité entière valide." : "Enter a valid whole quantity.", "error");
+      return;
+    }
+    const available = getAvailableForProduct(getProductId(item), item.id);
+    if (value > available) {
+      setWarningPayload({ type: "quantity", itemId: item.id, value, requested: value, available, returnTo: "quantity" });
+      setKeyboardDialog("stockWarning");
+      return;
+    }
+    updateItem(item.id, "quantity", value, { allowOversell: true });
+    setKeyboardDialog("options");
+  };
+  const applyPriceEditor = (raw) => {
+    const item = items[selectedCartIndex];
+    const value = Number(String(raw).trim().replace(",", "."));
+    if (!item || !Number.isFinite(value) || value < 0) {
+      notify(locale === "ar" ? "أدخل سعرًا صحيحًا." : locale === "fr" ? "Saisissez un prix valide." : "Enter a valid price.", "error");
+      return;
+    }
+    const product = getProducts().find((p) => String(p.id) === String(getProductId(item)));
+    const cost = Number(product?.purchasePrice ?? item.purchasePrice) || 0;
+    const selling = roundPriceUp(value);
+    if (cost > 0 && selling < cost) {
+      setWarningPayload({ type: "price", itemId: item.id, value: selling, cost, selling, returnTo: "price" });
+      setKeyboardDialog("priceWarning");
+      return;
+    }
+    updateItem(item.id, "price", selling);
+    setKeyboardDialog("options");
+  };
+  const confirmKeyboardWarning = () => {
+    const w = warningPayload;
+    if (!w) { setKeyboardDialog("options"); return; }
+    if (w.type === "price") {
+      updateItem(w.itemId, "price", w.value);
+      setKeyboardDialog("options");
+    } else if (w.type === "quantity") {
+      updateItem(w.itemId, "quantity", w.value, { allowOversell: true });
+      setKeyboardDialog("options");
+    } else if (w.type === "convertCarton") {
+      applyCartonConversion(w.item, true);
+    } else if (w.type === "addProduct") {
+      setInvoice((current) => ({ ...current, items: mergeItems(current.items || [], w.product, w.quantity || 1), status: "Draft", updatedAt: new Date().toISOString() }));
+      setKeyboardDialog(null);
+    } else if (w.type === "addCarton") {
+      addCarton(w.item, true);
+      setKeyboardDialog(null);
+    }
+    setWarningPayload(null);
+  };
+  const cancelKeyboardWarning = () => {
+    const back = warningPayload?.returnTo || (warningPayload?.type === "price" ? "price" : warningPayload?.type === "quantity" ? "quantity" : "options");
+    setWarningPayload(null);
+    setKeyboardDialog(back);
+  };
+  const chooseProductFromKeyboardList = (product) => {
+    setKeyboardDialog(null);
+    setProductPickerSearch("");
+    setProductPickerPage(1);
+    setSelectedProductIndex(0);
+    addProduct(product);
+  };
+  const openCashDrawer = () => {
+    const bridge = window.veltroHardware;
+    if (bridge && typeof bridge.openCashDrawer === "function") {
+      Promise.resolve(bridge.openCashDrawer()).catch(() => notify(locale === "ar" ? "تعذر فتح درج النقود. تحقق من الطابعة." : locale === "fr" ? "Impossible d'ouvrir le tiroir-caisse." : "Could not open the cash drawer.", "error"));
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("veltro:open-cash-drawer"));
+    notify(locale === "ar" ? "لا يوجد اتصال مباشر بدرج النقود. يلزم ربط الطابعة أو برنامج تشغيل متوافق." : locale === "fr" ? "Aucun pilote de tiroir-caisse n'est connecté." : "No compatible cash-drawer driver is connected.", "info");
+  };
+
   const printInvoice = () => {
     if (items.length === 0) {
       notify("Add products before printing.", "error");
