@@ -434,7 +434,7 @@ export function InvoiceTable({
                           <button
                             type="button"
                             aria-label={`Increase quantity of ${item.name}`}
-                            onClick={() => addUnit(item)}
+                            onClick={() => (item.weighedSale || item.unitLabel === "kg") ? updateQuantity(item, quantity + 0.1) : addUnit(item)}
                           >
                             <Plus size={13} />
                           </button>
