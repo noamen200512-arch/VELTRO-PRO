@@ -1884,6 +1884,83 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             onShowProducts={setShowProducts}
           />
 
+          {items.length > 0 && items[selectedCartIndex] && (
+            <section
+              className="pos-selected-product-preview"
+              aria-live="polite"
+              aria-label={locale === "ar" ? "معاينة المنتج المحدد" : locale === "fr" ? "Aperçu du produit sélectionné" : "Selected product preview"}
+              dir={locale === "ar" ? "rtl" : "ltr"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 14,
+                margin: "0 0 10px",
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid rgba(45, 212, 191, 0.38)",
+                background: "linear-gradient(110deg, rgba(13, 148, 136, 0.15), rgba(99, 102, 241, 0.10))",
+                boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+                minWidth: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                <span style={{
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  color: "#5eead4",
+                  background: "rgba(45, 212, 191, 0.14)",
+                  border: "1px solid rgba(45, 212, 191, 0.24)",
+                  fontSize: 17,
+                  fontWeight: 800,
+                }}>{selectedCartIndex + 1}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5eead4", marginBottom: 3 }}>
+                    {locale === "ar" ? "المنتج المحدد" : locale === "fr" ? "PRODUIT SÉLECTIONNÉ" : "SELECTED PRODUCT"}
+                  </div>
+                  <div title={items[selectedCartIndex].name} style={{ fontSize: 14, fontWeight: 750, color: "var(--text-primary, #f8fafc)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "min(48vw, 520px)" }}>
+                    {items[selectedCartIndex].name || (locale === "ar" ? "منتج بدون اسم" : locale === "fr" ? "Produit sans nom" : "Unnamed product")}
+                    {items[selectedCartIndex].isCartonLine && (
+                      <span style={{ marginInlineStart: 8, color: "#5eead4", fontSize: 10, fontWeight: 800 }}>
+                        {locale === "ar" ? "كرتونة" : locale === "fr" ? "CARTON" : "CARTON"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 0 }}>
+                <div style={{ textAlign: "end" }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted, #94a3b8)", marginBottom: 3 }}>
+                    {locale === "ar" ? "سعر الحبة" : locale === "fr" ? "PRIX UNIT." : "UNIT PRICE"}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", fontVariantNumeric: "tabular-nums" }}>
+                    {money(items[selectedCartIndex].price).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                  </div>
+                </div>
+                <div style={{ textAlign: "end" }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted, #94a3b8)", marginBottom: 3 }}>
+                    {locale === "ar" ? "الكمية" : locale === "fr" ? "QTÉ" : "QTY"}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc", fontVariantNumeric: "tabular-nums" }}>
+                    {getQuantity(items[selectedCartIndex])}
+                  </div>
+                </div>
+                <div style={{ textAlign: "end" }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted, #94a3b8)", marginBottom: 3 }}>
+                    {locale === "ar" ? "المجموع" : locale === "fr" ? "TOTAL LIGNE" : "LINE TOTAL"}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: "#5eead4", fontVariantNumeric: "tabular-nums" }}>
+                    {(getQuantity(items[selectedCartIndex]) * money(items[selectedCartIndex].price) - Math.min(getQuantity(items[selectedCartIndex]) * money(items[selectedCartIndex].price), money(items[selectedCartIndex].discount))).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
           <InvoiceTable
             items={items}
             selectedIndex={selectedCartIndex}
