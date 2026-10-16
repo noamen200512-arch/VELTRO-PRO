@@ -430,6 +430,7 @@ export function InvoiceTable({
                             value={quantity}
                             onCommit={updateField}
                           />
+                          {(item.weighedSale || item.unitLabel === "kg") && <small className="invoice-weighed-unit">kg</small>}
 
                           <button
                             type="button"
