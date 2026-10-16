@@ -199,19 +199,6 @@ export default function POS({ currentUserName = "" } = {}) {
     setPaidDraft(String(invoice.paid ?? 0));
   }, [invoice.id, invoice.paid]);
 
-  // Persist every unconfirmed invoice change immediately. The draft lives
-  // separately from the pending-invoice list and is restored on next launch.
-  useEffect(() => {
-    saveAutoSavedDraft({
-      ...invoice,
-      subtotal,
-      total,
-      paid,
-      remaining,
-      status: "Draft",
-    });
-  }, [invoice, subtotal, total, paid, remaining]);
-
   const discount = money(invoice.discount);
 
   // The store calculates debt from this customer's completed sales.
@@ -226,6 +213,19 @@ export default function POS({ currentUserName = "" } = {}) {
 
   const total = Math.max(0, subtotal - discount);
   const remaining = Math.max(0, total - paid);
+
+  // Persist every unconfirmed invoice change immediately. The draft lives
+  // separately from the pending-invoice list and is restored on next launch.
+  useEffect(() => {
+    saveAutoSavedDraft({
+      ...invoice,
+      subtotal,
+      total,
+      paid,
+      remaining,
+      status: "Draft",
+    });
+  }, [invoice, subtotal, total, paid, remaining]);
 
   const refreshPending = useCallback(() => {
     setPendingInvoices(getPendingInvoices());
