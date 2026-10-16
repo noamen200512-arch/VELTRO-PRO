@@ -2193,7 +2193,7 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
               <div className="purchase-table-wrap purchase-voucher-lines-wrap">
                 <table className="purchase-table purchase-voucher-lines-table">
                   <thead><tr>
-                    <th>Product</th><th>Quantity (units)</th><th>Unit price</th><th>Carton price</th><th>Cartons</th><th>Units / carton</th><th>Line total</th><th>Actions</th>
+                    <th>Product</th><th>Quantity / measure</th><th>Unit price</th><th>Carton price</th><th>Cartons</th><th>Units / carton</th><th>Line total</th><th>Actions</th>
                   </tr></thead>
                   <tbody>
                     {lines.map(line => {
@@ -2201,7 +2201,10 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
                       const lineProduct = { ...snapshot, name: line.name, sku: line.sku || snapshot.sku || line.productId, barcode: line.barcode || snapshot.barcode, price: line.salePrice ?? snapshot.price };
                       return <tr key={line.lineId}>
                         <td><strong>{line.name}</strong><small>{line.sku || line.barcode || line.productId}</small></td>
-                        <td><input className="purchase-cell-input" type="number" min="0" value={line.quantity} onChange={event => updateLine(line.lineId, "quantity", event.target.value)} aria-label={`Quantity for ${line.name}`} /></td>
+                        <td>
+                          <input className="purchase-cell-input" type="number" min="0" step={line.weighedSale ? "0.001" : "1"} value={line.quantity} onChange={event => updateLine(line.lineId, "quantity", event.target.value)} aria-label={`Quantity for ${line.name}`} />
+                          {line.weighedSale && <small style={{ display: "block", marginTop: 3, opacity: .75 }}>{(() => { const quantity = Number(line.quantity) || 0; const unit = String(line.unit || "kg").toLowerCase(); if (unit === "kg" && quantity > 0 && quantity < 1) return `${Math.round(quantity * 1000)} g`; if (unit === "liter" && quantity > 0 && quantity < 1) return `${Math.round(quantity * 1000)} ml`; if (unit === "meter" && quantity > 0 && quantity < 1) return `${Math.round(quantity * 100)} cm`; return `${Number(quantity.toFixed(3))} ${line.unit || "kg"}`; })()}</small>}
+                        </td>
                         <td><input className="purchase-cell-input" type="number" min="0" step="0.01" value={line.unitPrice} onChange={event => updateLine(line.lineId, "unitPrice", event.target.value)} aria-label={`Unit price for ${line.name}`} /></td>
                         <td>{money(line.cartonPrice ?? Number(line.unitPrice || 0) * Number(line.piecesPerCarton || 1))}</td>
                         <td>{Number(line.cartons || 0).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US")}</td>
