@@ -4429,3 +4429,65 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .invoice-delete-confirm-modal { padding: 19px; }
   .invoice-delete-confirm-actions { flex-direction: column-reverse; }
 }
+
+
+/* Refined POS item editor: clear before/after comparison, matching the dark suite. */
+.pos-keyboard-options-redesigned { gap: 14px; }
+.pos-keyboard-product-hero {
+  padding: 14px 15px !important;
+  border: 1px solid rgba(45, 212, 191, .24) !important;
+  border-radius: 15px !important;
+  background: linear-gradient(120deg, rgba(20, 184, 166, .11), rgba(139, 92, 246, .08)) !important;
+}
+.pos-keyboard-comparison {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, .18);
+  border-radius: 15px;
+  background: rgba(5, 13, 25, .56);
+}
+.pos-keyboard-comparison-heading,
+.pos-keyboard-comparison-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.pos-keyboard-comparison-heading {
+  padding: 9px 13px;
+  background: rgba(148, 163, 184, .07);
+  color: #9fb0c5;
+  font-size: 11px;
+  font-weight: 800;
+}
+.pos-keyboard-comparison-heading span:last-child { color: #5eead4; }
+.pos-keyboard-comparison-row { border-top: 1px solid rgba(148, 163, 184, .10); }
+.pos-keyboard-comparison-row > span { display: grid; gap: 5px; padding: 12px 13px; min-width: 0; }
+.pos-keyboard-comparison-row > span + span { border-inline-start: 1px solid rgba(148, 163, 184, .12); }
+.pos-keyboard-comparison-row small { color: #91a3ba; font-size: 10px; line-height: 1.4; }
+.pos-keyboard-comparison-row strong { color: #e8f1fc; font-size: 17px; font-weight: 800; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.pos-keyboard-comparison-row > span + span strong { color: #5eead4; }
+.pos-keyboard-comparison-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 13px;
+  border-top: 1px solid rgba(45, 212, 191, .19);
+  background: rgba(20, 184, 166, .06);
+}
+.pos-keyboard-comparison-total > span { color: #a9b9cd; font-size: 11px; font-weight: 700; }
+.pos-keyboard-comparison-total strong { display: inline-flex; align-items: center; gap: 6px; color: #f1f7ff; font-size: 13px; font-variant-numeric: tabular-nums; }
+.pos-keyboard-comparison-total strong svg { color: #5eead4; }
+.pos-keyboard-no-change { margin: -4px 0 0; color: #8294aa; font-size: 11px; line-height: 1.5; }
+.pos-keyboard-options-actions { display: grid; gap: 8px; }
+.pos-keyboard-options-actions > button { min-height: 46px; }
+.pos-keyboard-editor-redesigned { gap: 13px; }
+.pos-keyboard-live-comparison { width: 100%; }
+.pos-keyboard-editor-redesigned > label { margin-top: 1px; }
+.pos-keyboard-modal[dir="rtl"] .pos-keyboard-comparison { text-align: right; }
+@media (max-width: 460px) {
+  .pos-keyboard-comparison-row > span { padding: 10px; }
+  .pos-keyboard-comparison-row strong { font-size: 15px; }
+  .pos-keyboard-comparison-total { align-items: flex-start; flex-direction: column; }
+}
