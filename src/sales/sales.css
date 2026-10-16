@@ -2931,3 +2931,58 @@
     max-height: 42vh;
   }
 }
+
+
+/* Full-screen refinement: keep the invoice summary beside product entry. */
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+}
+
+.pos-page:fullscreen .invoice-summary,
+.pos-page.pos-fullscreen-active .invoice-summary {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: stretch;
+  margin: 0;
+}
+
+.pos-page:fullscreen .invoice-summary-content,
+.pos-page.pos-fullscreen-active .invoice-summary-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.7fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.pos-page:fullscreen .invoice-summary-total,
+.pos-page.pos-fullscreen-active .invoice-summary-total {
+  min-width: 0;
+  padding: 12px;
+}
+
+.pos-page:fullscreen .invoice-summary-actions,
+.pos-page.pos-fullscreen-active .invoice-summary-actions {
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.pos-page:fullscreen .invoice-summary-actions button,
+.pos-page.pos-fullscreen-active .invoice-summary-actions button {
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.pos-page:fullscreen .invoice-summary-note,
+.pos-page.pos-fullscreen-active .invoice-summary-note {
+  margin-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen .invoice-summary-content,
+  .pos-page.pos-fullscreen-active .invoice-summary-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
