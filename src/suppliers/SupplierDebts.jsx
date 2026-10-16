@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, Wallet, FileText, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
   getPurchaseSuppliers,
@@ -42,9 +42,20 @@ function getRemaining(invoice) {
 }
 
 export default function SupplierDebts() {
-  const [data] = useState(readData);
+  const [data, setData] = useState(readData);
   const [search, setSearch] = useState("");
   const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    const refresh = () => setData(readData());
+    refresh();
+    window.addEventListener("storage", refresh);
+    window.addEventListener("veltro:cloud-sync", refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("veltro:cloud-sync", refresh);
+    };
+  }, []);
 
   const rows = useMemo(() => {
     const query = normalize(search);
