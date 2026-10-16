@@ -73,6 +73,118 @@ async function deleteCloudInvoiceDraft(organizationId, userId) {
 
 import "./sales/sales.css";
 
+const POS_MESSAGE_TRANSLATIONS = {
+  fr: {
+    "Invoice saved to Pending Invoices.": "Facture enregistrée dans les factures en attente.",
+    "A new invoice is ready.": "Une nouvelle facture est prête.",
+    "Empty invoice closed. New invoice created.": "Facture vide fermée. Nouvelle facture créée.",
+    "Product not found in the current inventory.": "Produit introuvable dans le stock actuel.",
+    "Product not found in the current inventory. Refresh the product list and try again.": "Produit introuvable dans le stock actuel. Actualisez la liste puis réessayez.",
+    "Quantity must be at least one unit.": "La quantité doit être d’au moins une unité.",
+    "Price and discount must be zero or greater.": "Le prix et la remise doivent être égaux ou supérieurs à zéro.",
+    "Product added to invoice.": "Produit ajouté à la facture.",
+    "Product quantity updated.": "Quantité du produit mise à jour.",
+    "Product price updated.": "Prix du produit mis à jour.",
+    "Invoice item restored.": "Article rétabli dans la facture.",
+    "Undo": "Annuler",
+    "Dismiss message": "Fermer le message",
+    "An empty invoice cannot be saved as pending.": "Une facture vide ne peut pas être enregistrée en attente.",
+    "This invoice has no products.": "Cette facture ne contient aucun produit.",
+    "A product in this invoice no longer exists in inventory.": "Un produit de cette facture n’existe plus dans le stock.",
+    "This invoice has already been completed.": "Cette facture a déjà été finalisée.",
+    "Could not save the pending invoice. Check browser storage.": "Impossible d’enregistrer la facture en attente. Vérifiez le stockage du navigateur.",
+    "Could not update inventory. The sale was not completed.": "Impossible de mettre à jour le stock. La vente n’a pas été finalisée.",
+    "Could not update pending invoices. Please retry.": "Impossible de mettre à jour les factures en attente. Réessayez.",
+    "Could not record the sale. Please check inventory before retrying.": "Impossible d’enregistrer la vente. Vérifiez le stock avant de réessayer.",
+    "The operation could not be completed.": "L’opération n’a pas pu être effectuée.",
+    "Add at least one product to the current invoice before creating a new invoice.": "Ajoutez au moins un produit à la facture actuelle avant d’en créer une nouvelle.",
+    "Add products before completing the sale.": "Ajoutez des produits avant de finaliser la vente.",
+    "Add products before printing.": "Ajoutez des produits avant d’imprimer.",
+    "Full-screen mode is unavailable in this browser or permission context.": "Le plein écran n’est pas disponible dans ce navigateur ou avec ces autorisations.",
+    "Undo is unavailable because you changed invoices.": "L’annulation n’est pas disponible car vous avez changé de facture.",
+    "Cannot restore this item: it is no longer in inventory.": "Impossible de rétablir cet article : il n’existe plus dans le stock.",
+    "This pending invoice could not be found.": "Cette facture en attente est introuvable.",
+    "Sale completed. Stock deducted and synchronized with cloud.": "Vente finalisée. Stock déduit et synchronisé avec le cloud.",
+    "Sale completed, but cloud inventory sync failed.": "Vente finalisée, mais la synchronisation du stock avec le cloud a échoué."
+  },
+  ar: {
+    "Invoice saved to Pending Invoices.": "تم حفظ الفاتورة ضمن الفواتير المعلّقة.",
+    "A new invoice is ready.": "فاتورة جديدة جاهزة.",
+    "Empty invoice closed. New invoice created.": "أُغلقت الفاتورة الفارغة وتم إنشاء فاتورة جديدة.",
+    "Product not found in the current inventory.": "المنتج غير موجود في المخزون الحالي.",
+    "Product not found in the current inventory. Refresh the product list and try again.": "المنتج غير موجود في المخزون الحالي. حدّث قائمة المنتجات ثم حاول مجددًا.",
+    "Quantity must be at least one unit.": "يجب أن تكون الكمية وحدة واحدة على الأقل.",
+    "Price and discount must be zero or أكثر.": "يجب أن يكون السعر والخصم صفرًا أو أكثر.",
+    "Product added to invoice.": "تمت إضافة المنتج إلى الفاتورة.",
+    "Product quantity updated.": "تم تحديث كمية المنتج.",
+    "Product price updated.": "تم تغيير سعر المنتج.",
+    "Invoice item restored.": "تمت استعادة المنتج إلى الفاتورة.",
+    "Undo": "تراجع",
+    "Dismiss message": "إغلاق الرسالة",
+    "An empty invoice cannot be saved as pending.": "لا يمكن حفظ فاتورة فارغة ضمن الفواتير المعلّقة.",
+    "This invoice has no products.": "لا تحتوي هذه الفاتورة على منتجات.",
+    "A product in this invoice no longer exists in inventory.": "أحد منتجات الفاتورة لم يعد موجودًا في المخزون.",
+    "This invoice has already been completed.": "تم إتمام هذه الفاتورة مسبقًا.",
+    "Could not save the pending invoice. Check browser storage.": "تعذر حفظ الفاتورة المعلّقة. تحقق من مساحة تخزين المتصفح.",
+    "Could not update inventory. The sale was not completed.": "تعذر تحديث المخزون، ولم تكتمل عملية البيع.",
+    "Could not update pending invoices. Please retry.": "تعذر تحديث الفواتير المعلّقة. حاول مجددًا.",
+    "Could not record the sale. Please check inventory before retrying.": "تعذر تسجيل البيع. تحقق من المخزون قبل المحاولة مجددًا.",
+    "The operation could not be completed.": "تعذر إتمام العملية.",
+    "Add at least one product to the current invoice before creating a new invoice.": "أضف منتجًا واحدًا على الأقل إلى الفاتورة الحالية قبل إنشاء فاتورة جديدة.",
+    "Add products before completing the sale.": "أضف منتجات قبل إتمام عملية البيع.",
+    "Add products before printing.": "أضف منتجات قبل الطباعة.",
+    "Full-screen mode is unavailable in this browser or permission context.": "وضع ملء الشاشة غير متاح في هذا المتصفح أو بهذه الصلاحيات.",
+    "Undo is unavailable because you changed invoices.": "لا يمكن التراجع لأنك انتقلت إلى فاتورة أخرى.",
+    "Cannot restore this item: it is no longer in inventory.": "تعذرت استعادة المنتج لأنه لم يعد موجودًا في المخزون.",
+    "This pending invoice could not be found.": "تعذر العثور على الفاتورة المعلّقة.",
+    "Sale completed. Stock deducted and synchronized with cloud.": "اكتمل البيع، وتم خصم المخزون ومزامنته مع السحابة.",
+    "Sale completed, but cloud inventory sync failed.": "اكتمل البيع، لكن تعذرت مزامنة المخزون مع السحابة."
+  }
+};
+
+function translatePosMessage(message, locale = "en") {
+  if (!message || locale === "en") return message;
+  const dictionary = POS_MESSAGE_TRANSLATIONS[locale] || {};
+  if (dictionary[message]) return dictionary[message];
+  let match = message.match(/^(.+) removed\\. You can undo this action\\.$/);
+  if (match) {
+    if (locale === "fr") return match[1] + " retiré de la facture. Vous pouvez annuler cette action.";
+    if (locale === "ar") return "تم حذف " + match[1] + " من الفاتورة. يمكنك التراجع عن الحذف.";
+  }
+  match = message.match(/^(.+) restored to the invoice\\.$/);
+  if (match) {
+    if (locale === "fr") return match[1] + " rétabli dans la facture.";
+    if (locale === "ar") return "تمت إعادة " + match[1] + " إلى الفاتورة.";
+  }
+  match = message.match(/^Added one carton of (.+) \\((\\d+) units\\)\\.$/);
+  if (match) {
+    if (locale === "fr") return "Un carton de " + match[1] + " (" + match[2] + " unités) a été ajouté.";
+    if (locale === "ar") return "تمت إضافة كرتون من " + match[1] + " يحتوي على " + match[2] + " وحدة.";
+  }
+  match = message.match(/^Added one carton of (.+) as (\\d+) units at the unit price\\.$/);
+  if (match) {
+    if (locale === "fr") return "Un carton de " + match[1] + " (" + match[2] + " unités) a été ajouté au prix unitaire.";
+    if (locale === "ar") return "تمت إضافة كرتون من " + match[1] + " بكمية " + match[2] + " وحدة وبسعر الوحدة.";
+  }
+  match = message.match(/^(.+): only (\\d+) additional units are available\\.$/);
+  if (match) {
+    if (locale === "fr") return match[1] + " : seulement " + match[2] + " unité(s) supplémentaire(s) disponible(s).";
+    if (locale === "ar") return match[1] + ": المتاح " + match[2] + " وحدة إضافية فقط.";
+  }
+  match = message.match(/^(.+): only (\\d+) units are available for this line\\.$/);
+  if (match) {
+    if (locale === "fr") return match[1] + " : seulement " + match[2] + " unité(s) disponible(s) pour cette ligne.";
+    if (locale === "ar") return match[1] + ": المتاح لهذا السطر " + match[2] + " وحدة فقط.";
+  }
+  match = message.match(/^(.+) has ([\\d.,]+) DA in previous unpaid balances\\.$/);
+  if (match) {
+    if (locale === "fr") return match[1] + " a " + match[2] + " DA d’impayés antérieurs.";
+    if (locale === "ar") return "لدى " + match[1] + " ديون سابقة غير مدفوعة بقيمة " + match[2] + " دج.";
+  }
+  return message;
+}
+
+
 function money(value) {
   return Math.max(0, Number(value) || 0);
 }
@@ -187,7 +299,7 @@ function getErrorMessage(result) {
   }
 }
 
-export default function POS({ currentUserName = "", currentUserId = "", organizationId = "" } = {}) {
+export default function POS({ currentUserName = "", currentUserId = "", organizationId = "", locale = "en" } = {}) {
   const posPageRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [invoice, setInvoice] = useState(() => getAutoSavedDraft() || createInvoice());
@@ -570,8 +682,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       updatedAt: new Date().toISOString(),
     }));
     setShowEmptyWarning(false);
-    setMessage("");
     setRemovedItem(null);
+    notify(currentQuantity > 0 ? "Product quantity updated." : "Product added to invoice.", "success");
   };
 
   const updateItem = (id, field, value) => {
@@ -590,6 +702,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       }
 
       const quantity = Math.floor(rawQuantity);
+      if (quantity === getQuantity(currentItem)) return;
 
       const available = getAvailableForProduct(
         getProductId(currentItem),
@@ -619,7 +732,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         updatedAt: new Date().toISOString(),
       }));
 
-      setMessage("");
+      notify("Product quantity updated.", "success");
       return;
     }
 
@@ -631,6 +744,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         return;
       }
 
+      const nextValue = field === "price" ? roundPriceUp(numericValue) : money(numericValue);
+      const previousValue = money(currentItem[field]);
+      if (Math.abs(previousValue - nextValue) < 0.000001) return;
+
       setInvoice((current) => ({
         ...current,
         items: (current.items || []).map((item) => {
@@ -638,14 +755,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
           return {
             ...item,
-            [field]: field === "price" ? roundPriceUp(numericValue) : money(numericValue),
+            [field]: nextValue,
           };
         }),
         status: "Draft",
         updatedAt: new Date().toISOString(),
       }));
 
-      setMessage("");
+      if (field === "price") notify("Product price updated.", "success");
     }
   };
 
@@ -1103,6 +1220,12 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         showPending={showPending}
         newDisabled={items.length === 0}
         disabled={busy}
+        message={message ? translatePosMessage(message, locale) : ""}
+        messageType={messageType}
+        onDismissMessage={() => setMessage("")}
+        onUndo={removedItem ? () => undoRemove(removedItem.item) : undefined}
+        undoLabel={translatePosMessage("Undo", locale)}
+        dismissLabel={translatePosMessage("Dismiss message", locale)}
       />
 
       {showEmptyWarning && (
