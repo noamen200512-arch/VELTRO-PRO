@@ -754,6 +754,17 @@ export default function App({ onLogout, currentUser }) {
     return () => { cancelled = true; };
   }, [currentUser?.id]);
 
+  const workspaceUser = workspaceAccess.profile
+    ? {
+        ...currentUser,
+        full_name: workspaceAccess.profile.full_name || currentUser?.user_metadata?.full_name || currentUser?.email || "User",
+        user_metadata: {
+          ...(currentUser?.user_metadata || {}),
+          full_name: workspaceAccess.profile.full_name || currentUser?.user_metadata?.full_name || currentUser?.email || "User",
+        },
+      }
+    : currentUser;
+
   const canAccessPage = (page) => {
     if (workspaceAccess.profile?.is_owner) return true;
     const required = pagePermissionOptions[page] || [];
@@ -896,9 +907,9 @@ export default function App({ onLogout, currentUser }) {
 
         <div className="page-content">
           {activePage === "Settings" ? (
-            <SettingsPage locale={locale} onLocaleChange={setLocale} currentUser={currentUser} />
+            <SettingsPage locale={locale} onLocaleChange={setLocale} currentUser={workspaceUser} />
           ) : activePage === "Dashboard" ? (
-            <Dashboard onNavigate={setActivePage} locale={locale} />
+            <Dashboard onNavigate={navigateToPage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
             <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} />
           ) : activePage === "Products" ? (
@@ -906,9 +917,9 @@ export default function App({ onLogout, currentUser }) {
           ) : activePage === "Sales History" ? (
             <SalesHistory />
           ) : activePage === "Purchases" ? (
-            <Purchases view="dashboard" currentUser={currentUser} />
+            <Purchases view="dashboard" currentUser={workspaceUser} />
           ) : activePage === "Purchase History" ? (
-            <Purchases view="history" currentUser={currentUser} />
+            <Purchases view="history" currentUser={workspaceUser} />
           ) : activePage === "Suppliers List" ? (
             <Suppliers />
           ) : activePage === "Supplier Debts" ? (
