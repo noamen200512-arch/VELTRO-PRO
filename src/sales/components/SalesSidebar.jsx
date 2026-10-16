@@ -19,7 +19,6 @@ export function SalesSidebar({
   remaining,
   newAmount,
   invoiceDate,
-  currentUser = "User",
   previousDebt = 0,
 }) {
   const parsedDate = invoiceDate
@@ -43,11 +42,6 @@ export function SalesSidebar({
     displayInvoiceNumber.startsWith("INV-")
       ? displayInvoiceNumber
       : `INV-${displayInvoiceNumber}`;
-
-  const displayUser = String(currentUser || "User");
-
-  const userInitial =
-    displayUser.trim().charAt(0).toUpperCase() || "A";
 
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -83,26 +77,6 @@ export function SalesSidebar({
             <span className="sales-field-label">Time</span>
             <strong>{time}</strong>
           </div>
-        </div>
-      </section>
-
-      <section className="sales-side-section">
-        <div className="sales-section-heading">
-          <UserRound size={18} />
-          <h3>Current User</h3>
-        </div>
-
-        <div className="sales-user-card">
-          <div className="sales-user-avatar">
-            {userInitial}
-          </div>
-
-          <div className="sales-user-details">
-            <strong>{displayUser}</strong>
-            <span>Sales Operator</span>
-          </div>
-
-          <span className="sales-online-indicator" />
         </div>
       </section>
 
