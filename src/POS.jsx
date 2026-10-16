@@ -1526,7 +1526,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if (showShortcutsHelp) { if (e.key === "Escape") { stop(); setShowShortcutsHelp(false); } return; }
       const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); const source=keyboardDialog==="favorites"?getProducts().filter(p=>favoriteProductIds.includes(String(p.id??p.productId??""))):getProducts(); return source.filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
       if (keyboardDialog) {
-        if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else if (keyboardDialog==="quantity"||keyboardDialog==="price") setKeyboardDialog("options"); else setKeyboardDialog(null); return; }
+        if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else setKeyboardDialog(null); return; }
         if (keyboardDialog==="products" || keyboardDialog==="favorites") {
           if (e.key==="ArrowUp"||e.key==="ArrowDown") { stop(); const count=Math.min(12,Math.max(0,filtered().length-(productPickerPage-1)*12)); if(count)setSelectedProductIndex(v=>e.key==="ArrowDown"?(v+1)%count:(v-1+count)%count); }
           else if(e.key==="F1"||e.key==="F2") { stop(); const pages=Math.max(1,Math.ceil(filtered().length/12)); setProductPickerPage(v=>Math.min(pages,Math.max(1,v+(e.key==="F1"?-1:1)))); setSelectedProductIndex(0); }
