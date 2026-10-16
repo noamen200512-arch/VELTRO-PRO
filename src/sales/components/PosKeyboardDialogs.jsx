@@ -60,17 +60,21 @@ export function PosKeyboardDialogs({
   const stockOf = (p) => Number(p?.stock) || 0;
   const thresholdOf = (p) => Math.max(1, Number(p?.lowStockThreshold ?? p?.minStock ?? p?.minimumStock ?? p?.alertStock) || 5);
   const format = (n) => (Number(n) || 0).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 });
+  const [keypadReplace, setKeypadReplace] = React.useState(true);
+  React.useEffect(() => { setKeypadReplace(true); }, [dialog]);
   const keyButtons = ["1","2","3","4","5","6","7","8","9","⌫","0","."];
   const pushKey = (key, type) => {
+    const setter = type === "quantity" ? setQuantityDraft : setPriceDraft;
+    const current = String(type === "quantity" ? quantityDraft : priceDraft);
     if (key === "⌫") {
-      type === "quantity" ? setQuantityDraft(String(quantityDraft).slice(0, -1)) : setPriceDraft(String(priceDraft).slice(0, -1));
+      setter(keypadReplace ? "" : current.slice(0, -1));
+      setKeypadReplace(false);
       return;
     }
     if (key === "." && type === "quantity") return;
-    const setter = type === "quantity" ? setQuantityDraft : setPriceDraft;
-    const current = String(type === "quantity" ? quantityDraft : priceDraft);
-    if (key === "." && current.includes(".")) return;
-    setter(current === "0" && key !== "." ? key : current + key);
+    if (key === "." && !keypadReplace && current.includes(".")) return;
+    setter(keypadReplace ? (key === "." ? "0." : key) : (current === "0" && key !== "." ? key : current + key));
+    setKeypadReplace(false);
   };
   const title = dialog === "products" ? t.products : dialog === "options" ? t.options : dialog === "quantity" ? t.editQty : dialog === "price" ? t.editPrice : dialog === "stockWarning" ? t.stockTitle : t.priceTitle;
 
@@ -113,7 +117,7 @@ export function PosKeyboardDialogs({
         </div>}
 
         {(dialog === "quantity" || dialog === "price") && <div className="pos-keyboard-editor">
-          <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, ""))} onFocus={(e) => e.currentTarget.select()}/></label>
+          <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => { (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, "")); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
           <div className="pos-keyboard-keypad"><span>{t.keypad}</span><div>{keyButtons.map((key) => <button type="button" key={key} onClick={() => pushKey(key, dialog)}>{key}</button>)}</div></div>
           <footer className="pos-keyboard-footer"><span>{t.enter} · {t.esc}</span><button type="button" className="primary" onClick={() => dialog === "quantity" ? onApplyQuantity(quantityDraft) : onApplyPrice(priceDraft)}><Check size={15}/>{t.confirm}</button></footer>
         </div>}
