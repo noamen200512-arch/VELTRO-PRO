@@ -101,7 +101,7 @@ export default function ProductForm({
 
         <Section icon={Boxes} title={form.weighedSale ? "Measured Stock" : "Packaging Information"}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 13, alignItems: "end" }}>
-            {form.weighedSale ? <Field label={\`Initial Stock (\${form.unit || "kg"})\`}>
+            {form.weighedSale ? <Field label={`Initial Stock (${form.unit || "kg"})`}>
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="0.001" value={form.stock} onChange={(e) => updateField("stock", e.target.value)} placeholder="0" />
             </Field> : <>
               {!editingId
@@ -133,7 +133,7 @@ export default function ProductForm({
 
         <Section icon={BadgePercent} title="Sales Information">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 230px), 1fr))", gap: 13 }}>
-            <Field label={form.weighedSale ? `Retail Selling Price per ${form.unit || "kg"} (DA)` : "Retail Selling Price per Unit (DA")}>
+            <Field label={form.weighedSale ? `Retail Selling Price per ${form.unit || "kg"} (DA)` : "Retail Selling Price per Unit (DA)"}>
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.price} onChange={(e) => updateField("price", e.target.value)} placeholder="0.00" />
             </Field>
             <Field label="Manual Unit Profit Margin (%)">
@@ -151,7 +151,7 @@ export default function ProductForm({
 
         <Section icon={Tag} title="Additional Details">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: 13 }}>
-            <div style={{ gridColumn: "1 / -1", border: \`1px solid \${form.weighedSale ? "rgba(53,214,208,.42)" : C.border}\`, background: form.weighedSale ? "rgba(53,214,208,.07)" : "transparent", borderRadius: 10, padding: 12, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ gridColumn: "1 / -1", border: `1px solid ${form.weighedSale ? "rgba(53,214,208,.42)" : C.border}`, background: form.weighedSale ? "rgba(53,214,208,.07)" : "transparent", borderRadius: 10, padding: 12, display: "flex", alignItems: "center", gap: 10 }}>
               <input id="veltro-weighed-sale" type="checkbox" checked={Boolean(form.weighedSale)} onChange={(e) => { updateField("weighedSale", e.target.checked); if (e.target.checked && ["piece", "pack", "carton"].includes(form.unit)) updateField("unit", "kg"); }} style={{ width: 18, height: 18, accentColor: C.cyan }} />
               <label htmlFor="veltro-weighed-sale" style={{ cursor: "pointer", display: "grid", gap: 4 }}>
                 <span style={{ fontSize: 12, fontWeight: 750 }}>Sell by measured quantity</span>
