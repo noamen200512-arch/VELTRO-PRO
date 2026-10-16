@@ -2281,7 +2281,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                     {locale === "ar" ? "الكمية" : locale === "fr" ? "QTÉ" : "QTY"}
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc", fontVariantNumeric: "tabular-nums" }}>
-                    {items[selectedCartIndex].weighedSale ? (() => { const q = getQuantity(items[selectedCartIndex]); const unit = String(items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg").toLowerCase(); if (unit === "kg" && q > 0 && q < 1) return \`\${Math.round(q * 1000)} غ\`; if (["l", "liter"].includes(unit) && q > 0 && q < 1) return \`\${Math.round(q * 1000)} مل\`; if (["m", "meter"].includes(unit) && q > 0 && q < 1) return \`\${Math.round(q * 100)} سم\`; return \`\${Number(q.toFixed(3))} \${items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg"}\`; })() : getQuantity(items[selectedCartIndex])}
+                    {items[selectedCartIndex].weighedSale ? (() => { const q = getQuantity(items[selectedCartIndex]); const unit = String(items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg").toLowerCase(); if (unit === "kg" && q > 0 && q < 1) return `${Math.round(q * 1000)} غ`; if (["l", "liter"].includes(unit) && q > 0 && q < 1) return `${Math.round(q * 1000)} مل`; if (["m", "meter"].includes(unit) && q > 0 && q < 1) return `${Math.round(q * 100)} سم`; return `${Number(q.toFixed(3))} ${items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg"}`; })() : getQuantity(items[selectedCartIndex])}
                   </div>
                 </div>
                 <div style={{ textAlign: "end" }}>
