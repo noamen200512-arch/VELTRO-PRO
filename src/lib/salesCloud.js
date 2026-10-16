@@ -37,15 +37,43 @@ export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
 
   const { userId, organizationId } = await getAccount();
   const id = String(sale.id || sale.invoiceId);
+  const requestedProductIds = [...new Set(sale.items
+    .map((item) => String(item.productId || item.product_id || item.id || ""))
+    .filter(Boolean))];
+  const validProductIds = new Set();
+  if (requestedProductIds.length) {
+    const { data: products, error: productError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .in("id", requestedProductIds);
+    if (productError) throw productError;
+    for (const product of products || []) validProductIds.add(String(product.id));
+  }
+
+  const requestedCustomerId = sale.customerId && String(sale.customerId).toLowerCase() !== "anonyme"
+    ? String(sale.customerId)
+    : "";
+  let customerId = null;
+  if (requestedCustomerId) {
+    const { data: customer, error: customerError } = await supabase
+      .from("customers")
+      .select("id")
+      .eq("organization_id", organizationId)
+      .eq("id", requestedCustomerId)
+      .maybeSingle();
+    if (!customerError && customer) customerId = String(customer.id);
+  }
+
   const total = Math.max(0, numeric(sale.total));
   const paid = Math.min(total, Math.max(0, numeric(sale.paid)));
   const header = {
     id,
     organization_id: organizationId,
     invoice_number: String(sale.invoiceNumber || id),
-    customer_id: sale.customerId && String(sale.customerId).toLowerCase() !== "anonyme" ? String(sale.customerId) : null,
+    customer_id: customerId,
     customer_name: String(sale.customerName || "Anonyme"),
-    employee_id: sale.employeeId || userId,
+    employee_id: userId,
     status: status === "pending" ? "pending" : "posted",
     subtotal: Math.max(0, numeric(sale.subtotal ?? total + numeric(sale.discount))),
     discount: Math.max(0, numeric(sale.discount)),
@@ -78,7 +106,9 @@ export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
       id: stableLineId(id, item, index),
       organization_id: organizationId,
       invoice_id: id,
-      product_id: item.productId || item.id ? String(item.productId || item.id) : null,
+      product_id: validProductIds.has(String(item.productId || item.product_id || item.id || ""))
+        ? String(item.productId || item.product_id || item.id)
+        : null,
       product_name: String(item.name || item.productName || ""),
       sku: String(item.sku || ""),
       barcode: String(item.barcode || ""),
