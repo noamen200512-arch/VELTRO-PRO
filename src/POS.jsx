@@ -1319,7 +1319,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setWarningPayload(null);
   };
   const cancelKeyboardWarning = () => {
-    const back = warningPayload?.returnTo || (warningPayload?.type === "price" ? "price" : warningPayload?.type === "quantity" ? "quantity" : "options");
+    const warning = warningPayload;
+    const back = warning?.returnTo || (["addProduct", "addCarton"].includes(warning?.type) || (warning?.type === "quantity" && !warning?.returnTo) ? null : warning?.type === "price" ? "price" : warning?.type === "quantity" ? "quantity" : "options");
     setWarningPayload(null);
     setKeyboardDialog(back);
   };
