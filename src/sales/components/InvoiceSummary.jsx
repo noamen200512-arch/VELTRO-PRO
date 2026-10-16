@@ -54,8 +54,8 @@ export function InvoiceSummary({
           <Receipt size={20} />
 
           <div>
-            <h2>ملخص الفاتورة</h2>
-            <p>راجع المبالغ قبل إتمام البيع</p>
+            <h2>Invoice Summary</h2>
+            <p>Review the amounts before completing the sale</p>
           </div>
         </div>
       </div>
@@ -63,14 +63,14 @@ export function InvoiceSummary({
       <div className="invoice-summary-content">
         <div className="invoice-summary-details">
           <div className="invoice-summary-row">
-            <span>المجموع الفرعي</span>
+            <span>Subtotal</span>
             <strong>{money(subtotal)}</strong>
           </div>
 
           <div className="invoice-summary-row">
             <label htmlFor="invoice-global-discount">
               <Percent size={15} />
-              التخفيض الإجمالي (دج)
+              Global Discount (DA)
             </label>
 
             <input
@@ -96,7 +96,7 @@ export function InvoiceSummary({
           </div>
 
           <div className="invoice-summary-row invoice-summary-payment-row">
-            <label htmlFor="invoice-payment-received"><Banknote size={15} /> المبلغ المستلم (دج)</label>
+            <label htmlFor="invoice-payment-received"><Banknote size={15} /> Payment Received (DA)</label>
             <input
               id="invoice-payment-received"
               className="invoice-summary-payment-input"
@@ -125,7 +125,7 @@ export function InvoiceSummary({
           <div className="invoice-summary-row">
             <span>
               <Wallet size={15} />
-              المتبقي من الفاتورة
+              Remaining on Invoice
             </span>
 
             <strong className="invoice-summary-remaining">
@@ -134,13 +134,13 @@ export function InvoiceSummary({
           </div>
 
           <div className="invoice-summary-row invoice-summary-debt-row">
-            <span>الدين السابق للزبون</span>
+            <span>Previous Customer Debt</span>
             <strong>{money(safePreviousDebt)}</strong>
           </div>
 
           {safePreviousDebt > 0 && (
             <div className="invoice-summary-row">
-              <span>إجمالي الدين بعد البيع</span>
+              <span>Total Debt After Sale</span>
               <strong className="invoice-summary-remaining">
                 {money(safePreviousDebt + safeRemaining)}
               </strong>
@@ -159,7 +159,7 @@ export function InvoiceSummary({
                   disabled={busy}
                   onClick={() => onViewDebtDetails?.()}
                 >
-                  تفاصيل الدين
+                  View Debt Details
                 </button>
               )}
             </div>
@@ -169,8 +169,8 @@ export function InvoiceSummary({
         <div className="invoice-summary-total">
           <div className="invoice-summary-total-heading">
             <div>
-              <span>المبلغ الإجمالي</span>
-              <p>المبلغ النهائي المستحق</p>
+              <span>TOTAL AMOUNT</span>
+              <p>Final amount due</p>
             </div>
             <strong className="invoice-summary-total-amount">{money(safeTotal)}</strong>
           </div>
@@ -179,9 +179,9 @@ export function InvoiceSummary({
             <div className="invoice-summary-compact-customer">
               <div className="invoice-summary-compact-customer-header">
                 <div className="invoice-summary-compact-customer-identity">
-                  <span className="invoice-summary-compact-eyebrow">معلومات الزبون</span>
+                  <span className="invoice-summary-compact-eyebrow">CUSTOMER ACCOUNT</span>
                   <strong className="invoice-summary-compact-customer-name">
-                    {customerName || "زبون مجهول"}
+                    {customerName || "Anonyme"}
                   </strong>
                 </div>
 
@@ -192,24 +192,24 @@ export function InvoiceSummary({
                   onClick={() => onChooseCustomer?.()}
                 >
                   <UserRound size={14} />
-                  تغيير الزبون
+                  Change
                 </button>
               </div>
 
               <div className="invoice-summary-compact-customer-metrics">
                 <div>
-                  <span>الدين السابق</span>
+                  <span>Previous debt</span>
                   <strong>{money(safePreviousDebt)}</strong>
                 </div>
                 <div>
-                  <span>المبلغ المدفوع</span>
+                  <span>Paid now</span>
                   <strong>{money(safePaid)}</strong>
                 </div>
                 <div>
-                  <span>الدين الجديد</span>
+                  <span>New debt</span>
                   <strong className="invoice-summary-compact-new-debt">
                     {money(
-                      ["anonyme", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase())
+                      ["anonyme", "anonymous", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase())
                         ? 0
                         : safePreviousDebt + safeRemaining
                     )}
@@ -229,7 +229,7 @@ export function InvoiceSummary({
           onClick={() => onSavePending?.()}
         >
           <Clock size={17} />
-          حفظ كمعلّقة
+          Save Pending
         </button>
 
         <button
@@ -239,7 +239,7 @@ export function InvoiceSummary({
           onClick={() => onPrint?.()}
         >
           <Printer size={17} />
-          طباعة الفاتورة
+          Print Invoice
         </button>
 
         <button
@@ -251,12 +251,12 @@ export function InvoiceSummary({
           {busy ? (
             <>
               <LoaderCircle size={18} />
-              جارٍ إتمام البيع...
+              Completing...
             </>
           ) : (
             <>
               <CheckCircle2 size={18} />
-              إتمام البيع
+              Complete Sale
             </>
           )}
         </button>
@@ -266,7 +266,7 @@ export function InvoiceSummary({
         <Banknote size={15} />
 
         <span>
-          يرجى التحقق من المبلغ المدفوع والإجمالي قبل إتمام الفاتورة.
+          Please verify the payment and total before finalizing the invoice.
         </span>
       </div>
     </section>
