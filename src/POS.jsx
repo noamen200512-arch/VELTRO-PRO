@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -8,7 +8,6 @@ import { ProductEntry } from "./sales/components/ProductEntry";
 import { InvoiceTable } from "./sales/components/InvoiceTable";
 import { InvoiceSummary } from "./sales/components/InvoiceSummary";
 import { PosKeyboardDialogs } from "./sales/components/PosKeyboardDialogs";
-import ClosedInvoiceNavigator from "./sales/components/ClosedInvoiceNavigator.jsx";
 
 import {
   createInvoice,
@@ -344,7 +343,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const [showProducts, setShowProducts] = useState(true);
   const [showPending, setShowPending] = useState(false);
-  const [showClosedInvoices, setShowClosedInvoices] = useState(false);
+  const [closedInvoiceMode, setClosedInvoiceMode] = useState(null);
+  const [closedInvoiceIndex, setClosedInvoiceIndex] = useState(-1);
+  const invoiceBeforeClosedBrowseRef = useRef(null);
   const [showEmptyWarning, setShowEmptyWarning] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
@@ -406,6 +407,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   }, []);
 
   const items = invoice.items || [];
+  const closedInvoices = useMemo(() => [...getCompletedSales()].sort((a, b) => new Date(b.completedAt || b.createdAt || 0) - new Date(a.completedAt || a.createdAt || 0)), [closedInvoiceMode, closedInvoiceIndex, invoice.id]);
+  const selectedClosedInvoice = closedInvoiceIndex >= 0 ? closedInvoices[closedInvoiceIndex] : null;
+  const isReviewingClosedInvoice = closedInvoiceMode === "review";
+  const isEditingClosedInvoice = closedInvoiceMode === "editing";
   useEffect(() => {
     if (items.length === 0) setSelectedCartIndex(0);
     else if (selectedCartIndex >= items.length) setSelectedCartIndex(items.length - 1);
@@ -1391,25 +1396,51 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     notify(locale === "ar" ? "لا يوجد اتصال مباشر بدرج النقود. يلزم ربط الطابعة أو برنامج تشغيل متوافق." : locale === "fr" ? "Aucun pilote de tiroir-caisse n'est connecté." : "No compatible cash-drawer driver is connected.", "info");
   };
 
-  const saveClosedInvoiceEdits = async (updatedInvoice) => {
-    const result = editCompletedSale(updatedInvoice.id || updatedInvoice.invoiceId || updatedInvoice.invoiceNumber, updatedInvoice);
-    if (!result?.ok) {
-      const messages = {
-        EMPTY_INVOICE: locale === "ar" ? "لا يمكن حفظ بون فارغ." : locale === "fr" ? "Une facture vide ne peut pas être enregistrée." : "An empty invoice cannot be saved.",
-        INVOICE_NOT_FOUND: locale === "ar" ? "البون المغلق غير موجود." : locale === "fr" ? "Facture clôturée introuvable." : "Closed invoice not found.",
-        INSUFFICIENT_STOCK: locale === "ar" ? "المخزون غير كافٍ لحفظ التعديلات." : locale === "fr" ? "Stock insuffisant pour enregistrer les modifications." : "Insufficient stock to save these changes.",
-      };
-      return { ...result, message: messages[result?.error] || (locale === "ar" ? "تعذر حفظ التعديلات." : locale === "fr" ? "Impossible d’enregistrer les modifications." : "Could not save changes.") };
+
+  const navigateClosedInvoice = (direction) => {
+    const sales = [...getCompletedSales()].sort((a, b) => new Date(b.completedAt || b.createdAt || 0) - new Date(a.completedAt || a.createdAt || 0));
+    if (!sales.length) {
+      notify(locale === "ar" ? "لا توجد بونات مغلقة." : locale === "fr" ? "Aucune facture clôturée." : "No closed invoices found.", "info");
+      return;
     }
-    try {
-      await saveProductsToCloud(getProducts());
-      await saveSaleToCloud(result.sale, { status: "completed" });
-    } catch (error) {
-      console.error("VELTRO-PRO could not sync edited invoice:", error);
-      notify(locale === "ar" ? "تم حفظ البون محليًا، لكن فشلت المزامنة السحابية." : locale === "fr" ? "Facture enregistrée localement, mais la synchronisation cloud a échoué." : "Invoice saved locally, but cloud sync failed.", "error");
+    if (closedInvoiceMode === null) {
+      invoiceBeforeClosedBrowseRef.current = { ...invoice, items: (invoice.items || []).map(item => ({ ...item })) };
+      saveAutoSavedDraft({ ...invoice, status: "Draft", subtotal, total, paid, remaining });
+      const firstIndex = direction === "previous" ? 0 : sales.length - 1;
+      setClosedInvoiceIndex(firstIndex);
+      setInvoice({ ...sales[firstIndex], status: "Completed", items: (sales[firstIndex].items || []).map(item => ({ ...item })) });
+      setClosedInvoiceMode("review");
+      setRemovedItem(null);
+      return;
     }
-    window.dispatchEvent(new Event("veltro:cloud-sync"));
-    return result;
+    const nextIndex = direction === "previous"
+      ? Math.min(sales.length - 1, closedInvoiceIndex + 1)
+      : Math.max(0, closedInvoiceIndex - 1);
+    const selected = sales[nextIndex];
+    setClosedInvoiceIndex(nextIndex);
+    setInvoice({ ...selected, status: "Completed", items: (selected.items || []).map(item => ({ ...item })) });
+    setRemovedItem(null);
+  };
+
+  const reopenSelectedClosedInvoice = () => {
+    if (!selectedClosedInvoice || !isReviewingClosedInvoice) return;
+    setInvoice({ ...selectedClosedInvoice, status: "Draft", items: (selectedClosedInvoice.items || []).map(item => ({ ...item })) });
+    setClosedInvoiceMode("editing");
+    setRemovedItem(null);
+    notify(locale === "ar" ? "تم فتح البون للتعديل. أكمل البيع لحفظ التغييرات." : locale === "fr" ? "Facture rouverte. Finalisez la vente pour enregistrer les modifications." : "Invoice reopened for editing. Complete Sale will save your changes.", "success");
+  };
+
+  const returnToCurrentInvoice = () => {
+    if (isEditingClosedInvoice) {
+      const confirmDiscard = window.confirm(locale === "ar" ? "هل تريد إلغاء التعديلات والعودة إلى البون الحالي؟" : locale === "fr" ? "Annuler les modifications et revenir à la facture actuelle ?" : "Discard changes and return to the current invoice?");
+      if (!confirmDiscard) return;
+    }
+    const previous = invoiceBeforeClosedBrowseRef.current;
+    if (previous) setInvoice(previous);
+    setClosedInvoiceMode(null);
+    setClosedInvoiceIndex(-1);
+    invoiceBeforeClosedBrowseRef.current = null;
+    setRemovedItem(null);
   };
 
   const printInvoice = () => {
@@ -1494,7 +1525,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
           onPending={() => setShowPending((current) => !current)}
-          onClosedInvoices={() => setShowClosedInvoices(true)}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
           newDisabled={items.length === 0}
@@ -1521,6 +1551,24 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           <span>{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
         </button>
       </header>
+
+      {closedInvoiceMode && selectedClosedInvoice && (
+        <section className={`closed-invoice-inline-nav ${isReviewingClosedInvoice ? "is-reviewing" : "is-editing"}`} dir={locale === "ar" ? "rtl" : "ltr"} aria-label={locale === "ar" ? "التنقل بين البونات المغلقة" : "Navigate closed invoices"}>
+          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("previous")} disabled={closedInvoiceIndex >= closedInvoices.length - 1} title={locale === "ar" ? "البون السابق" : locale === "fr" ? "Facture précédente" : "Previous closed invoice"}><ChevronLeft size={20}/></button>
+          <div className="closed-invoice-inline-info">
+            <span className="closed-invoice-inline-status">{isReviewingClosedInvoice ? (locale === "ar" ? "مراجعة بون مغلق" : locale === "fr" ? "Consultation facture clôturée" : "Closed invoice review") : (locale === "ar" ? "تعديل بون مغلق" : locale === "fr" ? "Modification facture clôturée" : "Editing closed invoice")}</span>
+            <strong>{selectedClosedInvoice.invoiceNumber || selectedClosedInvoice.id}</strong>
+            <small>{closedInvoiceIndex + 1} / {closedInvoices.length} · {selectedClosedInvoice.customerName || "Anonyme"}</small>
+          </div>
+          <button type="button" className="closed-invoice-arrow" onClick={() => navigateClosedInvoice("next")} disabled={closedInvoiceIndex <= 0} title={locale === "ar" ? "البون التالي" : locale === "fr" ? "Facture suivante" : "Next closed invoice"}><ChevronRight size={20}/></button>
+          {isReviewingClosedInvoice ? (
+            <button type="button" className="closed-invoice-reopen" onClick={reopenSelectedClosedInvoice}><RotateCcw size={16}/>{locale === "ar" ? "إعادة فتح البون" : locale === "fr" ? "Rouvrir la facture" : "Reopen invoice"}</button>
+          ) : (
+            <span className="closed-invoice-edit-hint">{locale === "ar" ? "احفظ التغييرات بزر إتمام البيع" : locale === "fr" ? "Enregistrez via Finaliser la vente" : "Save changes using Complete Sale"}</span>
+          )}
+          <button type="button" className="closed-invoice-return" onClick={returnToCurrentInvoice}>{locale === "ar" ? "العودة للبون الحالي" : locale === "fr" ? "Revenir à la facture actuelle" : "Return to current invoice"}</button>
+        </section>
+      )}
 
       {showEmptyWarning && (
         <div className="pos-empty-warning" role="alert">
@@ -1885,15 +1933,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <footer className="pos-shortcuts-footer"><span>{locale === "ar" ? "تلميح: افتح هذا الدليل في أي وقت باستخدام Ctrl + I." : locale === "fr" ? "Astuce : ouvrez ce guide à tout moment avec Ctrl + I." : "Tip: reopen this guide anytime with Ctrl + I."}</span><button type="button" onClick={() => setShowShortcutsHelp(false)}>{locale === "ar" ? "فهمت" : locale === "fr" ? "Compris" : "Got it"}</button></footer>
           </section>
         </div>
-      )}
-
-      {showClosedInvoices && (
-        <ClosedInvoiceNavigator
-          sales={getCompletedSales()}
-          locale={locale}
-          onClose={() => setShowClosedInvoices(false)}
-          onSave={saveClosedInvoiceEdits}
-        />
       )}
 
       <PosKeyboardDialogs
