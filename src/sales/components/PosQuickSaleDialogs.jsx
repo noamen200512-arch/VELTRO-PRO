@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter } from "lucide-react";
+import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter, Trash2 } from "lucide-react";
 
 const COPY = {
   en: {
@@ -11,7 +11,7 @@ const COPY = {
     save:"Save settings", cancel:"Cancel", noProducts:"No products found.", select:"Select", quantity:"Weight in kg", paidAmount:"Amount in DA",
     invalidPrice:"This product needs a price greater than zero to calculate weight.", invalidWeight:"Enter a weight or amount greater than zero.",
     selected:"Selected product", setupHint:"Choose which products appear in each quick-sale screen and assign a category to weighed products.",
-    remove:"Remove", enter:"Enter", clear:"Clear", poundSize:"Pound size (grams)", noCategory:"Uncategorized"
+    remove:"Remove", enter:"Enter", clear:"Clear", poundSize:"Pound size (grams)", noCategory:"Uncategorized", manageCategoryContents:"Manage category names", categoryName:"Category name", deleteCategory:"Delete category", categoryRenameHint:"Edit a name, then leave the field to apply it."
   },
   fr: {
     favorites:"Produits favoris", weigh:"Vente au poids", settings:"Réglages de vente rapide", search:"Rechercher par nom ou référence…",
@@ -22,7 +22,7 @@ const COPY = {
     save:"Enregistrer", cancel:"Annuler", noProducts:"Aucun produit trouvé.", select:"Sélectionner", quantity:"Poids en kg", paidAmount:"Montant en DA",
     invalidPrice:"Ce produit doit avoir un prix supérieur à zéro pour calculer le poids.", invalidWeight:"Saisissez un poids ou un montant supérieur à zéro.",
     selected:"Produit sélectionné", setupHint:"Choisissez les produits affichés dans chaque écran et classez les produits vendus au poids.",
-    remove:"Supprimer", enter:"Entrée", clear:"Effacer", poundSize:"Valeur de la livre (grammes)", noCategory:"Sans catégorie"
+    remove:"Supprimer", enter:"Entrée", clear:"Effacer", poundSize:"Valeur de la livre (grammes)", noCategory:"Sans catégorie", manageCategoryContents:"Gérer les noms des catégories", categoryName:"Nom de la catégorie", deleteCategory:"Supprimer la catégorie", categoryRenameHint:"Modifiez un nom puis quittez le champ pour appliquer."
   },
   ar: {
     favorites:"المنتجات المفضلة", weigh:"البيع بالميزان", settings:"إعدادات البيع السريع", search:"ابحث باسم المنتج أو مرجعه…",
@@ -33,7 +33,7 @@ const COPY = {
     save:"حفظ الإعدادات", cancel:"إلغاء", noProducts:"لم يُعثر على منتجات.", select:"اختيار", quantity:"الوزن بالكيلوغرام", paidAmount:"المبلغ بالدج",
     invalidPrice:"يجب أن يكون سعر الكيلوغرام أكبر من صفر لحساب الوزن.", invalidWeight:"أدخل وزنًا أو مبلغًا أكبر من صفر.",
     selected:"المنتج المحدد", setupHint:"اختر المنتجات التي تظهر في كل شاشة، وصنّف المنتجات المباعة بالميزان.",
-    remove:"حذف", enter:"إدخال", clear:"مسح", poundSize:"قيمة الرطل بالغرام", noCategory:"بلا فئة"
+    remove:"حذف", enter:"إدخال", clear:"مسح", poundSize:"قيمة الرطل بالغرام", noCategory:"بلا فئة", manageCategoryContents:"إدارة أسماء الفئات", categoryName:"اسم الفئة", deleteCategory:"حذف الفئة", categoryRenameHint:"عدّل الاسم ثم انتقل خارج الحقل لتطبيقه."
   }
 };
 
@@ -59,6 +59,7 @@ export default function PosQuickSaleDialogs({
   const [draftWeighed, setDraftWeighed] = useState(weighedIds.map(String));
   const [draftCategories, setDraftCategories] = useState({ ...categoriesByProduct });
   const [draftCategoryList, setDraftCategoryList] = useState([...categories]);
+  const [categoryNameDrafts, setCategoryNameDrafts] = useState(Object.fromEntries(categories.map((category) => [category, category])));
   const [draftVisibleCategories, setDraftVisibleCategories] = useState([...visibleWeighedCategories]);
   const [showCategoryVisibility, setShowCategoryVisibility] = useState(false);
   const [newCategory, setNewCategory] = useState("");
@@ -71,6 +72,7 @@ export default function PosQuickSaleDialogs({
       setDraftWeighed(weighedIds.map(String));
       setDraftCategories({ ...categoriesByProduct });
       setDraftCategoryList([...categories]);
+      setCategoryNameDrafts(Object.fromEntries(categories.map((category) => [category, category])));
       setDraftVisibleCategories([...visibleWeighedCategories]);
       setDraftPound(String(poundGrams || 500));
     }
@@ -112,6 +114,27 @@ export default function PosQuickSaleDialogs({
     else setter(replaceInput ? key : String(current) + key);
     setReplaceInput(false);
   };
+  const commitCategoryRename = (oldName) => {
+    const nextName = String(categoryNameDrafts[oldName] ?? oldName).trim();
+    if (!nextName || nextName === oldName) {
+      setCategoryNameDrafts((old) => ({ ...old, [oldName]: oldName }));
+      return;
+    }
+    if (draftCategoryList.some((category) => category !== oldName && normalize(category) === normalize(nextName))) {
+      setCategoryNameDrafts((old) => ({ ...old, [oldName]: oldName }));
+      return;
+    }
+    setDraftCategoryList((old) => old.map((category) => category === oldName ? nextName : category));
+    setDraftCategories((old) => Object.fromEntries(Object.entries(old).map(([id, category]) => [id, category === oldName ? nextName : category])));
+    setDraftVisibleCategories((old) => old.map((category) => category === oldName ? nextName : category));
+    setCategoryNameDrafts((old) => { const next = { ...old }; delete next[oldName]; next[nextName] = nextName; return next; });
+  };
+  const deleteCategory = (category) => {
+    setDraftCategoryList((old) => old.filter((item) => item !== category));
+    setDraftVisibleCategories((old) => old.filter((item) => item !== category));
+    setDraftCategories((old) => Object.fromEntries(Object.entries(old).filter(([, value]) => value !== category)));
+    setCategoryNameDrafts((old) => { const next = { ...old }; delete next[category]; return next; });
+  };
   const categoryLabel = (category) => {
     const key = ({ "Nuts":"nuts", "Grains":"grains", "Spices":"spices", "Other":"other" })[category];
     return key ? t[key] : category;
@@ -138,9 +161,18 @@ export default function PosQuickSaleDialogs({
       {dialog === "settings" ? <>
         <div className="pos-quick-settings-toolbar">
           <label>{t.poundSize}<input type="number" min="1" value={draftPound} onChange={(e) => setDraftPound(e.target.value)}/></label>
-          <div className="pos-quick-new-category"><input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder={t.newCategory}/><button type="button" onClick={() => { const value = newCategory.trim(); if (value && !draftCategoryList.includes(value)) setDraftCategoryList((old) => [...old, value]); setNewCategory(""); }}><Plus size={16}/>{t.addCategory}</button></div>
+          <div className="pos-quick-new-category"><input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder={t.newCategory}/><button type="button" onClick={() => { const value = newCategory.trim(); if (value && !draftCategoryList.some((category) => normalize(category) === normalize(value))) { setDraftCategoryList((old) => [...old, value]); setCategoryNameDrafts((old) => ({ ...old, [value]: value })); } setNewCategory(""); }}><Plus size={16}/>{t.addCategory}</button></div>
         </div>
         <div className="pos-quick-category-visibility" aria-label={t.customCategories}>
+          <div style={{ margin: "12px 0", padding: 12, border: "1px solid rgba(148,163,184,.18)", borderRadius: 12, background: "rgba(15,23,42,.35)" }}>
+            <strong style={{ display: "block", marginBottom: 6 }}>{t.manageCategoryContents}</strong>
+            <p style={{ margin: "0 0 10px", color: "#94a3b8", fontSize: 12 }}>{t.categoryRenameHint}</p>
+            {draftCategoryList.length === 0 && <p style={{ color: "#94a3b8", fontSize: 12 }}>—</p>}
+            {draftCategoryList.map((category) => <div key={category} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+              <input aria-label={t.categoryName} value={categoryNameDrafts[category] ?? category} onChange={(e) => setCategoryNameDrafts((old) => ({ ...old, [category]: e.target.value }))} onBlur={() => commitCategoryRename(category)} style={{ flex: 1, minWidth: 0, padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(148,163,184,.25)", background: "rgba(2,6,23,.45)", color: "inherit" }} />
+              <button type="button" title={t.deleteCategory} aria-label={`${t.deleteCategory}: ${category}`} onClick={() => deleteCategory(category)} style={{ display: "grid", placeItems: "center", width: 36, height: 36, flexShrink: 0, borderRadius: 8, border: "1px solid rgba(248,113,113,.28)", color: "#fca5a5", background: "rgba(127,29,29,.16)", cursor: "pointer" }}><Trash2 size={15}/></button>
+            </div>)}
+          </div>
           <button type="button" onClick={() => setShowCategoryVisibility((open) => !open)} aria-expanded={showCategoryVisibility} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", justifyContent: "space-between", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(45,212,191,.28)", background: "rgba(45,212,191,.08)", color: "#5eead4", fontWeight: 750, cursor: "pointer" }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><ListFilter size={17}/>{t.categoryVisibilityButton}</span><span>{showCategoryVisibility ? "−" : "+"}</span></button>
           {showCategoryVisibility && <div style={{ padding: "10px 2px 2px" }}><p>{t.showCategoryOnWeighPage}</p><div className="pos-quick-category-row">{draftCategoryList.map((category) => <label className="pos-quick-check" key={category}><input type="checkbox" checked={draftVisibleCategories.includes(category)} onChange={(e) => setDraftVisibleCategories((old) => e.target.checked ? [...new Set([...old, category])] : old.filter((x) => x !== category))}/>{categoryLabel(category)}</label>)}</div></div>}
         </div>
