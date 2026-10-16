@@ -375,18 +375,16 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   });
 
 
+  // App-level fullscreen keeps Escape available for closing POS dialogs.
+  // Native browser fullscreen reserves Escape to exit fullscreen itself.
   useEffect(() => {
-    const syncFullscreenState = () => {
-      setIsFullscreen(document.fullscreenElement === posPageRef.current);
-    };
-
-    document.addEventListener("fullscreenchange", syncFullscreenState);
-    syncFullscreenState();
-
+    if (!isFullscreen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("fullscreenchange", syncFullscreenState);
+      document.body.style.overflow = previousOverflow;
     };
-  }, []);
+  }, [isFullscreen]);
 
   useEffect(() => {
     let active = true;
@@ -1354,20 +1352,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     window.print();
   };
 
-  const toggleFullscreen = async () => {
-    const page = posPageRef.current;
-    if (!page) return;
-
-    try {
-      if (document.fullscreenElement === page) {
-        await document.exitFullscreen();
-      } else {
-        await page.requestFullscreen();
-      }
-    } catch (error) {
-      console.error("Could not toggle full-screen POS mode:", error);
-      notify("Full-screen mode is unavailable in this browser or permission context.", "error");
-    }
+  const toggleFullscreen = () => {
+    setIsFullscreen((current) => !current);
   };
 
 
