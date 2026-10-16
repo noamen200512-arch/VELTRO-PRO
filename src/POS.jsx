@@ -22,6 +22,7 @@ import {
 
 import { getProducts } from "./productStore.js";
 import { saveProductsToCloud } from "./lib/productCloud.js";
+import { saveSaleToCloud } from "./lib/salesCloud.js";
 import { supabase } from "./lib/supabase.js";
 import { loadCustomersFromCloud } from "./lib/customerCloud.js";
 
@@ -1156,6 +1157,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if (!result.ok) {
         notify(getErrorMessage(result), "error");
         return;
+      }
+
+      // Persist the completed invoice and its stock changes to the shared workspace.
+      try {
+        await saveSaleToCloud(result.sale);
+        await saveProductsToCloud(getProducts());
+      } catch (cloudError) {
+        console.error("VELTRO-PRO could not synchronize the completed sale:", cloudError);
+        notify(
+          "Sale completed on this device, but cloud synchronization failed. Keep this device online and retry synchronization.",
+          "error"
+        );
       }
 
       // Remove the confirmed invoice from cloud drafts before starting a
