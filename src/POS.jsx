@@ -1873,6 +1873,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             onUndoRemove={undoRemove}
             onAddUnit={addUnit}
             onAddCarton={addCarton}
+            locale={locale}
           />
 
           <InvoiceSummary
