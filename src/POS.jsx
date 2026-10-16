@@ -22,7 +22,55 @@ import {
 
 import { getProducts } from "./productStore.js";
 import { saveProductsToCloud } from "./lib/productCloud.js";
+import { supabase } from "./lib/supabase.js";
 import { loadCustomersFromCloud } from "./lib/customerCloud.js";
+
+let cloudDraftSaveQueue = Promise.resolve();
+
+async function loadCloudInvoiceDraft(organizationId, userId) {
+  const { data, error } = await supabase
+    .from("pos_invoice_drafts")
+    .select("draft, updated_at")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.draft && typeof data.draft === "object"
+    ? { ...data.draft, updatedAt: data.updated_at || data.draft.updatedAt, status: "Draft" }
+    : null;
+}
+
+function saveCloudInvoiceDraft(organizationId, userId, invoice) {
+  const task = async () => {
+    const now = new Date().toISOString();
+    const draft = { ...invoice, status: "Draft", updatedAt: now };
+    const { error } = await supabase
+      .from("pos_invoice_drafts")
+      .upsert({
+        organization_id: organizationId,
+        user_id: userId,
+        invoice_id: String(draft.id),
+        invoice_number: String(draft.invoiceNumber || ""),
+        draft,
+        updated_at: now,
+      }, { onConflict: "organization_id,user_id" });
+    if (error) throw error;
+  };
+
+  cloudDraftSaveQueue = cloudDraftSaveQueue.catch(() => {}).then(task);
+  return cloudDraftSaveQueue;
+}
+
+async function deleteCloudInvoiceDraft(organizationId, userId) {
+  const { error } = await supabase
+    .from("pos_invoice_drafts")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId);
+  if (error) throw error;
+}
+
 import "./sales/sales.css";
 
 function money(value) {
@@ -139,10 +187,11 @@ function getErrorMessage(result) {
   }
 }
 
-export default function POS({ currentUserName = "" } = {}) {
+export default function POS({ currentUserName = "", currentUserId = "", organizationId = "" } = {}) {
   const posPageRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [invoice, setInvoice] = useState(() => getAutoSavedDraft() || createInvoice());
+  const [draftCloudReady, setDraftCloudReady] = useState(() => !(currentUserId && organizationId));
 
   const [pendingInvoices, setPendingInvoices] = useState(
     () => getPendingInvoices()
@@ -213,6 +262,59 @@ export default function POS({ currentUserName = "" } = {}) {
 
   const total = Math.max(0, subtotal - discount);
   const remaining = Math.max(0, total - paid);
+
+  // Hydrate the latest draft from Supabase before allowing cloud autosaves.
+  // This prevents the initial local copy from overwriting a newer cloud draft.
+  useEffect(() => {
+    let active = true;
+    if (!currentUserId || !organizationId) {
+      setDraftCloudReady(true);
+      return () => { active = false; };
+    }
+
+    setDraftCloudReady(false);
+    loadCloudInvoiceDraft(organizationId, currentUserId)
+      .then((cloudDraft) => {
+        if (!active) return;
+        const localDraft = getAutoSavedDraft();
+        const localTime = new Date(localDraft?.updatedAt || localDraft?.createdAt || 0).getTime();
+        const cloudTime = new Date(cloudDraft?.updatedAt || cloudDraft?.createdAt || 0).getTime();
+
+        if (cloudDraft && (!localDraft || cloudTime > localTime)) {
+          setInvoice(cloudDraft);
+          setRemovedItem(null);
+        }
+      })
+      .catch((error) => {
+        console.warn("VELTRO-PRO cloud draft recovery unavailable; keeping the local draft:", error);
+      })
+      .finally(() => {
+        if (active) setDraftCloudReady(true);
+      });
+
+    return () => { active = false; };
+  }, [currentUserId, organizationId]);
+
+  // Mirror the current unconfirmed invoice to the user's workspace in the
+  // cloud. Local autosave remains immediate and still works offline.
+  useEffect(() => {
+    if (!draftCloudReady || !currentUserId || !organizationId) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      saveCloudInvoiceDraft(organizationId, currentUserId, {
+        ...invoice,
+        subtotal,
+        total,
+        paid,
+        remaining,
+        status: "Draft",
+      }).catch((error) => {
+        console.warn("VELTRO-PRO could not sync the invoice draft to Supabase:", error);
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [draftCloudReady, currentUserId, organizationId, invoice, subtotal, total, paid, remaining]);
 
   // Persist every unconfirmed invoice change immediately. The draft lives
   // separately from the pending-invoice list and is restored on next launch.
@@ -897,6 +999,16 @@ export default function POS({ currentUserName = "" } = {}) {
       if (!result.ok) {
         notify(getErrorMessage(result), "error");
         return;
+      }
+
+      // Remove the confirmed invoice from cloud drafts before starting a
+      // fresh invoice, so a restart cannot resurrect an already completed sale.
+      if (currentUserId && organizationId) {
+        try {
+          await deleteCloudInvoiceDraft(organizationId, currentUserId);
+        } catch (draftError) {
+          console.warn("VELTRO-PRO could not clear the completed cloud draft:", draftError);
+        }
       }
 
       // completeSale deducts stock locally. Persist that exact updated stock
