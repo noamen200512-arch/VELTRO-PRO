@@ -280,7 +280,7 @@ function mergeItems(currentItems, product, quantity = 1) {
   // Carton lines represent a distinct pack sale and must never absorb
   // subsequent single-unit scans/additions.
   const index = currentItems.findIndex(
-    (item) => getProductId(item) === productId && !item.isCartonLine
+    (item) => getProductId(item) === productId && !item.isCartonLine && Boolean(item.weighedSale) === Boolean(normalized.weighedSale)
   );
 
   if (index === -1) {
