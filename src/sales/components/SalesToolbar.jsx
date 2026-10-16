@@ -11,7 +11,6 @@ import {
   Info,
   X,
   Undo2,
-  History,
 } from "lucide-react";
 
 const toolbarButtons = [
@@ -35,11 +34,6 @@ const toolbarButtons = [
     icon: ClipboardList,
     action: "pending",
   },
-  {
-    label: "Closed Invoices",
-    icon: History,
-    action: "closed",
-  },
 ];
 
 export function SalesToolbar({
@@ -47,7 +41,6 @@ export function SalesToolbar({
   onPrint,
   onCustomer,
   onPending,
-  onClosedInvoices,
   pendingCount = 0,
   showPending = false,
   newDisabled = false,
@@ -66,7 +59,6 @@ export function SalesToolbar({
     print: onPrint,
     customer: onCustomer,
     pending: onPending,
-    closed: onClosedInvoices,
   };
 
   return (
@@ -102,7 +94,6 @@ export function SalesToolbar({
         {toolbarButtons.map((button) => {
           const Icon = button.icon;
           const isPending = button.action === "pending";
-          const label = button.action === "closed" ? (locale === "ar" ? "البونات المغلقة" : locale === "fr" ? "Factures clôturées" : button.label) : button.label;
 
           return (
             <button
@@ -133,7 +124,7 @@ export function SalesToolbar({
               aria-label={
                 isPending
                   ? `${button.label}: ${pendingCount} saved`
-                  : label
+                  : button.label
               }
               title={
                 button.action === "new" && newDisabled
@@ -151,7 +142,7 @@ export function SalesToolbar({
                 )}
               </span>
 
-              <span>{label}</span>
+              <span>{button.label}</span>
             </button>
           );
         })}
