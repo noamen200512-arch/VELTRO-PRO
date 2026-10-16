@@ -369,8 +369,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     belowCostTitle:"Alerte : vente sous le coût d'achat", belowCostDescription:"Certains produits sont vendus sous leur coût d'achat enregistré. Cette vente peut entraîner une perte.", belowCostQuestion:"Voulez-vous continuer malgré tout ?", cancelSale:"Annuler la vente", continueAnyway:"Continuer quand même", qty:"Qté", lossPerUnit:"Perte par unité", cost:"Coût",
     reviewTitle:"Vérifier le compte client", reviewDescription:"Vérifiez le solde et les montants avant de continuer.", confirmTitle:"Confirmer la vente", confirmDescription:"Confirmez que vous souhaitez finaliser cette vente.", selectedCustomer:"Client sélectionné", previousDebt:"Dette précédente", invoiceTotal:"Total de la facture", amountPaid:"Montant payé", unpaid:"Montant impayé", totalDebt:"Dette totale après la vente", nextStep:"L'étape suivante permet de confirmer cette facture.", backInvoice:"Retour à la facture", continue:"Continuer", completeInvoice:"Finaliser la facture", anonymousSale:"Cette vente sera enregistrée sous Anonyme, sans dette client antérieure.", customerSale:"Cette vente sera enregistrée pour le client sélectionné. Vérifiez les montants avant de finaliser.", cancel:"Annuler", completing:"Finalisation...", confirmSale:"Confirmer la vente"
   } : {
-    belowCostTitle:"{dialogText.belowCostTitle}", belowCostDescription:"{dialogText.belowCostDescription}", belowCostQuestion:"{dialogText.belowCostQuestion}", cancelSale:"{dialogText.cancelSale}", continueAnyway:"{dialogText.continueAnyway}", qty:"Qty", lossPerUnit:"Loss per unit", cost:"Cost",
-    reviewTitle:"Review customer account", reviewDescription:"Review the balance and invoice amounts before proceeding.", confirmTitle:"Confirm sale completion", confirmDescription:"Please confirm that you want to finalize this sale.", selectedCustomer:"Selected customer", previousDebt:"Previous debt", invoiceTotal:"Invoice total", amountPaid:"Amount paid", unpaid:"Current unpaid amount", totalDebt:"Total debt after this sale", nextStep:"{dialogText.nextStep}", backInvoice:"Back to invoice", continue:"Continue", completeInvoice:"Complete invoice", anonymousSale:"This sale will be recorded under Anonyme. No previous customer debt will be applied.", customerSale:"This sale will be recorded for the selected customer. Please verify the amounts before finalizing.", cancel:"Cancel", completing:"Completing...", confirmSale:"Confirm sale"
+    belowCostTitle:"Warning: selling below purchase cost", belowCostDescription:"Some products are priced below their recorded purchase cost. This sale may cause a loss.", belowCostQuestion:"Do you want to continue with this sale anyway?", cancelSale:"Cancel sale", continueAnyway:"Continue anyway", qty:"Qty", lossPerUnit:"Loss per unit", cost:"Cost",
+    reviewTitle:"Review customer account", reviewDescription:"Review the balance and invoice amounts before proceeding.", confirmTitle:"Confirm sale completion", confirmDescription:"Please confirm that you want to finalize this sale.", selectedCustomer:"Selected customer", previousDebt:"Previous debt", invoiceTotal:"Invoice total", amountPaid:"Amount paid", unpaid:"Current unpaid amount", totalDebt:"Total debt after this sale", nextStep:"The next step will ask you to confirm completion of this invoice.", backInvoice:"Back to invoice", continue:"Continue", completeInvoice:"Complete invoice", anonymousSale:"This sale will be recorded under Anonyme. No previous customer debt will be applied.", customerSale:"This sale will be recorded for the selected customer. Please verify the amounts before finalizing.", cancel:"Cancel", completing:"Completing...", confirmSale:"Confirm sale"
   });
 
 
@@ -1572,8 +1572,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 <AlertTriangle size={22} />
               </div>
               <div className="sale-confirm-heading-copy">
-                <h2 id="below-cost-title">Warning: selling below purchase cost</h2>
-                <p>Some products are priced below their recorded purchase cost. This sale may cause a loss.</p>
+                <h2 id="below-cost-title">{dialogText.belowCostTitle}</h2>
+                <p>{dialogText.belowCostDescription}</p>
               </div>
               <button
                 type="button"
@@ -1606,7 +1606,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             </div>
 
             <p className="sale-confirm-note">
-              Do you want to continue with this sale anyway?
+              {dialogText.belowCostQuestion}
             </p>
             <footer className="sale-confirm-actions">
               <button
@@ -1615,7 +1615,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 onClick={() => setShowBelowCostWarning(false)}
                 disabled={busy}
               >
-                Cancel sale
+                {dialogText.cancelSale}
               </button>
               <button
                 type="button"
@@ -1623,7 +1623,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 onClick={openSaleConfirmation}
                 disabled={busy}
               >
-                Continue anyway <Check size={16} />
+                {dialogText.continueAnyway} <Check size={16} />
               </button>
             </footer>
           </section>
@@ -1662,7 +1662,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                   <div className="sale-confirm-amount-row current"><span><AlertTriangle size={15} /> {dialogText.unpaid}</span><strong>{remaining.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                   <div className="sale-confirm-total-debt"><span>{dialogText.totalDebt}</span><strong>{(previousDebt + remaining).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                 </div>
-                <p className="sale-confirm-note">The next step will ask you to confirm completion of this invoice.</p>
+                <p className="sale-confirm-note">{dialogText.nextStep}</p>
                 <footer className="sale-confirm-actions">
                   <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleReview(false)}>{dialogText.backInvoice}</button>
                   <button type="button" className="sale-confirm-primary" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(true); }}>{dialogText.continue} <Check size={16} /></button>
