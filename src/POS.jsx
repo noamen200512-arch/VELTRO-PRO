@@ -7,6 +7,7 @@ import { SalesSidebar } from "./sales/components/SalesSidebar";
 import { ProductEntry } from "./sales/components/ProductEntry";
 import { InvoiceTable } from "./sales/components/InvoiceTable";
 import { InvoiceSummary } from "./sales/components/InvoiceSummary";
+import { PosKeyboardDialogs } from "./sales/components/PosKeyboardDialogs";
 
 import {
   createInvoice,
@@ -351,6 +352,15 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [showBelowCostWarning, setShowBelowCostWarning] = useState(false);
   const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
+  const [keyboardDialog, setKeyboardDialog] = useState(null);
+  const [selectedCartIndex, setSelectedCartIndex] = useState(0);
+  const [productPickerSearch, setProductPickerSearch] = useState("");
+  const [productPickerPage, setProductPickerPage] = useState(1);
+  const [selectedProductIndex, setSelectedProductIndex] = useState(0);
+  const [quantityDraft, setQuantityDraft] = useState("1");
+  const [priceDraft, setPriceDraft] = useState("0.00");
+  const [warningPayload, setWarningPayload] = useState(null);
+  const [selectedPendingIndex, setSelectedPendingIndex] = useState(0);
 
   useEffect(() => {
     const syncFullscreenState = () => {
@@ -690,14 +700,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const available = Math.max(0, stock - othersReserved);
 
     if (currentQuantity + quantityToAdd > available) {
-      notify(
-        `${inventoryProduct.name}: only ${Math.max(
-          0,
-          available - currentQuantity
-        )} additional units are available.`,
-        "error"
-      );
-
+      setWarningPayload({ type: "addProduct", product: inventoryProduct, requested: currentQuantity + quantityToAdd, available: Math.max(0, available - currentQuantity) });
+      setKeyboardDialog("stockWarning");
       return;
     }
 
@@ -716,7 +720,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     notify(currentQuantity > 0 ? "Quantity updated for " + inventoryProduct.name + ": " + currentQuantity + " → " + (currentQuantity + quantityToAdd) + "." : "Added " + inventoryProduct.name + " to invoice.", "success");
   };
 
-  const updateItem = (id, field, value) => {
+  const updateItem = (id, field, value, options = {}) => {
     const currentItem = items.find(
       (item) => String(item.id) === String(id)
     );
@@ -739,11 +743,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         currentItem.id
       );
 
-      if (quantity > available) {
-        notify(
-          `${currentItem.name}: only ${available} units are available for this line.`,
-          "error"
-        );
+      if (quantity > available && !options.allowOversell) {
+        setWarningPayload({ type: "quantity", itemId: id, value: quantity, requested: quantity, available });
+        setKeyboardDialog("stockWarning");
         return;
       }
 
@@ -800,7 +802,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     updateItem(item.id, "quantity", getQuantity(item) + 1);
   };
 
-  const addCarton = (item) => {
+  const addCarton = (item, allowOversell = false) => {
     // Accept both product cards and invoice rows (whose display id may differ
     // from the real inventory id), then always use the saved inventory record.
     const productId = String(item?.productId ?? item?.id ?? "").trim();
@@ -852,11 +854,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const available = Math.max(0, money(inventoryProduct.stock) - othersReserved);
     const remainingStock = Math.max(0, available - currentQuantity);
 
-    if (cartonSize > remainingStock) {
-      notify(
-        `${inventoryProduct.name}: one carton needs ${cartonSize} units, but only ${remainingStock} units are available for this invoice.`,
-        "error"
-      );
+    if (cartonSize > remainingStock && !allowOversell) {
+      setWarningPayload({ type: "addCarton", item, requested: cartonSize, available: remainingStock });
+      setKeyboardDialog("stockWarning");
       return;
     }
 
@@ -1142,7 +1142,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     openSaleConfirmation();
   };
 
-  const confirmSaleCompletion = async () => {
+  const confirmSaleCompletion = async (printAfter = false) => {
     if (busy) return;
     setShowSaleReview(false);
     setShowSaleConfirm(false);
@@ -1184,6 +1184,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         } catch (draftError) {
           console.warn("VELTRO-PRO could not clear the completed cloud draft:", draftError);
         }
+      }
+
+      // Print the completed invoice before the current draft is cleared.
+      if (printAfter) {
+        try { window.print(); } catch (printError) { console.warn("Receipt printing was blocked:", printError); }
       }
 
       // completeSale deducts stock locally. Persist that exact updated stock
