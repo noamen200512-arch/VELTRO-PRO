@@ -66,6 +66,24 @@ export function SalesToolbar({
       </div>
 
       <div className="sales-toolbar-actions">
+        {message && (
+          <div className={`sales-toolbar-notice sales-toolbar-notice-${messageType}`} role={messageType === "error" ? "alert" : "status"} aria-live={messageType === "error" ? "assertive" : "polite"}>
+            <span className="sales-toolbar-notice-icon">
+              {messageType === "success" ? <CheckCircle2 size={17} /> : messageType === "error" ? <AlertCircle size={17} /> : <Info size={17} />}
+            </span>
+            <span className="sales-toolbar-notice-text">{message}</span>
+            {onUndo && (
+              <button type="button" className="sales-toolbar-notice-undo" onClick={onUndo}>
+                <Undo2 size={14} />
+                <span>{undoLabel}</span>
+              </button>
+            )}
+            <button type="button" className="sales-toolbar-notice-dismiss" onClick={onDismissMessage} aria-label={dismissLabel} title={dismissLabel}>
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
         {toolbarButtons.map((button) => {
           const Icon = button.icon;
           const isPending = button.action === "pending";
@@ -122,23 +140,7 @@ export function SalesToolbar({
           );
         })}
 
-        {message && (
-          <div className={`sales-toolbar-notice sales-toolbar-notice-${messageType}`} role={messageType === "error" ? "alert" : "status"} aria-live={messageType === "error" ? "assertive" : "polite"}>
-            <span className="sales-toolbar-notice-icon">
-              {messageType === "success" ? <CheckCircle2 size={17} /> : messageType === "error" ? <AlertCircle size={17} /> : <Info size={17} />}
-            </span>
-            <span className="sales-toolbar-notice-text">{message}</span>
-            {onUndo && (
-              <button type="button" className="sales-toolbar-notice-undo" onClick={onUndo}>
-                <Undo2 size={14} />
-                <span>{undoLabel}</span>
-              </button>
-            )}
-            <button type="button" className="sales-toolbar-notice-dismiss" onClick={onDismissMessage} aria-label={dismissLabel} title={dismissLabel}>
-              <X size={15} />
-            </button>
-          </div>
-        )}
+
       </div>
     </div>
   );
