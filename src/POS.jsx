@@ -401,6 +401,12 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   }, []);
 
   const items = invoice.items || [];
+  useEffect(() => {
+    if (items.length === 0) setSelectedCartIndex(0);
+    else if (selectedCartIndex >= items.length) setSelectedCartIndex(items.length - 1);
+  }, [items.length, selectedCartIndex]);
+
+
   const customer = invoice.customerName || "Anonyme";
   const isAnonymousCustomer = !invoice.customerId || String(invoice.customerId).trim().toLowerCase() === "anonyme";
   const paid = money(invoice.paid);
@@ -1485,7 +1491,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 type="button"
                 className="pending-invoices-close"
                 onClick={() => setShowPending(false)}
-                aria-label="Close pending invoices"
+                aria-label={locale === "ar" ? "إغلاق البونات المعلّقة" : locale === "fr" ? "Fermer les factures en attente" : "Close pending invoices"}
               >
                 <X size={18} />
               </button>
@@ -1545,7 +1551,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             )}
             <footer className="pending-invoices-modal-footer">
               <span>{locale === "ar" ? `${pendingInvoices.length} بون محفوظ` : locale === "fr" ? `${pendingInvoices.length} facture(s) enregistrée(s)` : `${pendingInvoices.length} saved invoice${pendingInvoices.length === 1 ? "" : "s"}`}</span>
-              <button type="button" onClick={() => setShowPending(false)}>Close</button>
+              <button type="button" onClick={() => setShowPending(false)}>{locale === "ar" ? "إغلاق" : locale === "fr" ? "Fermer" : "Close"}</button>
             </footer>
           </section>
         </div>
@@ -1580,7 +1586,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 className="sale-confirm-close"
                 onClick={() => setShowBelowCostWarning(false)}
                 disabled={busy}
-                aria-label="Close warning"
+                aria-label={locale === "ar" ? "إغلاق التنبيه" : locale === "fr" ? "Fermer l’alerte" : "Close warning"}
               >
                 <X size={18} />
               </button>
@@ -1700,7 +1706,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 <h2 id="customer-picker-title">{locale === "ar" ? "اختيار زبون" : locale === "fr" ? "Choisir un client" : "Select customer"}</h2>
                 <p>{locale === "ar" ? "ابحث بالاسم أو رقم الهاتف أو معرف الزبون أو المرجع." : locale === "fr" ? "Rechercher par nom, téléphone, identifiant ou référence." : "Search by name, phone number, customer ID or reference."}</p>
               </div>
-              <button type="button" className="customer-picker-close" onClick={() => setShowCustomerPicker(false)} aria-label="Close customer selection">
+              <button type="button" className="customer-picker-close" onClick={() => setShowCustomerPicker(false)} aria-label={locale === "ar" ? "إغلاق اختيار الزبون" : locale === "fr" ? "Fermer la sélection du client" : "Close customer selection"}>
                 <X size={19} />
               </button>
             </header>
@@ -1762,7 +1768,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
             <footer className="customer-picker-footer">
               <span><Users size={14} /> {locale === "ar" ? "اختر زبونًا لربط الفاتورة بحسابه." : locale === "fr" ? "Choisissez un client pour associer la facture à son compte." : "Choose a customer to link this invoice to their account."}</span>
-              <button type="button" onClick={() => setShowCustomerPicker(false)}>Cancel</button>
+              <button type="button" onClick={() => setShowCustomerPicker(false)}>{locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}</button>
             </footer>
           </section>
         </div>
