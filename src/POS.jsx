@@ -1360,7 +1360,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   useEffect(() => {
     const handler = (e) => {
       const target = e.target;
-      const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT","TEXTAREA","SELECT"].includes(target.tagName));
       const stop = () => { e.preventDefault(); e.stopPropagation(); };
       if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === "i") {
         stop(); setShowShortcutsHelp((current) => !current); return;
