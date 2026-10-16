@@ -4253,3 +4253,16 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-keyboard-table th, .pos-keyboard-table td { padding: 9px 7px; font-size: 10px; }
   .pos-keyboard-footer { padding: 10px; }
 }
+
+/* Keep the parent product-options/edit dialog visible behind nested modals. */
+.pos-keyboard-backdrop { position: fixed; }
+.pos-keyboard-parent-under {
+  position: absolute;
+  z-index: 0;
+  width: min(510px, 88vw);
+  transform: translate(22px, 22px) scale(.97);
+  opacity: .52;
+  pointer-events: none;
+  filter: saturate(.75);
+}
+.pos-keyboard-modal:not(.pos-keyboard-parent-under) { position: relative; z-index: 1; }
