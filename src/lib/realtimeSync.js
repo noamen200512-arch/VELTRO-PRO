@@ -448,6 +448,11 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
     if (stopped || message?.payload?.organizationId !== organizationId) return;
     if (String(message?.payload?.userId || "") !== String(userId)) return;
     try {
+      await channel.send({
+        type: "broadcast",
+        event: "revoke_session_ack",
+        payload: { organizationId, userId: String(userId), receivedAt: new Date().toISOString() },
+      });
       await supabase.auth.signOut({ scope: "local" });
     } finally {
       window.location.reload();
