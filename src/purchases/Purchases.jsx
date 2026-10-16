@@ -935,6 +935,20 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
   const [suppliers, setSuppliers] = useState(() => getPurchaseSuppliers());
 
   useEffect(() => {
+    const refreshCloudData = () => {
+      setProducts(getProducts());
+      setInvoices(getPurchaseInvoices());
+      setSuppliers(getPurchaseSuppliers());
+    };
+    window.addEventListener("storage", refreshCloudData);
+    window.addEventListener("veltro:cloud-sync", refreshCloudData);
+    return () => {
+      window.removeEventListener("storage", refreshCloudData);
+      window.removeEventListener("veltro:cloud-sync", refreshCloudData);
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     async function syncCloudProducts() {
