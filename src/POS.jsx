@@ -1473,9 +1473,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           remaining={remaining}
           newAmount={total}
           invoiceDate={invoice.createdAt}
-          currentUser={
-            currentUserName || localStorage.getItem("veltro_current_user") || "User"
-          }
           previousDebt={previousDebt}
         />
 
@@ -1497,6 +1494,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           />
 
           <InvoiceSummary
+            currentUser={currentUserName || localStorage.getItem("veltro_current_user") || "User"}
             compactCustomerInfo={isFullscreen}
             onChooseCustomer={chooseCustomer}
             subtotal={subtotal}
