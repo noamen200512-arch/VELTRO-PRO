@@ -114,7 +114,7 @@ const POS_MESSAGE_TRANSLATIONS = {
     "Product not found in the current inventory.": "المنتج غير موجود في المخزون الحالي.",
     "Product not found in the current inventory. Refresh the product list and try again.": "المنتج غير موجود في المخزون الحالي. حدّث قائمة المنتجات ثم حاول مجددًا.",
     "Quantity must be at least one unit.": "يجب أن تكون الكمية وحدة واحدة على الأقل.",
-    "Price and discount must be zero or أكثر.": "يجب أن يكون السعر والخصم صفرًا أو أكثر.",
+    "Price and discount must be zero or greater.": "يجب أن يكون السعر والخصم صفرًا أو أكثر.",
     "Product added to invoice.": "تمت إضافة المنتج إلى الفاتورة.",
     "Product quantity updated.": "تم تحديث كمية المنتج.",
     "Product price updated.": "تم تغيير سعر المنتج.",
