@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Package,
   Minus,
@@ -494,7 +495,7 @@ export function InvoiceTable({
         </div>
       )}
 
-      {pendingDelete && (
+      {pendingDelete && typeof document !== "undefined" && createPortal(
         <div className="invoice-delete-confirm-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setPendingDelete(null); }}>
           <section className="invoice-delete-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-delete-confirm-title" dir={locale === "ar" ? "rtl" : "ltr"}>
             <div className="invoice-delete-confirm-icon"><Trash2 size={23} /></div>
@@ -507,7 +508,8 @@ export function InvoiceTable({
             </div>
             <small>{deleteText.hint}</small>
           </section>
-        </div>
+        </div>,
+        document.body
       )}
 
       {items.length > 0 && (
