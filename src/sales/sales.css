@@ -3138,3 +3138,29 @@
     overflow-y: auto;
   }
 }
+
+
+/* Keep customer/account details directly under the large invoice summary. */
+.pos-page:fullscreen .sales-account-section,
+.pos-page.pos-fullscreen-active .sales-account-section {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+}
+
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section {
+  grid-column: 2;
+  grid-row: 3 / 5;
+  align-self: stretch;
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen .sales-account-section,
+  .pos-page.pos-fullscreen-active .sales-account-section,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
