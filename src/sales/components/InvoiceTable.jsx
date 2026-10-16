@@ -212,21 +212,6 @@ export function InvoiceTable({
         </div>
       </div>
 
-      {removedItem && (
-        <div className="invoice-remove-notice" role="status">
-          <span>
-            <Trash2 size={15} />
-            {removedItem.item.name || "Product"} removed
-          </span>
-
-          {onUndoRemove && (
-            <button type="button" onClick={undoRemove}>
-              <Undo2 size={15} />
-              Undo
-            </button>
-          )}
-        </div>
-      )}
 
       {items.length === 0 ? (
         <div
