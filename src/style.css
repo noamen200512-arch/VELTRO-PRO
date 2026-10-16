@@ -3458,3 +3458,56 @@ html[dir="rtl"] .settings-readonly-tag{direction:rtl}
   .settings-readonly-tag{display:none}
   .settings-profile-actions>*{flex:1 1 auto}
 }
+
+
+/* =========================================================
+   USERS & ROLES — ROLE EDITOR
+========================================================= */
+.settings-role-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  margin-top: 18px;
+  background: linear-gradient(145deg, rgba(53, 214, 194, 0.045), rgba(16, 23, 34, 0.96));
+  border: 1px solid rgba(53, 214, 194, 0.22);
+  border-radius: 12px;
+}
+.settings-role-editor .settings-permission-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.settings-role-editor .settings-permission-row input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--turquoise);
+}
+.settings-role-editor .settings-permission-row > span:last-child {
+  flex: 1;
+  min-width: 0;
+}
+.settings-profile-form .settings-detail-grid {
+  align-items: start;
+}
+.settings-form-field select {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.settings-role-row .settings-edit-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+@media (max-width: 760px) {
+  .settings-role-editor { padding: 13px; }
+  .settings-role-row { flex-wrap: wrap; }
+  .settings-role-row .settings-edit-button { margin-left: 42px; }
+}
