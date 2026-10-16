@@ -798,7 +798,7 @@ export default function Products() {
         1,
         Number(form.piecesPerCarton) || 1
       ),
-      stock: editingId
+      stock: editingId || form.weighedSale
         ? numberValue(form.stock)
         : numberValue(form.cartonsReceived) *
           Math.max(1, Number(form.piecesPerCarton) || 1),
