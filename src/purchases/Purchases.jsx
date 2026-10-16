@@ -665,9 +665,9 @@ function ProductModal({
             <h3>Purchase Information</h3>
           </div>
           <div className="purchase-product-fields">
-            <Field label="Purchase Price per Carton (DA)">
+            {!form.weighedSale && <Field label="Purchase Price per Carton (DA)">
               <input type="number" min="0" step="any" value={buyCarton} onChange={e => updateBuyCarton(e.target.value)} placeholder="0.00" />
-            </Field>
+            </Field>}
             <Field label={form.weighedSale ? `Purchase Price per ${form.unit || "kg"} (DA)` : "Purchase Price per Unit (DA)"}>
               <input type="number" min="0" step="any" value={buyUnit} onChange={e => updateBuyUnit(e.target.value)} placeholder="0.00" />
             </Field>
@@ -687,12 +687,14 @@ function ProductModal({
             <Field label="Manual Unit Profit Margin (%)">
               <input type="number" step="any" value={unitMargin} onChange={e => updateUnitMargin(e.target.value)} placeholder="0.00" />
             </Field>
-            <Field label="Carton Selling Price (DA)">
-              <input type="number" min="0" step="any" value={form.cartonPrice} onChange={e => updateCartonPrice(e.target.value)} placeholder="0.00" />
-            </Field>
-            <Field label="Manual Carton Profit Margin (%)">
-              <input type="number" step="any" value={cartonMargin} onChange={e => updateCartonMargin(e.target.value)} placeholder="0.00" />
-            </Field>
+            {!form.weighedSale && <>
+              <Field label="Carton Selling Price (DA)">
+                <input type="number" min="0" step="any" value={form.cartonPrice} onChange={e => updateCartonPrice(e.target.value)} placeholder="0.00" />
+              </Field>
+              <Field label="Manual Carton Profit Margin (%)">
+                <input type="number" step="any" value={cartonMargin} onChange={e => updateCartonMargin(e.target.value)} placeholder="0.00" />
+              </Field>
+            </>}
           </div>
           <p className="purchase-product-help">You can type the profit percentage yourself. The selling price updates automatically from the entered margin; you can also type the selling price directly.</p>
         </section>
