@@ -56,6 +56,7 @@ const EMPTY_FORM = {
   stock: "0",
   minStock: "5",
   unit: "piece",
+  weighedSale: false,
   image: "",
   expiryDate: "",
 };
