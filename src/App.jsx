@@ -12,6 +12,7 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  RefreshCw,
   Bell,
   Search,
   History,
@@ -41,7 +42,7 @@ import { translatePage } from "./i18n.js";
 import SettingsPage from "./Settings.jsx";
 import SessionCenter from "./SessionCenter.jsx";
 import { supabase } from "./lib/supabase.js";
-import { startOrganizationRealtimeSync, requestOrganizationSync } from "./lib/realtimeSync.js";
+import { startOrganizationRealtimeSync } from "./lib/realtimeSync.js";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
