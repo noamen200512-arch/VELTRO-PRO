@@ -14,7 +14,7 @@ const copy = {
     subtitle: "Manage your business workspace, users, access rules, and branches.",
     business: "Business profile", users: "Users & roles", permissions: "Permissions",
     branches: "Branches", preferences: "Preferences", productSettings: "Product Settings", overview: "Workspace overview",
-    productSettingsText: "Manage weighed-sale categories, product tiles, and favorite products.", poundGrams: "Pound size (grams)", categories: "Product categories", newCategory: "New category name", addCategory: "Add category", visibleCategories: "Show this category on the weigh-sale screen", renameCategory: "Category name", deleteCategory: "Delete category", productList: "Product assignment", productListText: "Choose which products appear in quick-sale tiles and assign each weighed product to a category.", favorite: "Favorite", weighed: "Sell by weight", category: "Category", uncategorized: "Uncategorized", saveProductSettings: "Save product settings", productSettingsSaved: "Product settings saved on this device.", noProducts: "No products found in the product catalog.",
+    productSettingsText: "Manage the weighed-sale screen and arrange weighed products in its tiles.", layoutTitle: "Weighed-sale tile layout", layoutText: "Only products marked for measured sale in product entry appear here. Drag a tile to set its position in the sales screen.", dragHint: "Drag products between squares to change their order in the sale screen.", noWeighedProducts: "No products are marked for measured sale. Edit a product and enable measured sale first.", poundGrams: "Pound size (grams)", categories: "Product categories", newCategory: "New category name", addCategory: "Add category", visibleCategories: "Show this category on the weigh-sale screen", renameCategory: "Category name", deleteCategory: "Delete category", productList: "Product assignment", productListText: "Choose which products appear in quick-sale tiles and assign each weighed product to a category.", favorite: "Favorite", weighed: "Sell by weight", category: "Category", uncategorized: "Uncategorized", saveProductSettings: "Save product settings", productSettingsSaved: "Product settings saved on this device.", noProducts: "No products found in the product catalog.",
     overviewText: "Your organization and account setup at a glance.",
     organization: "Organization", status: "Status", active: "Active", suspended: "Suspended",
     currentAccount: "Current account", accountName: "Account name", email: "Email address",
@@ -53,7 +53,7 @@ const copy = {
     subtitle: "Gérez votre espace professionnel, les utilisateurs, les accès et les agences.",
     business: "Profil de l’entreprise", users: "Utilisateurs et rôles", permissions: "Autorisations",
     branches: "Agences", preferences: "Préférences", productSettings: "Paramètres des produits", overview: "Vue d’ensemble",
-    productSettingsText: "Gérez les catégories de vente au poids, les tuiles produits et les favoris.", poundGrams: "Valeur de la livre (grammes)", categories: "Catégories de produits", newCategory: "Nom de la nouvelle catégorie", addCategory: "Ajouter la catégorie", visibleCategories: "Afficher cette catégorie dans la vente au poids", renameCategory: "Nom de la catégorie", deleteCategory: "Supprimer la catégorie", productList: "Affectation des produits", productListText: "Choisissez les produits affichés dans la vente rapide et classez les produits vendus au poids.", favorite: "Favori", weighed: "Vente au poids", category: "Catégorie", uncategorized: "Sans catégorie", saveProductSettings: "Enregistrer les paramètres produits", productSettingsSaved: "Paramètres produits enregistrés sur cet appareil.", noProducts: "Aucun produit trouvé dans le catalogue.",
+    productSettingsText: "Gérez l’écran de vente au poids et l’ordre des produits dans ses cases.", layoutTitle: "Disposition des cases de vente au poids", layoutText: "Seuls les produits marqués pour la vente mesurée dans la fiche produit apparaissent ici. Faites glisser une case pour définir sa position dans l’écran de vente.", dragHint: "Faites glisser les produits entre les cases pour modifier leur ordre dans l’écran de vente.", noWeighedProducts: "Aucun produit n’est marqué pour la vente mesurée. Modifiez un produit et activez cette option d’abord.", poundGrams: "Valeur de la livre (grammes)", categories: "Catégories de produits", newCategory: "Nom de la nouvelle catégorie", addCategory: "Ajouter la catégorie", visibleCategories: "Afficher cette catégorie dans la vente au poids", renameCategory: "Nom de la catégorie", deleteCategory: "Supprimer la catégorie", productList: "Affectation des produits", productListText: "Choisissez les produits affichés dans la vente rapide et classez les produits vendus au poids.", favorite: "Favori", weighed: "Vente au poids", category: "Catégorie", uncategorized: "Sans catégorie", saveProductSettings: "Enregistrer les paramètres produits", productSettingsSaved: "Paramètres produits enregistrés sur cet appareil.", noProducts: "Aucun produit trouvé dans le catalogue.",
     overviewText: "Résumé de votre organisation et de votre compte.",
     organization: "Organisation", status: "Statut", active: "Actif", suspended: "Suspendu",
     currentAccount: "Compte actuel", accountName: "Nom du compte", email: "Adresse e-mail",
@@ -92,7 +92,7 @@ const copy = {
     subtitle: "إدارة المؤسسة والمستخدمين والصلاحيات والفروع من مكان واحد.",
     business: "بيانات المؤسسة", users: "المستخدمون والأدوار", permissions: "الصلاحيات",
     branches: "الفروع", preferences: "التفضيلات", productSettings: "إعدادات المنتجات", overview: "نظرة عامة",
-    productSettingsText: "إدارة فئات البيع بالميزان ومربعات المنتجات والمنتجات المفضلة.", poundGrams: "قيمة الرطل بالغرام", categories: "فئات المنتجات", newCategory: "اسم الفئة الجديدة", addCategory: "إضافة الفئة", visibleCategories: "إظهار هذه الفئة في صفحة البيع بالميزان", renameCategory: "اسم الفئة", deleteCategory: "حذف الفئة", productList: "تعيين المنتجات للفئات", productListText: "اختر المنتجات التي تظهر في مربعات البيع السريع وحدد فئة كل منتج يُباع بالميزان.", favorite: "مفضّل", weighed: "بيع بالميزان", category: "الفئة", uncategorized: "بلا فئة", saveProductSettings: "حفظ إعدادات المنتجات", productSettingsSaved: "تم حفظ إعدادات المنتجات على هذا الجهاز.", noProducts: "لا توجد منتجات في قائمة المنتجات.",
+    productSettingsText: "إدارة شاشة البيع بوحدات القياس وترتيب المنتجات داخل مربعات البيع.", layoutTitle: "مخطط مربعات البيع بوحدات القياس", layoutText: "تظهر هنا تلقائيًا المنتجات التي فعّلت لها البيع بوحدات القياس عند إدخال المنتج فقط. اسحب مربع المنتج لتحديد مكانه في شاشة البيع.", dragHint: "اسحب المنتجات بين المربعات لتغيير ترتيب ظهورها في شاشة البيع.", noWeighedProducts: "لا توجد منتجات مفعّل لها البيع بوحدات القياس. افتح إدخال المنتج وفعّل هذا الخيار أولًا.", poundGrams: "قيمة الرطل بالغرام", categories: "فئات المنتجات", newCategory: "اسم الفئة الجديدة", addCategory: "إضافة الفئة", visibleCategories: "إظهار هذه الفئة في صفحة البيع بالميزان", renameCategory: "اسم الفئة", deleteCategory: "حذف الفئة", productList: "تعيين المنتجات للفئات", productListText: "اختر المنتجات التي تظهر في مربعات البيع السريع وحدد فئة كل منتج يُباع بالميزان.", favorite: "مفضّل", weighed: "بيع بالميزان", category: "الفئة", uncategorized: "بلا فئة", saveProductSettings: "حفظ إعدادات المنتجات", productSettingsSaved: "تم حفظ إعدادات المنتجات على هذا الجهاز.", noProducts: "لا توجد منتجات في قائمة المنتجات.",
     overviewText: "ملخص المؤسسة والحساب الحالي.",
     organization: "المؤسسة", status: "الحالة", active: "نشطة", suspended: "موقوفة",
     currentAccount: "الحساب الحالي", accountName: "اسم الحساب", email: "البريد الإلكتروني",
@@ -463,6 +463,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const t = copy[locale] || copy.en;
   const [section, setSection] = useState("business");
   const [productSettingsProducts, setProductSettingsProducts] = useState(() => getProducts());
+  const [productWeighedLayout, setProductWeighedLayout] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.isArray(value) ? value.map(String) : []; } catch { return []; } });
   const [productFavoriteIds, setProductFavoriteIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]").map(String); } catch { return []; } });
   const [productWeighedIds, setProductWeighedIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]").map(String); } catch { return []; } });
   const [productCategoriesById, setProductCategoriesById] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); } catch { return {}; } });
@@ -609,6 +610,8 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     if (section !== "productSettings") return;
     setProductSettingsProducts(getProducts());
     try {
+      const layout = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]");
+      setProductWeighedLayout(Array.isArray(layout) ? layout.map(String) : []);
       setProductFavoriteIds(JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]").map(String));
       setProductWeighedIds(JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]").map(String));
       setProductCategoriesById(JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"));
@@ -627,8 +630,37 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(productCategoryList));
       localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(productVisibleCategories.filter((category) => productCategoryList.includes(category))));
       localStorage.setItem("veltro_pos_pound_grams", String(Math.max(1, Number(productPoundGrams) || 500)));
+      const eligibleIds = weighedSettingsProducts.map((product) => String(product.id ?? product.productId ?? product.sku ?? ""));
+      const nextLayout = [...new Set([...productWeighedLayout, ...eligibleIds])].filter((id) => eligibleIds.includes(id));
+      localStorage.setItem("veltro_pos_weighed_layout", JSON.stringify(nextLayout));
+      setProductWeighedLayout(nextLayout);
       setProductSettingsMessage(t.productSettingsSaved);
     } catch (error) { console.warn("Could not save product settings", error); setProductSettingsMessage(""); }
+  };
+  const weighedSettingsProducts = productSettingsProducts
+    .filter((product) => product.weighedSale === true || product.weighedSale === "true")
+    .sort((a, b) => {
+      const aId = String(a.id ?? a.productId ?? a.sku ?? "");
+      const bId = String(b.id ?? b.productId ?? b.sku ?? "");
+      const aIndex = productWeighedLayout.indexOf(aId);
+      const bIndex = productWeighedLayout.indexOf(bId);
+      return (aIndex < 0 ? Number.MAX_SAFE_INTEGER : aIndex) - (bIndex < 0 ? Number.MAX_SAFE_INTEGER : bIndex)
+        || String(a.name || aId).localeCompare(String(b.name || bId));
+    });
+  const moveWeighedProduct = (draggedId, targetId) => {
+    if (!draggedId || !targetId || draggedId === targetId) return;
+    setProductWeighedLayout((previous) => {
+      const eligibleIds = productSettingsProducts
+        .filter((product) => product.weighedSale === true || product.weighedSale === "true")
+        .map((product) => String(product.id ?? product.productId ?? product.sku ?? ""));
+      const order = [...new Set([...previous.map(String), ...eligibleIds])].filter((id) => eligibleIds.includes(id));
+      const from = order.indexOf(String(draggedId));
+      const to = order.indexOf(String(targetId));
+      if (from < 0 || to < 0) return order;
+      const [item] = order.splice(from, 1);
+      order.splice(to, 0, item);
+      return order;
+    });
   };
   const renameProductCategory = (oldName) => {
     const newName = String(productCategoryNames[oldName] ?? oldName).trim();
@@ -950,20 +982,33 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     </div>
                   </div>
                   <div className="settings-card">
-                    <div className="settings-card-heading"><Package size={18} /><div><h4>{t.productList}</h4><p>{t.productListText}</p></div><span className="settings-count">{productSettingsProducts.length}</span></div>
-                    <div className="settings-role-list">
-                      {productSettingsProducts.map((product) => {
-                        const id = String(product.id ?? product.productId ?? product.sku ?? "");
-                        return <div className="settings-role-row" key={id}>
-                          <span className="settings-role-icon"><Package size={17} /></span><span className="settings-role-copy"><strong>{product.name || id}</strong><small>{product.sku || product.reference || id}</small></span>
-                          <label className="settings-permission-row" style={{ padding: 0, border: 0 }}><input type="checkbox" checked={productFavoriteIds.includes(id)} onChange={(event) => setProductFavoriteIds((previous) => event.target.checked ? [...new Set([...previous, id])] : previous.filter((item) => item !== id))} /><span><Star size={13} />{t.favorite}</span></label>
-                          <label className="settings-permission-row" style={{ padding: 0, border: 0 }}><input type="checkbox" checked={productWeighedIds.includes(id)} onChange={(event) => setProductWeighedIds((previous) => event.target.checked ? [...new Set([...previous, id])] : previous.filter((item) => item !== id))} /><span>{t.weighed}</span></label>
-                          <label className="settings-form-field" style={{ width: "min(100%, 220px)" }}><span>{t.category}</span><select value={productCategoriesById[id] || ""} disabled={!productWeighedIds.includes(id)} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))}><option value="">{t.uncategorized}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
-                        </div>;
-                      })}
-                      {!productSettingsProducts.length && <p className="settings-empty">{t.noProducts}</p>}
+                    <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.layoutTitle}</h4><p>{t.layoutText}</p></div><span className="settings-count">{weighedSettingsProducts.length}</span></div>
+                    <p style={{ color: "var(--settings-muted, #94a3b8)", fontSize: 12, margin: "0 0 14px" }}>{t.dragHint}</p>
+                    {weighedSettingsProducts.length ? (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(135px, 1fr))", gap: 12 }}>
+                        {weighedSettingsProducts.map((product, index) => {
+                          const id = String(product.id ?? product.productId ?? product.sku ?? "");
+                          return <div
+                            key={id}
+                            draggable
+                            onDragStart={(event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", id); }}
+                            onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; }}
+                            onDrop={(event) => { event.preventDefault(); moveWeighedProduct(event.dataTransfer.getData("text/plain"), id); }}
+                            title={t.dragHint}
+                            style={{ aspectRatio: "1 / 1", minHeight: 125, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, boxSizing: "border-box", textAlign: "center", border: "1px solid rgba(53,214,208,.35)", borderRadius: 14, background: "linear-gradient(145deg, rgba(53,214,208,.11), rgba(124,58,237,.10))", cursor: "grab", userSelect: "none" }}
+                          >
+                            <span style={{ display: "grid", placeItems: "center", width: 34, height: 34, borderRadius: 10, background: "rgba(53,214,208,.12)", color: "#35D6D0" }}><Package size={18} /></span>
+                            <strong style={{ fontSize: 13, lineHeight: 1.35, overflowWrap: "anywhere" }}>{product.name || id}</strong>
+                            <small style={{ color: "#94a3b8", fontSize: 11 }}>{product.sku || product.reference || id}</small>
+                            <span style={{ fontSize: 10, color: "#5eead4", border: "1px solid rgba(45,212,191,.25)", borderRadius: 999, padding: "3px 8px" }}>{locale === "ar" ? `المربع ${index + 1}` : locale === "fr" ? `Case ${index + 1}` : `Tile ${index + 1}`}</span>
+                          </div>;
+                        })}
+                      </div>
+                    ) : <p className="settings-empty">{t.noWeighedProducts}</p>}
+                    <div className="settings-profile-actions">
+                      <button type="button" className="settings-save-button" onClick={saveProductSettings}><Save size={15} />{t.saveProductSettings}</button>
+                      {productSettingsMessage && <span className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{productSettingsMessage}</span>}
                     </div>
-                    <div className="settings-profile-actions"><button type="button" className="settings-save-button" onClick={saveProductSettings}><Save size={15} />{t.saveProductSettings}</button>{productSettingsMessage && <span className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{productSettingsMessage}</span>}</div>
                   </div>
                 </>
               )}
