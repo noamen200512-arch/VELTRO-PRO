@@ -162,7 +162,15 @@ export function InvoiceTable({
       if (event.key !== "Delete" || selectedIndex < 0) return;
       const target = event.target;
       const tagName = target?.tagName?.toLowerCase();
-      if (tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable) return;
+      // Keep Delete working for the selected invoice row while the cashier is
+      // scanning a barcode or searching products. Other editable fields retain
+      // normal text-editing behavior.
+      const isProductSearchField =
+        target?.id === "product-search" || target?.id === "product-barcode";
+      if (
+        ((tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable) &&
+          !isProductSearchField)
+      ) return;
       const item = items[selectedIndex];
       if (!item) return;
       event.preventDefault();
