@@ -1369,6 +1369,13 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         setShowShortcutsHelp((current) => !current);
         return;
       }
+      // F10 toggles the POS app's fullscreen layout and suppresses the browser menu shortcut.
+      if (e.key === "F10") {
+        stop();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        setIsFullscreen((current) => !current);
+        return;
+      }
       if (showShortcutsHelp) { if (e.key === "Escape") { stop(); setShowShortcutsHelp(false); } return; }
       const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
       if (keyboardDialog) {
