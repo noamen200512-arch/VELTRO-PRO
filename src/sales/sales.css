@@ -3805,3 +3805,85 @@
     align-self: start !important;
   }
 }
+
+
+/* Place the active operator beside the Invoice Summary heading, above the total. */
+.pos-page .invoice-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pos-page .invoice-summary-current-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 48%;
+  padding: 7px 10px;
+  border: 1px solid rgba(71, 205, 202, 0.24);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(27, 52, 76, 0.86), rgba(25, 35, 62, 0.78));
+}
+
+.pos-page .invoice-summary-current-user-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: #b8fffa;
+  background: rgba(45, 212, 191, 0.15);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  font-weight: 800;
+}
+
+.pos-page .invoice-summary-current-user-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pos-page .invoice-summary-current-user-details span {
+  color: #72dcd4;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pos-page .invoice-summary-current-user-details strong {
+  overflow: hidden;
+  color: #f1f5f9;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pos-page .invoice-summary-current-user-details small {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.pos-page .invoice-summary-current-user-status {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.12);
+}
+
+@media (max-width: 760px) {
+  .pos-page .invoice-summary-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pos-page .invoice-summary-current-user {
+    max-width: 100%;
+    margin-left: 0;
+  }
+}
