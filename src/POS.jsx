@@ -137,7 +137,7 @@ function getErrorMessage(result) {
   }
 }
 
-export default function POS() {
+export default function POS({ currentUserName = "" } = {}) {
   const [invoice, setInvoice] = useState(() => createInvoice());
 
   const [pendingInvoices, setPendingInvoices] = useState(
@@ -1291,8 +1291,7 @@ export default function POS() {
           newAmount={total}
           invoiceDate={invoice.createdAt}
           currentUser={
-            localStorage.getItem("veltro_current_user") ||
-            "Administrator"
+            currentUserName || localStorage.getItem("veltro_current_user") || "User"
           }
           previousDebt={previousDebt}
         />
