@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { X, Search, Star, Scale, Settings2, Check, Plus, Minus, Delete, Package, Wheat, Nut } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { X, Search, Star, Scale, Settings2, Check, Plus, Package } from "lucide-react";
 
 const COPY = {
   en: {
@@ -61,6 +61,24 @@ export default function PosQuickSaleDialogs({
   const [draftCategoryList, setDraftCategoryList] = useState([...categories]);
   const [newCategory, setNewCategory] = useState("");
   const [draftPound, setDraftPound] = useState(String(poundGrams || 500));
+
+  useEffect(() => {
+    if (dialog === "settings") {
+      setDraftFavorites(favoriteIds.map(String));
+      setDraftWeighed(weighedIds.map(String));
+      setDraftCategories({ ...categoriesByProduct });
+      setDraftCategoryList([...categories]);
+      setDraftPound(String(poundGrams || 500));
+    }
+    if (dialog === "favorites" || dialog === "weigh") {
+      setSearch("");
+      setCategoryFilter("all");
+      setSelectedId("");
+      setWeight("1");
+      setAmount("");
+      setMode("weight");
+    }
+  }, [dialog, favoriteIds, weighedIds, categoriesByProduct, categories, poundGrams]);
 
   const favoriteSet = useMemo(() => new Set(favoriteIds.map(String)), [favoriteIds]);
   const weighedSet = useMemo(() => new Set(weighedIds.map(String)), [weighedIds]);
