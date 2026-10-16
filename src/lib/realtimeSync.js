@@ -476,7 +476,7 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
       if (refreshTimer) window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => {
         if (!stopped) void refreshOrganizationCache(organizationId);
-      }, 120);
+      }, 50);
     });
   }
 
