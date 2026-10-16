@@ -3530,3 +3530,15 @@ html[dir="rtl"] .settings-readonly-tag{direction:rtl}
 .settings-page[dir="rtl"] .settings-table th,.settings-page[dir="rtl"] .settings-table td{text-align:right}
 .settings-page[dir="rtl"] .settings-person{flex-direction:row}
 @media(max-width:760px){.settings-table{min-width:620px}.settings-table th,.settings-table td{padding:10px 9px}}
+
+/* App-level fullscreen: unlike native browser fullscreen, Escape stays available to dialogs. */
+.app-shell.app-shell-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  overflow: auto;
+  background: var(--app-bg, #0b1020);
+}
