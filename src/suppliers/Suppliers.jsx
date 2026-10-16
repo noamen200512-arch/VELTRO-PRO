@@ -46,6 +46,16 @@ function loadSuppliers() {
 
 export default function Suppliers() {
   const [suppliers, setSuppliers] = useState(loadSuppliers);
+
+  useEffect(() => {
+    const refreshCloudSuppliers = () => setSuppliers(loadSuppliers());
+    window.addEventListener("storage", refreshCloudSuppliers);
+    window.addEventListener("veltro:cloud-sync", refreshCloudSuppliers);
+    return () => {
+      window.removeEventListener("storage", refreshCloudSuppliers);
+      window.removeEventListener("veltro:cloud-sync", refreshCloudSuppliers);
+    };
+  }, []);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", phone: "", reference: "" });
