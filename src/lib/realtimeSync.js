@@ -55,6 +55,12 @@ function makeSessionId() {
 }
 
 /** Close this browser session in the persistent audit log before auth is cleared. */
+export async function endTrackedSessionForUser(userId, reason = "signed_out") {
+  for (const [organizationId, tracked] of activeTrackedSessions.entries()) {
+    if (String(tracked.userId) === String(userId)) return endTrackedSession(organizationId, userId, reason);
+  }
+}
+
 export async function endTrackedSession(organizationId, userId, reason = "signed_out") {
   const tracked = activeTrackedSessions.get(String(organizationId));
   if (!tracked || String(tracked.userId) !== String(userId) || tracked.ended) return;
