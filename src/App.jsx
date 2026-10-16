@@ -816,7 +816,7 @@ export default function App({ onLogout, currentUser }) {
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(Boolean(document.fullscreenElement));
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const direction = locale === "ar" ? "rtl" : "ltr";
@@ -849,22 +849,10 @@ export default function App({ onLogout, currentUser }) {
     return () => observer.disconnect();
   }, [locale]);
 
-  useEffect(() => {
-    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener("fullscreenchange", syncFullscreen);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
-  }, []);
-
-  const toggleFullscreen = async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await document.documentElement.requestFullscreen();
-      }
-    } catch (error) {
-      console.error("Unable to toggle full screen mode:", error);
-    }
+  // Use app-level fullscreen instead of the browser Fullscreen API.
+  // This lets Escape close an open POS dialog without the browser exiting fullscreen first.
+  const toggleFullscreen = () => {
+    setIsFullscreen((current) => !current);
   };
 
   useEffect(() => {
@@ -896,9 +884,7 @@ export default function App({ onLogout, currentUser }) {
 
   return (
     <div
-      className={`app-shell ${
-        sidebarVisible ? "" : "sidebar-hidden"
-      }`}
+      className={`app-shell ${sidebarVisible ? "" : "sidebar-hidden"}${isFullscreen ? " app-shell-fullscreen" : ""}`}
     >
       <InvoiceInterfaceStyles />
       {sidebarVisible && (
