@@ -3794,3 +3794,14 @@
     min-width: 0;
   }
 }
+
+
+/* Slightly raise the bottom edge of the invoice-items card in desktop fullscreen. */
+@media (min-width: 761px) {
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section {
+    height: calc(100% - 14px) !important;
+    max-height: calc(100% - 14px) !important;
+    align-self: start !important;
+  }
+}
