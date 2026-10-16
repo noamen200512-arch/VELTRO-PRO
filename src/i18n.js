@@ -866,6 +866,14 @@ const dictionaries = {
     "تعذر التحقق من الجلسة.": "Impossible de vérifier la session.",
     "أدخل كلمة المرور": "Saisissez le mot de passe",
     "Manual Unit Profit Margin (%)": "Marge bénéficiaire manuelle par unité (%)",
+    "View Debt Details": "Voir les détails de la dette",
+    "CUSTOMER ACCOUNT": "COMPTE CLIENT",
+    "Change": "Changer",
+    "Previous debt": "Dette précédente",
+    "Paid now": "Payé maintenant",
+    "New debt": "Nouvelle dette",
+    "Completing...": "Finalisation...",
+    "Anonyme": "Client anonyme",
   },
   ar: {
     "The customer ID is generated automatically and remains unchanged.": "يُنشأ معرّف العميل تلقائيًا ويبقى ثابتًا.",
@@ -1670,6 +1678,14 @@ const dictionaries = {
     "تعذر التحقق من الجلسة.": "تعذر التحقق من الجلسة.",
     "أدخل كلمة المرور": "أدخل كلمة المرور",
     "Manual Unit Profit Margin (%)": "هامش ربح الوحدة يدويًا (%)",
+    "View Debt Details": "عرض تفاصيل الدين",
+    "CUSTOMER ACCOUNT": "حساب الزبون",
+    "Change": "تغيير",
+    "Previous debt": "الدين السابق",
+    "Paid now": "المبلغ المدفوع الآن",
+    "New debt": "الدين الجديد",
+    "Completing...": "جارٍ الإتمام...",
+    "Anonyme": "زبون مجهول",
   }
 };
 
