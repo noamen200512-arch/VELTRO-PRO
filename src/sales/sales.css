@@ -3414,3 +3414,35 @@
     max-height: 28dvh;
   }
 }
+
+
+/* Full-screen POS: when the product list is collapsed, let the invoice
+   items table grow into the freed vertical space. Showing the list restores
+   the compact, original layout automatically via :has(). */
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))),
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) {
+  min-height: max(420px, calc(100dvh - 165px));
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .product-entry,
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .product-entry {
+  height: auto;
+  max-height: none;
+  align-self: start;
+}
+
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-section,
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-section {
+  grid-row: 2 / 4;
+  min-height: 0;
+  height: 100%;
+}
+
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-scroll,
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-scroll {
+  flex: 1 1 auto;
+  min-height: 140px;
+  max-height: none;
+  overflow-y: auto;
+}
