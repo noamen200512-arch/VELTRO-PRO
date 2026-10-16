@@ -1512,3 +1512,153 @@
 [dir=rtl] .purchase-voucher-section-heading,[dir=rtl] .purchase-picker-footer,[dir=rtl] .purchase-unknown-supplier{direction:rtl}
 @media(max-width:900px){.purchase-voucher-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.purchase-product-entry-row{grid-template-columns:repeat(2,minmax(0,1fr))}.purchase-product-entry-field{grid-column:1/-1}}
 @media(max-width:600px){.purchase-voucher-meta{grid-template-columns:1fr 1fr;gap:7px}.purchase-voucher-meta-item{padding:10px}.purchase-voucher-section{padding:12px}.purchase-voucher-section-heading{align-items:flex-start;flex-direction:column}.purchase-voucher-section-heading>div{align-items:flex-start}.purchase-product-entry-row{grid-template-columns:1fr}.purchase-product-entry-field{grid-column:auto}.purchase-unknown-supplier{align-items:flex-start;flex-direction:column}.purchase-unknown-supplier .purchase-button{width:100%;white-space:normal}.purchase-voucher-footer{bottom:-15px;margin:0 -15px -15px;padding:12px 15px}.purchase-scanner-layout .purchase-modal-footer{margin:0 -15px -15px}}
+
+
+/* Add-purchase product form: aligned with the Add New Product form */
+.purchase-product-form {
+  display: grid;
+  gap: 13px;
+  padding: 2px 1px;
+}
+.purchase-product-section {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--purchase-border);
+  border-radius: 13px;
+  background: rgba(8, 13, 24, .48);
+}
+.purchase-product-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 15px;
+}
+.purchase-product-section-heading > span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 9px;
+  color: var(--purchase-accent);
+  background: rgba(50, 214, 197, .09);
+}
+.purchase-product-section-heading h3 {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 750;
+}
+.purchase-product-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+  gap: 13px;
+  align-items: end;
+}
+.purchase-product-fields .purchase-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.purchase-product-fields .purchase-field > span {
+  color: var(--purchase-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.purchase-product-fields input,
+.purchase-product-fields select {
+  min-height: 42px;
+  padding: 11px 12px;
+  border-radius: 9px;
+}
+.purchase-product-full {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.purchase-product-barcode-card,
+.purchase-product-image-card {
+  border: 1px solid var(--purchase-border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.purchase-product-barcode-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.purchase-product-barcode-copy {
+  flex: 1 1 180px;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.purchase-product-barcode-copy span {
+  color: var(--purchase-muted);
+  font-size: 11px;
+}
+.purchase-product-aliases {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+.purchase-product-total {
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid rgba(50, 214, 197, .28);
+  border-radius: 10px;
+  background: rgba(50, 214, 197, .07);
+  display: grid;
+  gap: 4px;
+}
+.purchase-product-total span,
+.purchase-product-total small,
+.purchase-product-help {
+  color: var(--purchase-muted);
+  font-size: 11px;
+}
+.purchase-product-total strong {
+  color: var(--purchase-accent);
+  font-size: 20px;
+  line-height: 1.2;
+}
+.purchase-product-help {
+  margin: 9px 0 0;
+  line-height: 1.55;
+}
+.purchase-product-image-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+.purchase-product-image-title svg {
+  color: var(--purchase-accent);
+}
+.purchase-product-image-preview {
+  display: block;
+  width: 84px;
+  height: 84px;
+  margin-top: 12px;
+  object-fit: cover;
+  border: 1px solid var(--purchase-border);
+  border-radius: 10px;
+}
+.purchase-product-image-card .purchase-image-actions {
+  margin-top: 0;
+}
+.purchase-product-image-card input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .purchase-product-section { padding: 12px; }
+  .purchase-product-fields { grid-template-columns: minmax(0, 1fr); }
+  .purchase-product-full { grid-column: auto; }
+  .purchase-product-barcode-card { align-items: flex-start; }
+}
