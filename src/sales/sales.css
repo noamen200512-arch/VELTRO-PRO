@@ -4813,3 +4813,53 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
  .closed-invoice-meta strong,.closed-invoice-table td,.closed-invoice-totals > div strong { color:#111; }
  .closed-invoice-table-wrap { overflow:visible; }
 }
+
+
+/* Inline closed-invoice navigation integrated into the existing POS layout. */
+.closed-invoice-inline-nav {
+  display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+  width:100%; box-sizing:border-box; margin:0 0 10px; padding:9px 12px;
+  border:1px solid rgba(53,214,194,.22); border-radius:12px;
+  background:linear-gradient(105deg,rgba(11,27,42,.97),rgba(21,20,43,.96));
+  box-shadow:0 8px 24px rgba(0,0,0,.13);
+}
+.closed-invoice-inline-nav.is-reviewing { border-color:rgba(53,214,194,.38); }
+.closed-invoice-inline-nav.is-editing { border-color:rgba(167,139,250,.45); }
+.closed-invoice-arrow {
+  display:grid; place-items:center; flex:0 0 38px; width:38px; height:36px;
+  color:#5eead4; background:rgba(53,214,194,.08); border:1px solid rgba(53,214,194,.23);
+  border-radius:9px; cursor:pointer; transition:background .15s ease,transform .15s ease;
+}
+.closed-invoice-arrow:hover:not(:disabled) { background:rgba(53,214,194,.17); transform:translateY(-1px); }
+.closed-invoice-arrow:disabled { opacity:.28; cursor:not-allowed; }
+.closed-invoice-inline-info { display:flex; flex:1 1 220px; min-width:130px; align-items:center; justify-content:center; flex-direction:column; gap:3px; text-align:center; }
+.closed-invoice-inline-status { color:#93a8bf; font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.closed-invoice-inline-info strong { color:#5eead4; font-size:14px; line-height:1.2; font-weight:900; }
+.closed-invoice-inline-info small { color:#a4b4c8; font-size:10px; }
+.closed-invoice-reopen,.closed-invoice-return {
+  display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:35px; padding:7px 11px;
+  border-radius:9px; font-size:10px; font-weight:850; white-space:nowrap; cursor:pointer;
+}
+.closed-invoice-reopen { color:#061311; background:linear-gradient(135deg,#35d6c2,#79eadc); border:1px solid #35d6c2; }
+.closed-invoice-return { color:#d7e2f0; background:rgba(148,163,184,.07); border:1px solid rgba(148,163,184,.22); }
+.closed-invoice-edit-hint { color:#c4b5fd; font-size:10px; font-weight:750; }
+.pos-page.closed-invoice-review-mode .sales-workspace .product-entry,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-table-section,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-summary {
+  pointer-events:none !important;
+  user-select:none;
+}
+.pos-page.closed-invoice-review-mode .sales-workspace .product-entry button,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-table-section button,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-summary button,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-table-section input,
+.pos-page.closed-invoice-review-mode .sales-workspace .invoice-summary input {
+  cursor:not-allowed !important;
+}
+@media (max-width:760px) {
+  .closed-invoice-inline-nav { justify-content:space-between; gap:7px; padding:8px; }
+  .closed-invoice-inline-info { order:0; flex-basis:calc(100% - 100px); }
+  .closed-invoice-arrow { flex-basis:36px; width:36px; }
+  .closed-invoice-reopen,.closed-invoice-return { flex:1 1 145px; }
+  .closed-invoice-edit-hint { flex:1 1 100%; text-align:center; }
+}
