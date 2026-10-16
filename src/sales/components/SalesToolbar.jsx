@@ -1,6 +1,7 @@
 
 import React from "react";
 import {
+  Keyboard,
   FilePlus2,
   Printer,
   UserRound,
@@ -47,6 +48,8 @@ export function SalesToolbar({
   message = "",
   messageType = "info",
   onDismissMessage,
+  onShortcuts,
+  locale = "en",
   onUndo,
   undoLabel = "Undo",
   dismissLabel = "Dismiss message",
@@ -66,6 +69,10 @@ export function SalesToolbar({
       </div>
 
       <div className="sales-toolbar-actions">
+        <button type="button" className="sales-toolbar-button sales-toolbar-shortcuts" onClick={onShortcuts} title={locale === "ar" ? "دليل الاختصارات (Ctrl + I)" : locale === "fr" ? "Guide des raccourcis (Ctrl + I)" : "Keyboard shortcuts (Ctrl + I)"} aria-label={locale === "ar" ? "عرض دليل الاختصارات" : locale === "fr" ? "Afficher le guide des raccourcis" : "Show keyboard shortcuts"}>
+          <span className="sales-toolbar-button-icon"><Keyboard size={18} strokeWidth={1.8}/></span><span>{locale === "ar" ? "الاختصارات" : locale === "fr" ? "Raccourcis" : "Shortcuts"}</span><kbd className="sales-toolbar-shortcut-hint">Ctrl I</kbd>
+        </button>
+
         {message && (
           <div className={`sales-toolbar-notice sales-toolbar-notice-${messageType}`} role={messageType === "error" ? "alert" : "status"} aria-live={messageType === "error" ? "assertive" : "polite"}>
             <span className="sales-toolbar-notice-icon">
