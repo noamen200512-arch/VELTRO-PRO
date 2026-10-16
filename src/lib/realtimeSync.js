@@ -426,7 +426,9 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
       event: "*",
       schema: "public",
       table,
-      filter: `organization_id=eq.${organizationId}`,
+      filter: table === "organizations"
+        ? `id=eq.${organizationId}`
+        : `organization_id=eq.${organizationId}`,
     }, (payload) => {
       window.dispatchEvent(new CustomEvent("veltro:cloud-change", {
         detail: {
