@@ -911,7 +911,7 @@ export default function App({ onLogout, currentUser }) {
           ) : activePage === "Dashboard" ? (
             <Dashboard onNavigate={navigateToPage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
-            <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} />
+            <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} locale={locale} />
           ) : activePage === "Products" ? (
             <Products />
           ) : activePage === "Sales History" ? (
