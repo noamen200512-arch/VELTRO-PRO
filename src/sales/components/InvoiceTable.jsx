@@ -431,7 +431,7 @@ export function InvoiceTable({
                             onCommit={updateField}
                           />
                           {(item.weighedSale || item.unitLabel) && <small className="invoice-weighed-unit">{item.unitLabel || item.unit || "kg"}</small>}
-                          {(item.weighedSale || item.unitLabel) && <small className="invoice-weighed-readable">{(() => { const q = Number(quantity) || 0; const unit = String(item.unitLabel || item.unit || "kg").toLowerCase(); if (unit === "kg" && q > 0 && q < 1) return \`\${Math.round(q * 1000)} g\`; if (unit === "liter" && q > 0 && q < 1) return \`\${Math.round(q * 1000)} ml\`; if (unit === "meter" && q > 0 && q < 1) return \`\${Math.round(q * 100)} cm\`; return \`\${Number(q.toFixed(3))} \${item.unitLabel || item.unit || "kg"}\`; })()}</small>}
+                          {(item.weighedSale || item.unitLabel) && <small className="invoice-weighed-readable">{(() => { const q = Number(quantity) || 0; const unit = String(item.unitLabel || item.unit || "kg").toLowerCase(); if (unit === "kg" && q > 0 && q < 1) return `${Math.round(q * 1000)} g`; if (["liter", "l"].includes(unit) && q > 0 && q < 1) return `${Math.round(q * 1000)} ml`; if (["meter", "m"].includes(unit) && q > 0 && q < 1) return `${Math.round(q * 100)} cm`; return `${Number(q.toFixed(3))} ${item.unitLabel || item.unit || "kg"}`; })()}</small>}
 
                           <button
                             type="button"
