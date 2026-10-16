@@ -90,7 +90,7 @@ export default function ClosedInvoiceNavigator({ sales = [], initialInvoiceId = 
           <tbody>{items.map((item, i) => <tr key={item.id || item.productId || i}>
             <td><strong>{item.name || item.productName || "—"}</strong><small>{item.sku || item.barcode || item.productId || ""}</small></td>
             <td>{editing ? <input aria-label={t("Quantity", "الكمية", "Quantité")} type="number" min="1" step="1" value={qty(item)} onChange={e => changeItem(i, "quantity", Math.max(1, Math.floor(Number(e.target.value) || 1)))} /> : qty(item)}</td>
-            <td>{editing ? <input aria-label={t("Unit price", "سعر الوحدة", "Prix unitaire")} type="number" min="0" step="0.01" value={Number(item.price) || 0} onChange={e => changeItem(i, "price", Math.max(0, Number(e.target.value) || 0)} /> : money(item.price)}</td>
+            <td>{editing ? <input aria-label={t("Unit price", "سعر الوحدة", "Prix unitaire")} type="number" min="0" step="0.01" value={Number(item.price) || 0} onChange={e => changeItem(i, "price", Math.max(0, Number(e.target.value) || 0))} /> : money(item.price)}</td>
             <td>{money(qty(item) * (Number(item.price) || 0) - Math.min(qty(item) * (Number(item.price) || 0), Number(item.discount) || 0))}</td>
             {editing && <td><button className="closed-invoice-remove" onClick={() => removeItem(i)} disabled={items.length <= 1} title={t("Remove line", "حذف السطر", "Supprimer la ligne")}><Trash2 size={15}/></button></td>}
           </tr>)}</tbody></table>
