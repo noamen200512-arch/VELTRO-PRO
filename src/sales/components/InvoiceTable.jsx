@@ -344,10 +344,30 @@ export function InvoiceTable({
                       </div>
 
                       <div className="invoice-product-details">
-                        <strong className="invoice-product-name">
+                        <strong
+                          className="invoice-product-name"
+                          style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}
+                        >
                           {item.name || "Unnamed product"}
                           {item.isCartonLine && (
-                            <span className="invoice-carton-badge" title={locale === "ar" ? "بيع كرتونة" : locale === "fr" ? "Vente par carton" : "Carton sale"}>
+                            <span
+                              className="invoice-carton-badge"
+                              title={locale === "ar" ? "بيع كرتونة" : locale === "fr" ? "Vente par carton" : "Carton sale"}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                padding: "2px 6px",
+                                borderRadius: 999,
+                                border: "1px solid rgba(45, 212, 191, 0.42)",
+                                background: "rgba(45, 212, 191, 0.12)",
+                                color: "#5eead4",
+                                fontSize: 10,
+                                fontWeight: 800,
+                                lineHeight: 1.4,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               <Boxes size={11} />
                               {locale === "ar" ? "كرتونة" : locale === "fr" ? "Carton" : "CARTON"}
                             </span>
