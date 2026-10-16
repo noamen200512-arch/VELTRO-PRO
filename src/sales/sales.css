@@ -4864,3 +4864,10 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .closed-invoice-reopen,.closed-invoice-return { flex:1 1 145px; }
   .closed-invoice-edit-hint { flex:1 1 100%; text-align:center; }
 }
+
+
+/* The POS inventory list is accessed through F6; keep barcode entry and scanner visible. */
+.pos-page .product-entry-fields,
+.pos-page .product-toggle-button { display: none !important; }
+.pos-keyboard-table th:last-child,
+.pos-keyboard-table td:last-child { width: 76px; text-align: center; }
