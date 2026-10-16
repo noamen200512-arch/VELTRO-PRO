@@ -28,6 +28,7 @@ import {
   Minimize2,
   Languages,
   LogOut,
+  RefreshCw,
 } from "lucide-react";
 
 import POS from "./POS";
@@ -40,7 +41,7 @@ import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
 import SettingsPage from "./Settings.jsx";
 import { supabase } from "./lib/supabase.js";
-import { startOrganizationRealtimeSync } from "./lib/realtimeSync.js";
+import { startOrganizationRealtimeSync, requestOrganizationSync } from "./lib/realtimeSync.js";
 
 /* =========================================================
    INVOICE MODAL AND PRINT STYLES
@@ -186,7 +187,24 @@ function Sidebar({
   locale,
   onLocaleChange,
   onLogout,
+  isOwner,
+  organizationId,
 }) {
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
+  const handleSyncNow = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMessage("");
+    try {
+      const result = await requestOrganizationSync(organizationId);
+      setSyncMessage(`Synchronized at ${new Date(result.refreshedAt).toLocaleTimeString()}`);
+    } catch (error) {
+      setSyncMessage(error?.message || "Synchronization failed.");
+    } finally {
+      setSyncing(false);
+    }
+  };
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchases" || activePage === "Purchase History",
@@ -341,6 +359,15 @@ function Sidebar({
         </nav>
 
         <div className="sidebar-bottom">
+          {isOwner && (
+            <div className="sidebar-sync-control">
+              <button className="nav-item sidebar-sync-button" type="button" onClick={handleSyncNow} disabled={syncing} title="Synchronize all connected users in this organization">
+                <RefreshCw size={18} className={syncing ? "sync-spinning" : ""} />
+                <span>{syncing ? tr(locale, "Synchronizing…") : tr(locale, "Sync now")}</span>
+              </button>
+              {syncMessage && <div className="sidebar-sync-message" role="status">{syncMessage}</div>}
+            </div>
+          )}
           <div className="sidebar-language">
             <div className="sidebar-language-title"><Languages size={15} /><span>{tr(locale, "Language")}</span></div>
             <div className="sidebar-language-options" role="group" aria-label={tr(locale, "Language")}>
@@ -893,6 +920,8 @@ export default function App({ onLogout, currentUser }) {
           onNavigate={navigateToPage}
           canAccessPage={canAccessPage}
           onLogout={onLogout}
+          isOwner={Boolean(workspaceAccess.profile?.is_owner)}
+          organizationId={workspaceAccess.profile?.organization_id}
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
         />
