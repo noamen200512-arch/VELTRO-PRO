@@ -28,7 +28,6 @@ import {
   Minimize2,
   Languages,
   LogOut,
-  RefreshCw,
 } from "lucide-react";
 
 import POS from "./POS";
