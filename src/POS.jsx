@@ -421,8 +421,6 @@ export default function POS({ currentUserName = "" } = {}) {
       status: "Draft",
       updatedAt: new Date().toISOString(),
     }));
-
-    setShowProducts(true);
     setShowEmptyWarning(false);
     setMessage("");
     setRemovedItem(null);
