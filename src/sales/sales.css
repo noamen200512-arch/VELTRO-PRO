@@ -2784,3 +2784,150 @@
     padding: 7px 9px;
   }
 }
+
+
+/* FULL-SCREEN POS: invoice details beside a scrollable items table,
+   with customer/account controls below both columns. */
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.8fr);
+  grid-template-rows: auto minmax(0, auto) minmax(0, auto) auto auto;
+  align-items: stretch;
+  gap: 10px 14px;
+}
+
+.pos-page:fullscreen .sales-sidebar,
+.pos-page.pos-fullscreen-active .sales-sidebar,
+.pos-page:fullscreen .sales-workspace,
+.pos-page.pos-fullscreen-active .sales-workspace {
+  display: contents;
+}
+
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(1),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(1) {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(2),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(2) {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: start;
+}
+
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.pos-page:fullscreen .invoice-table-scroll,
+.pos-page.pos-fullscreen-active .invoice-table-scroll {
+  flex: 1 1 auto;
+  min-height: 100px;
+  max-height: min(48vh, 520px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pos-turquoise) #0b111b;
+}
+
+.pos-page:fullscreen .invoice-table,
+.pos-page.pos-fullscreen-active .invoice-table {
+  width: 100%;
+  min-width: 620px;
+}
+
+.pos-page:fullscreen .sales-account-section,
+.pos-page.pos-fullscreen-active .sales-account-section {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  align-self: stretch;
+  margin: 0;
+  padding: 13px;
+  border: 1px solid var(--pos-border);
+  border-radius: 11px;
+  background: rgba(16, 23, 34, 0.94);
+}
+
+.pos-page:fullscreen .sales-account-section .sales-account-card,
+.pos-page.pos-fullscreen-active .sales-account-section .sales-account-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 10px 16px;
+  margin: 10px 0;
+}
+
+.pos-page:fullscreen .sales-account-section .sales-account-divider,
+.pos-page.pos-fullscreen-active .sales-account-section .sales-account-divider {
+  display: none;
+}
+
+.pos-page:fullscreen .sales-account-section #sales-customer,
+.pos-page.pos-fullscreen-active .sales-account-section #sales-customer {
+  max-width: 460px;
+}
+
+.pos-page:fullscreen .sales-account-section #sales-paid,
+.pos-page.pos-fullscreen-active .sales-account-section #sales-paid {
+  max-width: 300px;
+}
+
+.pos-page:fullscreen .invoice-summary,
+.pos-page.pos-fullscreen-active .invoice-summary {
+  grid-column: 1 / -1;
+  grid-row: 5;
+}
+
+@media (max-width: 900px) {
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .pos-page:fullscreen .sales-account-section .sales-account-card,
+  .pos-page.pos-fullscreen-active .sales-account-section .sales-account-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section,
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .sales-account-section,
+  .pos-page.pos-fullscreen-active .sales-account-section,
+  .pos-page:fullscreen .invoice-summary,
+  .pos-page.pos-fullscreen-active .invoice-summary {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .pos-page:fullscreen .invoice-table-scroll,
+  .pos-page.pos-fullscreen-active .invoice-table-scroll {
+    max-height: 42vh;
+  }
+}
