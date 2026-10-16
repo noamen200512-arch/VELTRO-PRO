@@ -212,7 +212,7 @@ export function savePendingInvoice(invoice) {
   const quantities = getInvoiceQuantities(invoice);
   const products = getProducts();
 
-  for (const [productId, quantity] of quantities) {
+  for (const [productId] of quantities) {
     const product = products.find(
       (item) => String(item.id) === productId
     );
@@ -301,7 +301,7 @@ export function completeSale(invoice) {
   const quantities = getInvoiceQuantities(invoice);
   const products = getProducts();
 
-  for (const [productId, quantity] of quantities) {
+  for (const [productId] of quantities) {
     const product = products.find(
       (item) => String(item.id) === productId
     );
