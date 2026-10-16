@@ -198,7 +198,7 @@ function Sidebar({
     setSyncMessage("");
     try {
       const result = await requestOrganizationSync(organizationId);
-      setSyncMessage(`Synchronized at ${new Date(result.refreshedAt).toLocaleTimeString()}`);
+      setSyncMessage(`${tr(locale, "Synchronized at")} ${new Date(result.refreshedAt).toLocaleTimeString()}`);
     } catch (error) {
       setSyncMessage(error?.message || "Synchronization failed.");
     } finally {
