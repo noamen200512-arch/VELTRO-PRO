@@ -4266,3 +4266,34 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   filter: saturate(.75);
 }
 .pos-keyboard-modal:not(.pos-keyboard-parent-under) { position: relative; z-index: 1; }
+
+/* Elegant, localized keyboard-shortcuts guide for the POS */
+.sales-toolbar-shortcuts { position:relative; gap:8px; border-color:rgba(53,214,194,.28)!important; background:linear-gradient(135deg,rgba(53,214,194,.10),rgba(167,139,250,.10))!important; }
+.sales-toolbar-shortcuts:hover { border-color:rgba(53,214,194,.65)!important; box-shadow:0 0 22px rgba(53,214,194,.10); }
+.sales-toolbar-shortcut-hint { font:600 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; color:#9aacc1; border:1px solid rgba(148,163,184,.25); border-radius:5px; padding:3px 5px; background:rgba(7,12,20,.45); white-space:nowrap; }
+.pos-shortcuts-backdrop { position:fixed; inset:0; z-index:10020; display:flex; align-items:center; justify-content:center; padding:22px; background:rgba(2,6,14,.78); backdrop-filter:blur(10px); animation:posShortcutsFade .16s ease-out; }
+.pos-shortcuts-modal { width:min(980px,96vw); max-height:min(88vh,900px); overflow:auto; color:#edf4fb; background:linear-gradient(145deg,#111b2a 0%,#0b111c 70%); border:1px solid rgba(53,214,194,.24); border-radius:20px; box-shadow:0 28px 90px rgba(0,0,0,.55),0 0 45px rgba(53,214,194,.06); padding:24px; }
+.pos-shortcuts-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding-bottom:20px; border-bottom:1px solid rgba(148,163,184,.15); }
+.pos-shortcuts-heading { display:flex; align-items:flex-start; gap:15px; min-width:0; }
+.pos-shortcuts-icon { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:14px; color:#35d6c2; background:linear-gradient(135deg,rgba(53,214,194,.17),rgba(167,139,250,.15)); border:1px solid rgba(53,214,194,.22); }
+.pos-shortcuts-eyebrow { display:block; color:#35d6c2; font-size:10px; font-weight:800; letter-spacing:.16em; margin:1px 0 6px; }
+.pos-shortcuts-heading h2 { margin:0; color:#f3f7fc; font-size:clamp(19px,2.5vw,25px); font-weight:750; }
+.pos-shortcuts-heading p { margin:7px 0 0; color:#91a2b8; font-size:13px; line-height:1.6; }
+.pos-shortcuts-close { width:36px; height:36px; flex:0 0 36px; display:grid; place-items:center; border-radius:10px; color:#a7b6c9; background:rgba(148,163,184,.07); border:1px solid rgba(148,163,184,.14); cursor:pointer; }
+.pos-shortcuts-close:hover { color:#fff; background:rgba(248,113,133,.12); border-color:rgba(248,113,133,.3); }
+.pos-shortcuts-tip { display:flex; align-items:flex-start; gap:9px; margin:16px 0 18px; padding:11px 13px; border-radius:11px; color:#a9bed1; background:rgba(53,214,194,.055); border:1px solid rgba(53,214,194,.13); font-size:12px; line-height:1.65; }
+.pos-shortcuts-tip svg { flex:0 0 auto; color:#35d6c2; margin-top:1px; }
+.pos-shortcuts-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.pos-shortcuts-group { min-width:0; border:1px solid rgba(148,163,184,.13); border-radius:14px; padding:14px; background:rgba(7,12,20,.34); }
+.pos-shortcuts-group h3 { margin:0 0 10px; color:#c6b7ff; font-size:12px; font-weight:800; }
+.pos-shortcuts-row { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:9px; padding:9px 0; border-top:1px solid rgba(148,163,184,.08); }
+.pos-shortcuts-row kbd { min-width:42px; display:inline-flex; align-items:center; justify-content:center; border:1px solid rgba(148,163,184,.23); border-bottom-width:2px; border-radius:6px; padding:4px 6px; color:#35d6c2; background:#121c2a; font:700 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:nowrap; }
+.pos-shortcuts-row span { color:#d1dbe7; font-size:11px; line-height:1.55; overflow-wrap:anywhere; }
+.pos-shortcuts-footer { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:18px; padding-top:16px; border-top:1px solid rgba(148,163,184,.14); color:#8092a8; font-size:11px; line-height:1.6; }
+.pos-shortcuts-footer button { border:0; border-radius:9px; padding:10px 17px; color:#061311; background:#35d6c2; font-size:12px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.pos-shortcuts-footer button:hover { background:#72eadb; }
+.pos-shortcuts-modal[dir="rtl"] .pos-shortcuts-eyebrow { letter-spacing:0; }
+@keyframes posShortcutsFade { from {opacity:0;transform:translateY(5px)} to {opacity:1;transform:translateY(0)} }
+@media (max-width:760px) { .pos-shortcuts-backdrop {padding:10px}.pos-shortcuts-modal {padding:17px;border-radius:15px;max-height:92vh}.pos-shortcuts-grid {grid-template-columns:1fr}.pos-shortcuts-group {padding:12px}.pos-shortcuts-row span {font-size:12px}.sales-toolbar-shortcut-hint {display:none}.pos-shortcuts-footer {align-items:flex-start} }
+@media (min-width:761px) and (max-width:980px) { .pos-shortcuts-grid {grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (prefers-reduced-motion:reduce) { .pos-shortcuts-backdrop {animation:none} }
