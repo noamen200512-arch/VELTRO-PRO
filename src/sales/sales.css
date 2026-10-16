@@ -4510,3 +4510,152 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   min-width: 0;
   grid-template-columns: minmax(250px, 0.78fr) minmax(0, 2fr);
 }
+
+
+/* Compact POS header: identity on the left, SALES TERMINAL centered,
+   and the app-level fullscreen control on the right. This saves a full row. */
+.pos-page > .pos-heading {
+  display: grid !important;
+  grid-template-columns: minmax(175px, 0.82fr) minmax(0, 2.4fr) max-content;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.pos-page .pos-heading-copy {
+  min-width: 0;
+}
+.pos-page .pos-heading-copy .pos-eyebrow {
+  margin-bottom: 4px;
+  font-size: 9px;
+  letter-spacing: 1.25px;
+}
+.pos-page .pos-heading-copy h1 {
+  margin: 0;
+  font-size: clamp(19px, 1.7vw, 25px);
+  line-height: 1.12;
+}
+.pos-page .pos-heading-copy p {
+  margin: 5px 0 0;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.pos-page > .pos-heading > .sales-toolbar {
+  min-width: 0;
+  width: 100%;
+  justify-content: center;
+  gap: 10px;
+  padding: 7px 9px;
+  margin: 0;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.pos-page .sales-toolbar-brand {
+  gap: 7px;
+  font-size: 9px;
+  letter-spacing: 1px;
+}
+.pos-page .sales-toolbar-indicator {
+  width: 6px;
+  height: 6px;
+}
+.pos-page .sales-toolbar-actions {
+  min-width: 0;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+.pos-page .sales-toolbar-button {
+  min-height: 34px;
+  gap: 6px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.pos-page .sales-toolbar-button-icon svg {
+  width: 15px;
+  height: 15px;
+}
+.pos-page .sales-toolbar-shortcut-hint {
+  font-size: 9px;
+  padding: 2px 4px;
+}
+.pos-page > .pos-heading > .pos-fullscreen-button {
+  min-height: 36px;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.pos-page > .pos-heading .sales-toolbar-notice {
+  flex: 0 1 190px;
+  width: 190px;
+  min-width: 100px;
+  max-width: 210px;
+  min-height: 30px;
+  font-size: 9px;
+}
+.pos-page:fullscreen > .pos-heading,
+.pos-page.pos-fullscreen-active > .pos-heading {
+  grid-template-columns: minmax(160px, 0.72fr) minmax(0, 2.5fr) max-content;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.pos-page:fullscreen > .pos-heading > .sales-toolbar,
+.pos-page.pos-fullscreen-active > .pos-heading > .sales-toolbar {
+  gap: 7px;
+  padding: 6px 8px;
+  margin: 0;
+}
+@media (max-width: 1180px) and (min-width: 761px) {
+  .pos-page > .pos-heading {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 10px 14px;
+  }
+  .pos-page > .pos-heading > .sales-toolbar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .pos-page > .pos-heading > .pos-fullscreen-button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .pos-page > .pos-heading .sales-toolbar-actions {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 760px) {
+  .pos-page > .pos-heading {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .pos-page .pos-heading-copy h1 {
+    font-size: 20px;
+  }
+  .pos-page .pos-heading-copy p {
+    display: none;
+  }
+  .pos-page > .pos-heading > .sales-toolbar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+  }
+  .pos-page .sales-toolbar-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  .pos-page .sales-toolbar-button {
+    flex: 1 1 auto;
+  }
+  .pos-page > .pos-heading > .pos-fullscreen-button {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 34px;
+    padding: 7px 8px;
+  }
+}
