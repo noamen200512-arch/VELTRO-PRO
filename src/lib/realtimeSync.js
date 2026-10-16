@@ -1,0 +1,281 @@
+import { supabase } from "./supabase.js";
+
+const ORGANIZATION_TABLES = [
+  "organizations",
+  "branches",
+  "profiles",
+  "roles",
+  "products",
+  "customers",
+  "suppliers",
+  "sales_invoices",
+  "sales_invoice_items",
+  "purchase_invoices",
+  "purchase_invoice_items",
+  "stock_movements",
+  "customer_payments",
+  "supplier_payments",
+  "cash_register_sessions",
+  "cash_register_transactions",
+  "pos_invoice_drafts",
+];
+
+const CACHE_KEYS = [
+  "veltro_products",
+  "veltro_customers",
+  "veltro_purchase_suppliers",
+  "veltro_completed_sales",
+  "veltro_pending_invoices",
+  "veltro_purchase_invoices",
+];
+
+let refreshTimer = null;
+let refreshInFlight = false;
+let refreshAgain = false;
+
+function number(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function productFromRow(row) {
+  return {
+    id: row.id,
+    name: row.name || "",
+    category: row.category || "General",
+    sku: row.sku || row.id,
+    barcode: row.barcode || "",
+    barcodeAliases: Array.isArray(row.barcode_aliases) ? row.barcode_aliases : [],
+    purchasePrice: number(row.purchase_price),
+    price: number(row.price),
+    cartonPrice: number(row.carton_price),
+    wholesalePrice: number(row.wholesale_price),
+    piecesPerCarton: number(row.pieces_per_carton) || 1,
+    stock: number(row.stock),
+    minStock: number(row.min_stock),
+    unit: row.unit || "piece",
+    image: row.image || "",
+    expiryDate: row.expiry_date || "",
+  };
+}
+
+function customerFromRow(row) {
+  return {
+    id: String(row.id),
+    name: row.name || "",
+    phone: row.phone || "",
+    email: row.email || "",
+    address: row.address || "",
+    reference: row.reference || String(row.id),
+    code: row.reference || String(row.id),
+    notes: row.notes || "",
+    creditLimit: number(row.credit_limit),
+    isActive: row.is_active !== false,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function supplierFromRow(row) {
+  return {
+    id: String(row.id),
+    name: row.name || "",
+    reference: row.reference || "",
+    phone: row.phone || "",
+    email: row.email || "",
+    address: row.address || "",
+    note: row.notes || "",
+    notes: row.notes || "",
+    isActive: row.is_active !== false,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function saleFromRow(row, items) {
+  const invoiceItems = items.filter((item) => String(item.invoice_id) === String(row.id)).map((item) => ({
+    id: item.id,
+    productId: item.product_id || "",
+    name: item.product_name || "",
+    sku: item.sku || "",
+    barcode: item.barcode || "",
+    qty: number(item.quantity),
+    quantity: number(item.quantity),
+    price: number(item.unit_price),
+    unitPrice: number(item.unit_price),
+    cost: number(item.unit_cost),
+    lineTotal: number(item.line_total),
+    total: number(item.line_total),
+  }));
+
+  return {
+    id: String(row.id),
+    invoiceId: String(row.id),
+    invoiceNumber: row.invoice_number || String(row.id),
+    customerId: row.customer_id || "",
+    customerName: row.customer_name || "Anonyme",
+    employeeId: row.employee_id || "",
+    status: row.status === "posted" ? "Completed" : row.status === "void" ? "Voided" : "Pending",
+    subtotal: number(row.subtotal),
+    discount: number(row.discount),
+    total: number(row.total),
+    paid: number(row.paid),
+    remaining: number(row.remaining),
+    note: row.note || "",
+    createdAt: row.created_at,
+    completedAt: row.posted_at || row.created_at,
+    items: invoiceItems,
+  };
+}
+
+function purchaseFromRow(row, items) {
+  const lines = items.filter((item) => String(item.invoice_id) === String(row.id)).map((item) => ({
+    lineId: item.id,
+    productId: item.product_id || "",
+    name: item.product_name || "",
+    sku: item.sku || "",
+    barcode: item.barcode || "",
+    quantity: number(item.quantity),
+    unitPrice: number(item.unit_cost),
+    salePrice: number(item.unit_price),
+    lineTotal: number(item.line_total),
+  }));
+
+  return {
+    id: String(row.id),
+    number: row.invoice_number || String(row.id),
+    supplierId: row.supplier_id || "",
+    supplier: row.supplier_name || "",
+    date: row.created_at,
+    closedAt: row.posted_at || row.created_at,
+    updatedAt: row.updated_at,
+    total: number(row.total),
+    paid: number(row.paid),
+    remaining: number(row.remaining),
+    note: row.note || "",
+    status: row.status === "posted" ? "Completed" : row.status,
+    lines,
+  };
+}
+
+function writeCache(key, value) {
+  try {
+    const serialized = JSON.stringify(value);
+    if (localStorage.getItem(key) === serialized) return;
+    localStorage.setItem(key, serialized);
+    // Storage events normally only fire in other tabs. Dispatch one locally too
+    // so mounted VELTRO-PRO modules can refresh their in-memory state.
+    window.dispatchEvent(new StorageEvent("storage", {
+      key,
+      newValue: serialized,
+      storageArea: localStorage,
+    }));
+  } catch (error) {
+    console.warn("VELTRO-PRO could not refresh a local cloud cache:", key, error);
+  }
+}
+
+export async function refreshOrganizationCache(organizationId) {
+  if (!organizationId) return;
+  if (refreshInFlight) {
+    refreshAgain = true;
+    return;
+  }
+
+  refreshInFlight = true;
+  try {
+    const [
+      productsResult,
+      customersResult,
+      suppliersResult,
+      salesResult,
+      saleItemsResult,
+      purchasesResult,
+      purchaseItemsResult,
+    ] = await Promise.all([
+      supabase.from("products").select("*").eq("organization_id", organizationId).order("name"),
+      supabase.from("customers").select("*").eq("organization_id", organizationId).order("name"),
+      supabase.from("suppliers").select("*").eq("organization_id", organizationId).order("name"),
+      supabase.from("sales_invoices").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
+      supabase.from("sales_invoice_items").select("*").eq("organization_id", organizationId),
+      supabase.from("purchase_invoices").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }),
+      supabase.from("purchase_invoice_items").select("*").eq("organization_id", organizationId),
+    ]);
+
+    for (const result of [productsResult, customersResult, suppliersResult, salesResult, saleItemsResult, purchasesResult, purchaseItemsResult]) {
+      if (result.error) throw result.error;
+    }
+
+    const saleRows = salesResult.data || [];
+    const completedSales = saleRows.filter((row) => row.status === "posted").map((row) => saleFromRow(row, saleItemsResult.data || []));
+    const pendingSales = saleRows.filter((row) => row.status === "pending").map((row) => saleFromRow(row, saleItemsResult.data || []));
+    const purchaseRows = purchasesResult.data || [];
+
+    writeCache("veltro_products", (productsResult.data || []).map(productFromRow));
+    writeCache("veltro_customers", (customersResult.data || []).map(customerFromRow));
+    writeCache("veltro_purchase_suppliers", (suppliersResult.data || []).map(supplierFromRow));
+    writeCache("veltro_completed_sales", completedSales);
+    writeCache("veltro_pending_invoices", pendingSales);
+    writeCache("veltro_purchase_invoices", purchaseRows.map((row) => purchaseFromRow(row, purchaseItemsResult.data || [])));
+
+    window.dispatchEvent(new CustomEvent("veltro:cloud-sync", {
+      detail: { organizationId, refreshedAt: new Date().toISOString() },
+    }));
+  } catch (error) {
+    console.error("VELTRO-PRO real-time cache refresh failed:", error);
+    window.dispatchEvent(new CustomEvent("veltro:cloud-sync-error", {
+      detail: { organizationId, message: error?.message || "Cloud refresh failed." },
+    }));
+  } finally {
+    refreshInFlight = false;
+    if (refreshAgain) {
+      refreshAgain = false;
+      void refreshOrganizationCache(organizationId);
+    }
+  }
+}
+
+export function startOrganizationRealtimeSync({ organizationId, userId }) {
+  if (!organizationId || !userId) return () => {};
+
+  let stopped = false;
+  const channel = supabase.channel(`veltro-org-sync-${organizationId}-${userId}`);
+
+  for (const table of ORGANIZATION_TABLES) {
+    channel.on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table,
+      filter: `organization_id=eq.${organizationId}`,
+    }, (payload) => {
+      window.dispatchEvent(new CustomEvent("veltro:cloud-change", {
+        detail: {
+          organizationId,
+          table,
+          eventType: payload.eventType,
+          newRecord: payload.new || null,
+          oldRecord: payload.old || null,
+        },
+      }));
+
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        if (!stopped) void refreshOrganizationCache(organizationId);
+      }, 120);
+    });
+  }
+
+  channel.subscribe((status) => {
+    if (stopped) return;
+    window.dispatchEvent(new CustomEvent("veltro:realtime-status", {
+      detail: { organizationId, status },
+    }));
+    if (status === "SUBSCRIBED") void refreshOrganizationCache(organizationId);
+  });
+
+  return () => {
+    stopped = true;
+    if (refreshTimer) window.clearTimeout(refreshTimer);
+    void supabase.removeChannel(channel);
+  };
+}
