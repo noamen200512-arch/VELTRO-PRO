@@ -405,41 +405,26 @@ export function ProductEntry({
   return (
     <section className="product-entry">
       <div className="product-entry-header">
-        <div>
+        <div className="product-entry-heading-copy">
           <h2>Product Entry</h2>
           <p>Find products in your current inventory</p>
         </div>
 
-        <button
-          type="button"
-          className="product-camera-button"
-          onClick={startCamera}
-        >
-          <Camera size={18} />
-          <span>Scan with Camera</span>
-        </button>
-      </div>
-
-      <div className="product-entry-barcode">
-        <label className="product-entry-label" htmlFor="product-barcode">
-          <Barcode size={17} />
-          Barcode
-        </label>
-
         <form
-          className="product-barcode-field"
+          className="product-barcode-field product-entry-inline-barcode"
           onSubmit={(event) => {
             event.preventDefault();
             submitBarcode(barcode);
           }}
         >
-          <ScanLine size={22} />
+          <ScanLine size={20} />
 
           <input
             id="product-barcode"
             type="text"
             autoComplete="off"
-            placeholder="Scan or enter barcode, then press Enter..."
+            placeholder="Scan or enter barcode..."
+            aria-label="Scan or enter barcode"
             value={barcode}
             onChange={(event) => setBarcode(event.target.value)}
           />
@@ -460,6 +445,15 @@ export function ProductEntry({
             Add
           </button>
         </form>
+
+        <button
+          type="button"
+          className="product-camera-button"
+          onClick={startCamera}
+        >
+          <Camera size={18} />
+          <span>Scan with Camera</span>
+        </button>
       </div>
 
       {/* Search remains visible even when the inventory list is hidden. */}
