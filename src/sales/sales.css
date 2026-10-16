@@ -3943,3 +3943,24 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Invoice Information: give the section its own card and lift it slightly. */
+.sales-sidebar > .sales-side-section:first-child {
+  padding: 13px;
+  border: 1px solid rgba(53, 214, 194, 0.2);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(20, 34, 47, 0.96), rgba(10, 16, 26, 0.98));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+}
+
+.sales-sidebar > .sales-side-section:first-child .sales-section-heading {
+  margin-bottom: 10px;
+}
+
+@media (min-width: 761px) {
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section:first-child,
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:first-child {
+    transform: translateY(-10px);
+  }
+}
