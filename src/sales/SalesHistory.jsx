@@ -875,6 +875,16 @@ function EditInvoiceModal({ invoice, onCancel, onSave }) {
 
 export default function SalesHistory() {
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    const refreshCloudSales = () => setRefreshKey((key) => key + 1);
+    window.addEventListener("storage", refreshCloudSales);
+    window.addEventListener("veltro:cloud-sync", refreshCloudSales);
+    return () => {
+      window.removeEventListener("storage", refreshCloudSales);
+      window.removeEventListener("veltro:cloud-sync", refreshCloudSales);
+    };
+  }, []);
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
