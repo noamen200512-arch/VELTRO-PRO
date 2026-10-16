@@ -37,6 +37,16 @@ const ensureReferences = items => {
 
 export default function Customers() {
   const [customers, setCustomers] = useState(() => ensureReferences(readLocal()));
+
+  useEffect(() => {
+    const refreshCloudCustomers = () => setCustomers(ensureReferences(readLocal()));
+    window.addEventListener("storage", refreshCloudCustomers);
+    window.addEventListener("veltro:cloud-sync", refreshCloudCustomers);
+    return () => {
+      window.removeEventListener("storage", refreshCloudCustomers);
+      window.removeEventListener("veltro:cloud-sync", refreshCloudCustomers);
+    };
+  }, []);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", notes: "" });
