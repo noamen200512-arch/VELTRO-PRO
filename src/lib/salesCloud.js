@@ -31,7 +31,7 @@ function stableLineId(invoiceId, item, index) {
   return `${raw.slice(0, 8)}-${raw.slice(8, 12)}-4${raw.slice(13, 16)}-a${raw.slice(17, 20)}-${raw.slice(20, 32)}`;
 }
 
-export async function saveSaleToCloud(sale) {
+export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
   if (!sale?.id && !sale?.invoiceId) throw new Error("The sale has no invoice ID.");
   if (!Array.isArray(sale.items) || sale.items.length === 0) throw new Error("The sale must contain at least one item.");
 
@@ -46,7 +46,7 @@ export async function saveSaleToCloud(sale) {
     customer_id: sale.customerId && String(sale.customerId).toLowerCase() !== "anonyme" ? String(sale.customerId) : null,
     customer_name: String(sale.customerName || "Anonyme"),
     employee_id: sale.employeeId || userId,
-    status: "posted",
+    status: status === "pending" ? "pending" : "posted",
     subtotal: Math.max(0, numeric(sale.subtotal ?? total + numeric(sale.discount))),
     discount: Math.max(0, numeric(sale.discount)),
     total,
@@ -56,7 +56,7 @@ export async function saveSaleToCloud(sale) {
     created_by: userId,
     created_at: sale.createdAt || new Date().toISOString(),
     updated_at: sale.updatedAt || new Date().toISOString(),
-    posted_at: sale.completedAt || sale.updatedAt || new Date().toISOString(),
+    posted_at: status === "pending" ? null : (sale.completedAt || sale.updatedAt || new Date().toISOString()),
   };
 
   const { error: headerError } = await supabase
