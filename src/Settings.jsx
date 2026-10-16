@@ -3,16 +3,18 @@ import {
   Building2, UsersRound, ShieldCheck, MapPinned, SlidersHorizontal,
   RefreshCw, Search, Mail, Phone, CheckCircle2, AlertCircle,
   Languages, Store, KeyRound, ChevronRight, UserRound, Database, Save, Pencil, X,
-
+  Package, Scale, Star, Plus, Trash2,
 } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
+import { getProducts } from "./productStore.js";
 
 const copy = {
   en: {
     eyebrow: "WORKSPACE CONTROL CENTER", title: "Settings",
     subtitle: "Manage your business workspace, users, access rules, and branches.",
     business: "Business profile", users: "Users & roles", permissions: "Permissions",
-    branches: "Branches", preferences: "Preferences", overview: "Workspace overview",
+    branches: "Branches", preferences: "Preferences", productSettings: "Product Settings", overview: "Workspace overview",
+    productSettingsText: "Manage weighed-sale categories, product tiles, and favorite products.", poundGrams: "Pound size (grams)", categories: "Product categories", newCategory: "New category name", addCategory: "Add category", visibleCategories: "Show this category on the weigh-sale screen", renameCategory: "Category name", deleteCategory: "Delete category", productList: "Product assignment", productListText: "Choose which products appear in quick-sale tiles and assign each weighed product to a category.", favorite: "Favorite", weighed: "Sell by weight", category: "Category", uncategorized: "Uncategorized", saveProductSettings: "Save product settings", productSettingsSaved: "Product settings saved on this device.", noProducts: "No products found in the product catalog.",
     overviewText: "Your organization and account setup at a glance.",
     organization: "Organization", status: "Status", active: "Active", suspended: "Suspended",
     currentAccount: "Current account", accountName: "Account name", email: "Email address",
@@ -50,7 +52,8 @@ const copy = {
     eyebrow: "CENTRE DE CONTRÔLE", title: "Paramètres",
     subtitle: "Gérez votre espace professionnel, les utilisateurs, les accès et les agences.",
     business: "Profil de l’entreprise", users: "Utilisateurs et rôles", permissions: "Autorisations",
-    branches: "Agences", preferences: "Préférences", overview: "Vue d’ensemble",
+    branches: "Agences", preferences: "Préférences", productSettings: "Paramètres des produits", overview: "Vue d’ensemble",
+    productSettingsText: "Gérez les catégories de vente au poids, les tuiles produits et les favoris.", poundGrams: "Valeur de la livre (grammes)", categories: "Catégories de produits", newCategory: "Nom de la nouvelle catégorie", addCategory: "Ajouter la catégorie", visibleCategories: "Afficher cette catégorie dans la vente au poids", renameCategory: "Nom de la catégorie", deleteCategory: "Supprimer la catégorie", productList: "Affectation des produits", productListText: "Choisissez les produits affichés dans la vente rapide et classez les produits vendus au poids.", favorite: "Favori", weighed: "Vente au poids", category: "Catégorie", uncategorized: "Sans catégorie", saveProductSettings: "Enregistrer les paramètres produits", productSettingsSaved: "Paramètres produits enregistrés sur cet appareil.", noProducts: "Aucun produit trouvé dans le catalogue.",
     overviewText: "Résumé de votre organisation et de votre compte.",
     organization: "Organisation", status: "Statut", active: "Actif", suspended: "Suspendu",
     currentAccount: "Compte actuel", accountName: "Nom du compte", email: "Adresse e-mail",
@@ -88,7 +91,8 @@ const copy = {
     eyebrow: "مركز التحكم في مساحة العمل", title: "الإعدادات",
     subtitle: "إدارة المؤسسة والمستخدمين والصلاحيات والفروع من مكان واحد.",
     business: "بيانات المؤسسة", users: "المستخدمون والأدوار", permissions: "الصلاحيات",
-    branches: "الفروع", preferences: "التفضيلات", overview: "نظرة عامة",
+    branches: "الفروع", preferences: "التفضيلات", productSettings: "إعدادات المنتجات", overview: "نظرة عامة",
+    productSettingsText: "إدارة فئات البيع بالميزان ومربعات المنتجات والمنتجات المفضلة.", poundGrams: "قيمة الرطل بالغرام", categories: "فئات المنتجات", newCategory: "اسم الفئة الجديدة", addCategory: "إضافة الفئة", visibleCategories: "إظهار هذه الفئة في صفحة البيع بالميزان", renameCategory: "اسم الفئة", deleteCategory: "حذف الفئة", productList: "تعيين المنتجات للفئات", productListText: "اختر المنتجات التي تظهر في مربعات البيع السريع وحدد فئة كل منتج يُباع بالميزان.", favorite: "مفضّل", weighed: "بيع بالميزان", category: "الفئة", uncategorized: "بلا فئة", saveProductSettings: "حفظ إعدادات المنتجات", productSettingsSaved: "تم حفظ إعدادات المنتجات على هذا الجهاز.", noProducts: "لا توجد منتجات في قائمة المنتجات.",
     overviewText: "ملخص المؤسسة والحساب الحالي.",
     organization: "المؤسسة", status: "الحالة", active: "نشطة", suspended: "موقوفة",
     currentAccount: "الحساب الحالي", accountName: "اسم الحساب", email: "البريد الإلكتروني",
@@ -130,6 +134,7 @@ const nav = [
   { id: "permissions", icon: ShieldCheck, label: "permissions" },
   { id: "branches", icon: MapPinned, label: "branches" },
   { id: "preferences", icon: SlidersHorizontal, label: "preferences" },
+  { id: "productSettings", icon: Package, label: "productSettings" },
 ];
 
 const localeName = { en: "English", fr: "Français", ar: "العربية" };
@@ -457,6 +462,16 @@ function getPermissionDescription(permission, locale = "en") {
 export default function SettingsPage({ locale = "en", onLocaleChange, currentUser }) {
   const t = copy[locale] || copy.en;
   const [section, setSection] = useState("business");
+  const [productSettingsProducts, setProductSettingsProducts] = useState(() => getProducts());
+  const [productFavoriteIds, setProductFavoriteIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]").map(String); } catch { return []; } });
+  const [productWeighedIds, setProductWeighedIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]").map(String); } catch { return []; } });
+  const [productCategoriesById, setProductCategoriesById] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); } catch { return {}; } });
+  const [productCategoryList, setProductCategoryList] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]'); return Array.isArray(value) && value.length ? value : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
+  const [productVisibleCategories, setProductVisibleCategories] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null"); return Array.isArray(value) ? value : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
+  const [productPoundGrams, setProductPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
+  const [newProductCategory, setNewProductCategory] = useState("");
+  const [productCategoryNames, setProductCategoryNames] = useState({});
+  const [productSettingsMessage, setProductSettingsMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -590,6 +605,49 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   }, [data.users, data.roles, search, roleById, locale]);
 
   const activeNav = nav.find((item) => item.id === section) || nav[0];
+  useEffect(() => {
+    if (section !== "productSettings") return;
+    setProductSettingsProducts(getProducts());
+    try {
+      setProductFavoriteIds(JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]").map(String));
+      setProductWeighedIds(JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]").map(String));
+      setProductCategoriesById(JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"));
+      const categories = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]');
+      setProductCategoryList(Array.isArray(categories) && categories.length ? categories : ["Nuts","Grains","Spices","Other"]);
+      const visible = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null");
+      setProductVisibleCategories(Array.isArray(visible) ? visible : (Array.isArray(categories) ? categories : ["Nuts","Grains","Spices","Other"]));
+      setProductPoundGrams(Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500));
+    } catch (error) { console.warn("Could not load product settings", error); }
+  }, [section]);
+  const saveProductSettings = () => {
+    try {
+      localStorage.setItem("veltro_pos_favorite_products", JSON.stringify(productFavoriteIds));
+      localStorage.setItem("veltro_pos_weighed_products", JSON.stringify(productWeighedIds));
+      localStorage.setItem("veltro_pos_weighed_categories", JSON.stringify(productCategoriesById));
+      localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(productCategoryList));
+      localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(productVisibleCategories.filter((category) => productCategoryList.includes(category))));
+      localStorage.setItem("veltro_pos_pound_grams", String(Math.max(1, Number(productPoundGrams) || 500)));
+      setProductSettingsMessage(t.productSettingsSaved);
+    } catch (error) { console.warn("Could not save product settings", error); setProductSettingsMessage(""); }
+  };
+  const renameProductCategory = (oldName) => {
+    const newName = String(productCategoryNames[oldName] ?? oldName).trim();
+    if (!newName || productCategoryList.some((category) => category !== oldName && category.toLocaleLowerCase() === newName.toLocaleLowerCase())) {
+      setProductCategoryNames((previous) => ({ ...previous, [oldName]: oldName }));
+      return;
+    }
+    if (newName === oldName) return;
+    setProductCategoryList((previous) => previous.map((category) => category === oldName ? newName : category));
+    setProductCategoriesById((previous) => Object.fromEntries(Object.entries(previous).map(([id, category]) => [id, category === oldName ? newName : category])));
+    setProductVisibleCategories((previous) => previous.map((category) => category === oldName ? newName : category));
+    setProductCategoryNames((previous) => { const next = { ...previous }; delete next[oldName]; next[newName] = newName; return next; });
+  };
+  const removeProductCategory = (category) => {
+    setProductCategoryList((previous) => previous.filter((item) => item !== category));
+    setProductVisibleCategories((previous) => previous.filter((item) => item !== category));
+    setProductCategoriesById((previous) => Object.fromEntries(Object.entries(previous).filter(([, value]) => value !== category)));
+    setProductCategoryNames((previous) => { const next = { ...previous }; delete next[category]; return next; });
+  };
   const isOwner = data.profile?.is_owner === true;
   const selectedRole = data.roles.find((role) => role.id === selectedRoleId) || null;
   const ownerRoleIds = new Set(data.users.filter((user) => user.is_owner).map((user) => user.role_id).filter(Boolean));
@@ -753,7 +811,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                 <div className="settings-section-icon"><activeNav.icon size={20} /></div>
                 <div>
                   <h3>{t[activeNav.label]}</h3>
-                  <p>{section === "business" ? t.overviewText : section === "users" ? t.teamText : section === "permissions" ? t.accessRulesText : section === "branches" ? t.branchesText : t.languageText}</p>
+                  <p>{section === "business" ? t.overviewText : section === "users" ? t.teamText : section === "permissions" ? t.accessRulesText : section === "branches" ? t.branchesText : section === "productSettings" ? t.productSettingsText : t.languageText}</p>
                 </div>
               </div>
 
@@ -871,6 +929,43 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   {data.branches.map((branch) => <article className="settings-branch-card" key={branch.id}><div className="settings-branch-top"><span className="settings-branch-icon"><MapPinned size={19} /></span>{branch.is_main && <span className="settings-main-badge">{t.mainBranch}</span>}</div><h4>{branch.name}</h4><p className="settings-branch-address">{branch.address || t.noAddress}</p><div className="settings-branch-contact"><Phone size={14} /><span>{branch.phone || t.noPhone}</span></div></article>)}
                   {!data.branches.length && <div className="settings-empty">{t.noBranches}</div>}
                 </div>
+              )}
+
+              {section === "productSettings" && (
+                <>
+                  <div className="settings-card">
+                    <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.categories}</h4><p>{t.productSettingsText}</p></div></div>
+                    <label className="settings-form-field" style={{ maxWidth: 280, marginBottom: 18 }}><span>{t.poundGrams}</span><input type="number" min="1" value={productPoundGrams} onChange={(event) => setProductPoundGrams(event.target.value)} /></label>
+                    <form className="settings-profile-form" onSubmit={(event) => { event.preventDefault(); const name = newProductCategory.trim(); if (name && !productCategoryList.some((category) => category.toLocaleLowerCase() === name.toLocaleLowerCase())) { setProductCategoryList((previous) => [...previous, name]); setProductCategoryNames((previous) => ({ ...previous, [name]: name })); } setNewProductCategory(""); }}>
+                      <div className="settings-detail-grid"><label className="settings-form-field"><span>{t.newCategory}</span><input value={newProductCategory} onChange={(event) => setNewProductCategory(event.target.value)} /></label></div>
+                      <div className="settings-profile-actions"><button type="submit" className="settings-save-button"><Plus size={15} />{t.addCategory}</button></div>
+                    </form>
+                    <div className="settings-role-list" style={{ marginTop: 16 }}>
+                      {productCategoryList.map((category) => <div className="settings-role-row" key={category}>
+                        <span className="settings-role-icon"><Package size={17} /></span>
+                        <label className="settings-form-field" style={{ flex: 1 }}><span>{t.renameCategory}</span><input value={productCategoryNames[category] ?? category} onChange={(event) => setProductCategoryNames((previous) => ({ ...previous, [category]: event.target.value }))} onBlur={() => renameProductCategory(category)} /></label>
+                        <label className="settings-permission-row" style={{ padding: 0, border: 0 }}><input type="checkbox" checked={productVisibleCategories.includes(category)} onChange={(event) => setProductVisibleCategories((previous) => event.target.checked ? [...new Set([...previous, category])] : previous.filter((item) => item !== category))} /><span>{t.visibleCategories}</span></label>
+                        <button type="button" className="settings-cancel-button" title={t.deleteCategory} onClick={() => removeProductCategory(category)}><Trash2 size={15} />{t.deleteCategory}</button>
+                      </div>)}
+                    </div>
+                  </div>
+                  <div className="settings-card">
+                    <div className="settings-card-heading"><Package size={18} /><div><h4>{t.productList}</h4><p>{t.productListText}</p></div><span className="settings-count">{productSettingsProducts.length}</span></div>
+                    <div className="settings-role-list">
+                      {productSettingsProducts.map((product) => {
+                        const id = String(product.id ?? product.productId ?? product.sku ?? "");
+                        return <div className="settings-role-row" key={id}>
+                          <span className="settings-role-icon"><Package size={17} /></span><span className="settings-role-copy"><strong>{product.name || id}</strong><small>{product.sku || product.reference || id}</small></span>
+                          <label className="settings-permission-row" style={{ padding: 0, border: 0 }}><input type="checkbox" checked={productFavoriteIds.includes(id)} onChange={(event) => setProductFavoriteIds((previous) => event.target.checked ? [...new Set([...previous, id])] : previous.filter((item) => item !== id))} /><span><Star size={13} />{t.favorite}</span></label>
+                          <label className="settings-permission-row" style={{ padding: 0, border: 0 }}><input type="checkbox" checked={productWeighedIds.includes(id)} onChange={(event) => setProductWeighedIds((previous) => event.target.checked ? [...new Set([...previous, id])] : previous.filter((item) => item !== id))} /><span>{t.weighed}</span></label>
+                          <label className="settings-form-field" style={{ width: "min(100%, 220px)" }}><span>{t.category}</span><select value={productCategoriesById[id] || ""} disabled={!productWeighedIds.includes(id)} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))}><option value="">{t.uncategorized}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select></label>
+                        </div>;
+                      })}
+                      {!productSettingsProducts.length && <p className="settings-empty">{t.noProducts}</p>}
+                    </div>
+                    <div className="settings-profile-actions"><button type="button" className="settings-save-button" onClick={saveProductSettings}><Save size={15} />{t.saveProductSettings}</button>{productSettingsMessage && <span className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{productSettingsMessage}</span>}</div>
+                  </div>
+                </>
               )}
 
               {section === "preferences" && (
