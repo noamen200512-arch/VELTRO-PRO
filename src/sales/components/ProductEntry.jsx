@@ -68,7 +68,7 @@ export function ProductEntry({
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const PRODUCTS_PER_PAGE = 15;
+  const PRODUCTS_PER_PAGE = 5;
   const [showCamera, setShowCamera] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const [cameraSupported, setCameraSupported] = useState(true);
