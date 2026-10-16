@@ -1346,6 +1346,46 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     }
   };
 
+
+  useEffect(() => {
+    const handler = (e) => {
+      const target = e.target;
+      const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT","TEXTAREA","SELECT"].includes(target.tagName));
+      const stop = () => { e.preventDefault(); e.stopPropagation(); };
+      const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
+      if (keyboardDialog) {
+        if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else if (keyboardDialog==="quantity"||keyboardDialog==="price") setKeyboardDialog("options"); else setKeyboardDialog(null); return; }
+        if (keyboardDialog==="products") {
+          if (e.key==="ArrowUp"||e.key==="ArrowDown") { stop(); const count=Math.min(12,Math.max(0,filtered().length-(productPickerPage-1)*12)); if(count)setSelectedProductIndex(v=>e.key==="ArrowDown"?(v+1)%count:(v-1+count)%count); }
+          else if(e.key==="F1"||e.key==="F2") { stop(); const pages=Math.max(1,Math.ceil(filtered().length/12)); setProductPickerPage(v=>Math.min(pages,Math.max(1,v+(e.key==="F1"?-1:1)))); setSelectedProductIndex(0); }
+          else if(e.key==="Enter") { stop(); const p=filtered().slice((productPickerPage-1)*12,productPickerPage*12)[selectedProductIndex]; if(p)chooseProductFromKeyboardList(p); }
+          return;
+        }
+        if(keyboardDialog==="options") { if(e.key==="F6"){stop();applyCartonConversion(items[selectedCartIndex]);} if(e.key==="F7"){stop();openQuantityEditor();} if(e.key==="F8"){stop();openPriceEditor();} return; }
+        if(keyboardDialog==="quantity"&&e.key==="Enter"){stop();applyQuantityEditor(quantityDraft);return;}
+        if(keyboardDialog==="price"&&e.key==="Enter"){stop();applyPriceEditor(priceDraft);return;}
+        if((keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning")&&e.key==="Enter"){stop();confirmKeyboardWarning();return;}
+        return;
+      }
+      if(showPending){ if(e.key==="Escape"){stop();setShowPending(false);return;} if(e.key==="ArrowUp"||e.key==="ArrowDown"){stop();if(pendingInvoices.length)setSelectedPendingIndex(v=>e.key==="ArrowDown"?(v+1)%pendingInvoices.length:(v-1+pendingInvoices.length)%pendingInvoices.length);return;} if(e.key==="Enter"){stop();const p=pendingInvoices[selectedPendingIndex];if(p)openPendingInvoice(p.id);return;} return; }
+      if(showSaleConfirm){if(e.key==="Escape"){stop();setShowSaleConfirm(false);return;}if(e.key==="Enter"){stop();void confirmSaleCompletion(false);return;}if(e.key==="F12"){stop();void confirmSaleCompletion(true);return;}return;}
+      if(showSaleReview){if(e.key==="Escape"){stop();setShowSaleReview(false);return;}if(e.key==="Enter"||e.key==="F12"){stop();setShowSaleReview(false);setShowSaleConfirm(true);return;}return;}
+      if(showBelowCostWarning){if(e.key==="Escape"){stop();setShowBelowCostWarning(false);return;}if(e.key==="Enter"){stop();openSaleConfirmation();return;}return;}
+      if(showCustomerPicker&&e.key==="Escape"){stop();setShowCustomerPicker(false);return;}
+      if(e.key==="F1"){stop();createNewInvoice();return;}
+      if(e.key==="F2"){stop();printInvoice();return;}
+      if(e.key==="F3"){stop();chooseCustomer();return;}
+      if(e.key==="F4"){stop();setSelectedPendingIndex(0);setShowPending(true);return;}
+      if(e.key==="F5"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("products");return;}
+      if(e.key==="F6"){stop();if(items.length)setKeyboardDialog("options");else notify(locale==="ar"?"أضف منتجًا إلى السلة أولًا.":locale==="fr"?"Ajoutez d'abord un produit au panier.":"Add a product to the basket first.","info");return;}
+      if(e.key==="F9"){stop();openCashDrawer();return;}
+      if(e.key==="F12"){stop();completeCurrentSale();return;}
+      if(!typing&&items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
+    };
+    document.addEventListener("keydown",handler,true);
+    return ()=>document.removeEventListener("keydown",handler,true);
+  });
+
   return (
     <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}`}>
       <header className="pos-heading">
