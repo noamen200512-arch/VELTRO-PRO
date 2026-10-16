@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 
 import { getProducts } from "../productStore.js";
+import { saveProductsToCloud } from "../lib/productCloud.js";
+import { saveSaleToCloud, deleteSaleFromCloud } from "../lib/salesCloud.js";
 import {
   getCompletedSales,
   editCompletedSale,
@@ -1084,6 +1086,12 @@ export default function SalesHistory() {
       setSelectedInvoice(result.sale);
       setRefreshKey((key) => key + 1);
       setNotice("Invoice updated and inventory adjusted successfully.");
+      void saveSaleToCloud(result.sale)
+        .then(() => saveProductsToCloud(getProducts()))
+        .catch((error) => {
+          console.error("VELTRO-PRO could not sync the edited sale:", error);
+          setNotice("Invoice updated locally, but cloud synchronization failed.");
+        });
     }
 
     return result;
@@ -1107,6 +1115,12 @@ export default function SalesHistory() {
     if (result?.ok) {
       setRefreshKey((key) => key + 1);
       setNotice("Sale deleted and stock quantities restored successfully.");
+      void deleteSaleFromCloud(invoice.id || invoice.invoiceId || invoice.invoiceNumber)
+        .then(() => saveProductsToCloud(getProducts()))
+        .catch((error) => {
+          console.error("VELTRO-PRO could not sync the deleted sale:", error);
+          setNotice("Sale deleted locally, but cloud synchronization failed.");
+        });
     } else {
       setNotice(
         result?.error === "STOCK_SAVE_FAILED"
@@ -1494,6 +1508,10 @@ export default function SalesHistory() {
               setAccountReviewInvoice(null);
               setRefreshKey((key) => key + 1);
               setNotice("Account updated for " + (result.sale.invoiceNumber || result.sale.id) + ".");
+              void saveSaleToCloud(result.sale).catch((error) => {
+                console.error("VELTRO-PRO could not sync the updated sale payment:", error);
+                setNotice("Account updated locally, but cloud synchronization failed.");
+              });
             }
             return result;
           }}
