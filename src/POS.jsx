@@ -724,6 +724,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
 
+    setSelectedCartIndex(currentQuantity > 0 ? Math.max(0, items.findIndex((item) => getProductId(item) === productId)) : items.length);
     setInvoice((current) => ({
       ...current,
       items: mergeItems(
@@ -898,6 +899,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       discount: 0,
     };
 
+    setSelectedCartIndex(items.length);
     setInvoice((current) => ({
       ...current,
       items: [...(current.items || []), cartonLine],
@@ -1310,6 +1312,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     } else if (w.type === "convertCarton") {
       applyCartonConversion(w.item, true);
     } else if (w.type === "addProduct") {
+      const existingIndex = items.findIndex((row) => getProductId(row) === getProductId(w.product));
+      setSelectedCartIndex(existingIndex >= 0 ? existingIndex : items.length);
       setInvoice((current) => ({ ...current, items: mergeItems(current.items || [], w.product, w.quantity || 1), status: "Draft", updatedAt: new Date().toISOString() }));
       setKeyboardDialog(null);
     } else if (w.type === "addCarton") {
