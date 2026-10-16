@@ -202,6 +202,16 @@ function makeBarcodePattern(value) {
 
 export default function Products() {
   const [products, setProducts] = useState(() => getProducts());
+
+  useEffect(() => {
+    const refreshCloudProducts = () => setProducts(getProducts());
+    window.addEventListener("storage", refreshCloudProducts);
+    window.addEventListener("veltro:cloud-sync", refreshCloudProducts);
+    return () => {
+      window.removeEventListener("storage", refreshCloudProducts);
+      window.removeEventListener("veltro:cloud-sync", refreshCloudProducts);
+    };
+  }, []);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
