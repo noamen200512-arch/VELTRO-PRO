@@ -211,12 +211,8 @@ export function ProductEntry({
     (product, quantity = 1) => {
       if (!product) return;
 
-      const stock = Math.max(0, Number(product.stock) || 0);
-
-      if (stock <= 0) {
-        setNotice(`${product.name}: Out of stock.`);
-        return;
-      }
+      // The POS parent displays a confirmation dialog when this sale would
+      // exceed available stock, so zero-stock products must remain selectable.
 
       if (typeof onAddProduct !== "function") {
         setNotice("Unable to add product. Please check the sales page.");
