@@ -61,6 +61,13 @@ async function bootstrapLocalData(organizationId) {
 
   const task = (async () => {
     let safeToClearEmptyCaches = true;
+    const migrationKey = `veltro_cloud_migration_incomplete_${organizationId}`;
+    let retryIncompleteMigration = false;
+    try {
+      retryIncompleteMigration = localStorage.getItem(migrationKey) === "1";
+    } catch {
+      // The in-memory retry below still protects this session.
+    }
 
     try {
       await loadProductsFromCloud(getProducts());
@@ -89,7 +96,7 @@ async function bootstrapLocalData(organizationId) {
     if (salesCount.error) {
       safeToClearEmptyCaches = false;
       console.warn("VELTRO-PRO could not check existing cloud sales:", salesCount.error.message);
-    } else if (salesCount.count === 0) {
+    } else if (salesCount.count === 0 || retryIncompleteMigration) {
       const localSales = getCompletedSales();
       const localPending = getPendingInvoices();
       for (const sale of localSales) {
@@ -118,7 +125,7 @@ async function bootstrapLocalData(organizationId) {
     if (purchaseCount.error) {
       safeToClearEmptyCaches = false;
       console.warn("VELTRO-PRO could not check existing cloud purchases:", purchaseCount.error.message);
-    } else if (purchaseCount.count === 0) {
+    } else if (purchaseCount.count === 0 || retryIncompleteMigration) {
       const suppliers = getPurchaseSuppliers();
       for (const invoice of getPurchaseInvoices()) {
         try {
@@ -130,7 +137,12 @@ async function bootstrapLocalData(organizationId) {
       }
     }
 
-    if (safeToClearEmptyCaches) bootstrapReadyOrganizations.add(organizationId);
+    if (safeToClearEmptyCaches) {
+      bootstrapReadyOrganizations.add(organizationId);
+      try { localStorage.removeItem(migrationKey); } catch { /* ignore unavailable storage */ }
+    } else {
+      try { localStorage.setItem(migrationKey, "1"); } catch { /* retain local data if storage is unavailable */ }
+    }
     return safeToClearEmptyCaches;
   })().finally(() => bootstrapPromises.delete(organizationId));
 
