@@ -1560,7 +1560,20 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if(e.key==="F5"){stop();openCashDrawer();return;}
       if(e.key==="F6"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("products");return;}
       if(e.key==="F7"){stop();completeCurrentSale();return;}
-      if(e.key==="F8"){stop();setSelectedPendingIndex(0);setShowPending(true);return;}
+      if(e.key==="F8"){
+        stop();
+        if(closedInvoiceMode==="review"){
+          const previousInvoice=invoiceBeforeClosedBrowseRef.current;
+          if(previousInvoice)setInvoice(previousInvoice);
+          setClosedInvoiceMode(null);setClosedInvoiceIndex(-1);invoiceBeforeClosedBrowseRef.current=null;
+          setSelectedPendingIndex(0);setShowPending(true);return;
+        }
+        if(closedInvoiceMode==="editing"){
+          notify(locale==="ar"?"ألغِ تعديل البون المغلق أو أكمله قبل فتح البونات المعلّقة.":locale==="fr"?"Annulez ou terminez la modification de la facture avant d’ouvrir les factures en attente.":"Cancel or complete the closed-invoice edit before opening pending invoices.","info");
+          return;
+        }
+        setSelectedPendingIndex(0);setShowPending(true);return;
+      }
       if(e.key==="F10"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("favorites");return;}
       if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
     };
