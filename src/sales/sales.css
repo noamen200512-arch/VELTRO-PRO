@@ -3887,3 +3887,33 @@
     margin-left: 0;
   }
 }
+
+
+/* Full-screen layout: let Product Entry use the left column space above a bottom-anchored Invoice Information card. */
+@media (min-width: 761px) {
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry {
+    grid-column: 1 !important;
+    grid-row: 1 / 3 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    align-self: stretch !important;
+  }
+
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(1),
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(1) {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+    align-self: end !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: auto !important;
+  }
+
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section {
+    grid-column: 2 !important;
+    grid-row: 2 / 4 !important;
+  }
+}
