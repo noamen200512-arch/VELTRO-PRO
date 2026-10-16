@@ -1361,7 +1361,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const handler = (e) => {
       const target = e.target;
       const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT","TEXTAREA","SELECT"].includes(target.tagName));
-      const productLookupInput = target instanceof HTMLElement && ["product-barcode", "product-search"].includes(target.id);
       const stop = () => { e.preventDefault(); e.stopPropagation(); };
       if (e.ctrlKey && !e.altKey && !e.metaKey && e.key.toLowerCase() === "i") {
         stop(); setShowShortcutsHelp((current) => !current); return;
@@ -1395,7 +1394,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if(e.key==="F6"){stop();if(items.length)setKeyboardDialog("options");else notify(locale==="ar"?"أضف منتجًا إلى السلة أولًا.":locale==="fr"?"Ajoutez d'abord un produit au panier.":"Add a product to the basket first.","info");return;}
       if(e.key==="F9"){stop();openCashDrawer();return;}
       if(e.key==="F12"){stop();completeCurrentSale();return;}
-      if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")&&(!typing||productLookupInput)){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
+      if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
     };
     document.addEventListener("keydown",handler,true);
     return ()=>document.removeEventListener("keydown",handler,true);
