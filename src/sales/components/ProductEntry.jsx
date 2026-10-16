@@ -651,7 +651,7 @@ export function ProductEntry({
                     <button
                       type="button"
                       className="product-search-result-main"
-                      disabled={stock <= 0}
+                      
                       onClick={() => addFromInventory(product, 1)}
                       title={stock <= 0 ? "This product is out of stock" : `Add ${product.name} to invoice`}
                     >
@@ -673,7 +673,7 @@ export function ProductEntry({
                       <button
                         type="button"
                         className="product-carton-button"
-                        disabled={cartonSize <= 1 || stock < cartonSize || typeof onAddCarton !== "function"}
+                        disabled={cartonSize <= 1 || typeof onAddCarton !== "function"}
                         onClick={() => onAddCarton(product)}
                         title={cartonSize <= 1 ? "Configure pieces per carton for this product" : `Add one carton (${cartonSize} units)`}
                       >
@@ -684,7 +684,7 @@ export function ProductEntry({
                       <button
                         type="button"
                         className="product-unit-add-button"
-                        disabled={stock <= 0}
+                        
                         onClick={() => addFromInventory(product, 1)}
                         title={stock <= 0 ? "Out of stock" : "Add one unit"}
                         aria-label={`Add one unit of ${product.name}`}
