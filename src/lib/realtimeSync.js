@@ -42,6 +42,22 @@ let refreshInFlight = false;
 let refreshAgain = false;
 const bootstrapPromises = new Map();
 const bootstrapReadyOrganizations = new Set();
+const organizationChannels = new Map();
+
+/** Owner-triggered organization-wide refresh; connected clients sync without approval. */
+export async function requestOrganizationSync(organizationId) {
+  if (!organizationId) throw new Error("Missing organization ID.");
+  const channel = organizationChannels.get(organizationId);
+  if (!channel) throw new Error("Real-time channel is not connected. Check the internet connection and try again.");
+  const sent = await channel.send({
+    type: "broadcast",
+    event: "sync_now",
+    payload: { organizationId, requestedAt: new Date().toISOString() },
+  });
+  if (sent !== "ok") throw new Error("Could not notify connected devices.");
+  await refreshOrganizationCache(organizationId);
+  return { sent: true, refreshedAt: new Date().toISOString() };
+}
 
 function readLocalArray(key) {
   try {
@@ -419,7 +435,14 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
   if (!organizationId || !userId) return () => {};
 
   let stopped = false;
-  const channel = supabase.channel(`veltro-org-sync-${organizationId}-${userId}`);
+  const channel = supabase.channel(`veltro-org-sync-${organizationId}`, {
+    config: { broadcast: { self: false } },
+  });
+  organizationChannels.set(organizationId, channel);
+  channel.on("broadcast", { event: "sync_now" }, (message) => {
+    if (stopped || message?.payload?.organizationId !== organizationId) return;
+    void refreshOrganizationCache(organizationId);
+  });
 
   for (const table of ORGANIZATION_TABLES) {
     channel.on("postgres_changes", {
@@ -460,6 +483,7 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
   return () => {
     stopped = true;
     if (refreshTimer) window.clearTimeout(refreshTimer);
+    if (organizationChannels.get(organizationId) === channel) organizationChannels.delete(organizationId);
     void supabase.removeChannel(channel);
   };
 }
