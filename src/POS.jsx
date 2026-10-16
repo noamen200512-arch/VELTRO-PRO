@@ -2270,7 +2270,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 18, flexShrink: 0 }}>
                 <div style={{ textAlign: "end" }}>
                   <div style={{ fontSize: 10, color: "var(--text-muted, #94a3b8)", marginBottom: 3 }}>
-                    {locale === "ar" ? "سعر الحبة" : locale === "fr" ? "PRIX UNIT." : "UNIT PRICE"}
+                    {items[selectedCartIndex].weighedSale ? (locale === "ar" ? ({ kg: "سعر الكيلوغرام", g: "سعر الغرام", l: "سعر اللتر", liter: "سعر اللتر", ml: "سعر الملليلتر", m: "سعر المتر", meter: "سعر المتر", cm: "سعر السنتيمتر" }[String(items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg").toLowerCase()] || "سعر الوحدة") : locale === "fr" ? "PRIX / UNITÉ MESURÉE" : "PRICE / MEASURED UNIT") : (locale === "ar" ? "سعر الحبة" : locale === "fr" ? "PRIX UNIT." : "UNIT PRICE")}
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#e2e8f0", fontVariantNumeric: "tabular-nums" }}>
                     {money(items[selectedCartIndex].price).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
@@ -2281,7 +2281,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                     {locale === "ar" ? "الكمية" : locale === "fr" ? "QTÉ" : "QTY"}
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 800, color: "#f8fafc", fontVariantNumeric: "tabular-nums" }}>
-                    {getQuantity(items[selectedCartIndex])}
+                    {items[selectedCartIndex].weighedSale ? (() => { const q = getQuantity(items[selectedCartIndex]); const unit = String(items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg").toLowerCase(); if (unit === "kg" && q > 0 && q < 1) return \`\${Math.round(q * 1000)} غ\`; if (["l", "liter"].includes(unit) && q > 0 && q < 1) return \`\${Math.round(q * 1000)} مل\`; if (["m", "meter"].includes(unit) && q > 0 && q < 1) return \`\${Math.round(q * 100)} سم\`; return \`\${Number(q.toFixed(3))} \${items[selectedCartIndex].unitLabel || items[selectedCartIndex].unit || "kg"}\`; })() : getQuantity(items[selectedCartIndex])}
                   </div>
                 </div>
                 <div style={{ textAlign: "end" }}>
