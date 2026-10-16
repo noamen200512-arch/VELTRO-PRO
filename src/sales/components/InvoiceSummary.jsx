@@ -54,8 +54,8 @@ export function InvoiceSummary({
           <Receipt size={20} />
 
           <div>
-            <h2>Invoice Summary</h2>
-            <p>Review the amounts before completing the sale</p>
+            <h2>ملخص الفاتورة</h2>
+            <p>راجع المبالغ قبل إتمام البيع</p>
           </div>
         </div>
       </div>
@@ -63,14 +63,14 @@ export function InvoiceSummary({
       <div className="invoice-summary-content">
         <div className="invoice-summary-details">
           <div className="invoice-summary-row">
-            <span>Subtotal</span>
+            <span>المجموع الفرعي</span>
             <strong>{money(subtotal)}</strong>
           </div>
 
           <div className="invoice-summary-row">
             <label htmlFor="invoice-global-discount">
               <Percent size={15} />
-              Global Discount (DA)
+              التخفيض الإجمالي (دج)
             </label>
 
             <input
@@ -95,13 +95,8 @@ export function InvoiceSummary({
             />
           </div>
 
-          <div className="invoice-summary-row">
-            <span>Invoice Total</span>
-            <strong>{money(safeTotal)}</strong>
-          </div>
-
           <div className="invoice-summary-row invoice-summary-payment-row">
-            <label htmlFor="invoice-payment-received"><Banknote size={15} /> Payment Received (DA)</label>
+            <label htmlFor="invoice-payment-received"><Banknote size={15} /> المبلغ المستلم (دج)</label>
             <input
               id="invoice-payment-received"
               className="invoice-summary-payment-input"
@@ -130,7 +125,7 @@ export function InvoiceSummary({
           <div className="invoice-summary-row">
             <span>
               <Wallet size={15} />
-              Remaining on Invoice
+              المتبقي من الفاتورة
             </span>
 
             <strong className="invoice-summary-remaining">
@@ -139,13 +134,13 @@ export function InvoiceSummary({
           </div>
 
           <div className="invoice-summary-row invoice-summary-debt-row">
-            <span>Previous Customer Debt</span>
+            <span>الدين السابق للزبون</span>
             <strong>{money(safePreviousDebt)}</strong>
           </div>
 
           {safePreviousDebt > 0 && (
             <div className="invoice-summary-row">
-              <span>Total Debt After Sale</span>
+              <span>إجمالي الدين بعد البيع</span>
               <strong className="invoice-summary-remaining">
                 {money(safePreviousDebt + safeRemaining)}
               </strong>
@@ -154,7 +149,7 @@ export function InvoiceSummary({
 
           {customerName && (
             <div className="invoice-summary-customer">
-              <span>Customer</span>
+              <span>الزبون</span>
               <strong>{customerName}</strong>
 
               {safePreviousDebt > 0 && (
@@ -164,7 +159,7 @@ export function InvoiceSummary({
                   disabled={busy}
                   onClick={() => onViewDebtDetails?.()}
                 >
-                  View Debt Details
+                  تفاصيل الدين
                 </button>
               )}
             </div>
@@ -174,19 +169,19 @@ export function InvoiceSummary({
         <div className="invoice-summary-total">
           <div className="invoice-summary-total-heading">
             <div>
-              <span>TOTAL AMOUNT</span>
-              <p>Final amount due</p>
+              <span>المبلغ الإجمالي</span>
+              <p>المبلغ النهائي المستحق</p>
             </div>
-            <strong>{money(safeTotal)}</strong>
+            <strong className="invoice-summary-total-amount">{money(safeTotal)}</strong>
           </div>
 
           {compactCustomerInfo && (
             <div className="invoice-summary-compact-customer">
               <div className="invoice-summary-compact-customer-header">
                 <div className="invoice-summary-compact-customer-identity">
-                  <span className="invoice-summary-compact-eyebrow">CUSTOMER ACCOUNT</span>
+                  <span className="invoice-summary-compact-eyebrow">معلومات الزبون</span>
                   <strong className="invoice-summary-compact-customer-name">
-                    {customerName || "Anonyme"}
+                    {customerName || "زبون مجهول"}
                   </strong>
                 </div>
 
@@ -197,24 +192,24 @@ export function InvoiceSummary({
                   onClick={() => onChooseCustomer?.()}
                 >
                   <UserRound size={14} />
-                  Change
+                  تغيير الزبون
                 </button>
               </div>
 
               <div className="invoice-summary-compact-customer-metrics">
                 <div>
-                  <span>Previous debt</span>
+                  <span>الدين السابق</span>
                   <strong>{money(safePreviousDebt)}</strong>
                 </div>
                 <div>
-                  <span>Paid now</span>
+                  <span>المبلغ المدفوع</span>
                   <strong>{money(safePaid)}</strong>
                 </div>
                 <div>
-                  <span>New debt</span>
+                  <span>الدين الجديد</span>
                   <strong className="invoice-summary-compact-new-debt">
                     {money(
-                      String(customerName || "").trim().toLowerCase() === "anonyme"
+                      ["anonyme", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase())
                         ? 0
                         : safePreviousDebt + safeRemaining
                     )}
@@ -234,7 +229,7 @@ export function InvoiceSummary({
           onClick={() => onSavePending?.()}
         >
           <Clock size={17} />
-          Save Pending
+          حفظ كمعلّقة
         </button>
 
         <button
@@ -244,7 +239,7 @@ export function InvoiceSummary({
           onClick={() => onPrint?.()}
         >
           <Printer size={17} />
-          Print Invoice
+          طباعة الفاتورة
         </button>
 
         <button
@@ -256,12 +251,12 @@ export function InvoiceSummary({
           {busy ? (
             <>
               <LoaderCircle size={18} />
-              Completing...
+              جارٍ إتمام البيع...
             </>
           ) : (
             <>
               <CheckCircle2 size={18} />
-              Complete Sale
+              إتمام البيع
             </>
           )}
         </button>
@@ -271,7 +266,7 @@ export function InvoiceSummary({
         <Banknote size={15} />
 
         <span>
-          Please verify the payment and total before finalizing the invoice.
+          يرجى التحقق من المبلغ المدفوع والإجمالي قبل إتمام الفاتورة.
         </span>
       </div>
     </section>
