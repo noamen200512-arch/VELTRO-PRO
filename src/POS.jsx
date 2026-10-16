@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle, Star, Scale, Settings2 } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -733,10 +733,13 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
 
-    const quantityToAdd = Math.max(
-      1,
-      Math.floor(Number(product.quantity) || 1)
-    );
+    const quantityToAdd = product.weighedSale
+      ? Math.max(0, Number(Number(String(product.quantity ?? "").replace(",", ".")).toFixed(3)) || 0)
+      : Math.max(1, Math.floor(Number(product.quantity) || 1));
+    if (quantityToAdd <= 0) return;
+    const productForInvoice = product.weighedSale
+      ? { ...inventoryProduct, price: money(product.price ?? inventoryProduct.price), weighedSale: true, weighedCategory: product.weighedCategory || "", unitLabel: "kg" }
+      : inventoryProduct;
 
     const currentQuantity = items.reduce((sum, item) => {
       return getProductId(item) === productId
@@ -775,7 +778,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       ...current,
       items: mergeItems(
         current.items || [],
-        inventoryProduct,
+        productForInvoice,
         quantityToAdd
       ),
       status: "Draft",
