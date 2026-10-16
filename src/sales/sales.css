@@ -4113,3 +4113,55 @@
     max-width: calc(100% - 16px);
   }
 }
+
+
+/* POS action feedback lives beside the invoice toolbar buttons. */
+.sales-toolbar-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 230px;
+  min-width: 190px;
+  max-width: 420px;
+  min-height: 42px;
+  padding: 7px 9px;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: 9px;
+  background: rgba(12, 19, 30, .92);
+  color: #d8e3f1;
+  font-size: 11px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  animation: sales-notice-in .18s ease-out;
+}
+.sales-toolbar-notice-icon { display: inline-flex; flex: 0 0 auto; }
+.sales-toolbar-notice-text { flex: 1 1 auto; min-width: 0; }
+.sales-toolbar-notice-success { color: #65e4cf; border-color: rgba(53, 214, 194, .28); background: rgba(53, 214, 194, .07); }
+.sales-toolbar-notice-error { color: #ff9daa; border-color: rgba(255, 100, 124, .3); background: rgba(255, 100, 124, .07); }
+.sales-toolbar-notice-info { color: #c7b8ff; border-color: rgba(167, 139, 250, .28); background: rgba(167, 139, 250, .06); }
+.sales-toolbar-notice-undo,
+.sales-toolbar-notice-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  min-height: 27px;
+  padding: 4px 7px;
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: 6px;
+  background: rgba(7, 13, 22, .45);
+  color: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.sales-toolbar-notice-undo:hover,
+.sales-toolbar-notice-dismiss:hover { border-color: currentColor; background: rgba(148, 163, 184, .1); }
+.sales-toolbar-notice-dismiss { width: 27px; padding: 4px; }
+@keyframes sales-notice-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+html[dir="rtl"] .sales-toolbar-notice { direction: rtl; }
+html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
+@media (max-width: 760px) {
+  .sales-toolbar-notice { grid-column: 1 / -1; width: 100%; max-width: none; min-width: 0; }
+}
