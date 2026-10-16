@@ -1378,7 +1378,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
     updateItem(item.id, "quantity", value, { allowOversell: true });
-    setKeyboardDialog("options");
+    setKeyboardDialog(null);
   };
   const applyPriceEditor = (raw) => {
     const item = items[selectedCartIndex];
@@ -1396,17 +1396,17 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
     updateItem(item.id, "price", selling);
-    setKeyboardDialog("options");
+    setKeyboardDialog(null);
   };
   const confirmKeyboardWarning = () => {
     const w = warningPayload;
     if (!w) { setKeyboardDialog("options"); return; }
     if (w.type === "price") {
       updateItem(w.itemId, "price", w.value);
-      setKeyboardDialog("options");
+      setKeyboardDialog(null);
     } else if (w.type === "quantity") {
       updateItem(w.itemId, "quantity", w.value, { allowOversell: true });
-      setKeyboardDialog(w.returnTo ? "options" : null);
+      setKeyboardDialog(null);
     } else if (w.type === "convertCarton") {
       applyCartonConversion(w.item, true);
     } else if (w.type === "addProduct") {
@@ -1524,7 +1524,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         return;
       }
       if (showShortcutsHelp) { if (e.key === "Escape") { stop(); setShowShortcutsHelp(false); } return; }
-      const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); return getProducts().filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
+      const filtered = () => { const q=productPickerSearch.trim().toLocaleLowerCase(); const source=keyboardDialog==="favorites"?getProducts().filter(p=>favoriteProductIds.includes(String(p.id??p.productId??""))):getProducts(); return source.filter(p=>[p.name,p.id,p.productId,p.sku,p.barcode,...(Array.isArray(p.barcodeAliases)?p.barcodeAliases:[])].some(v=>String(v??"").toLocaleLowerCase().includes(q))); };
       if (keyboardDialog) {
         if (e.key==="Escape") { stop(); if (keyboardDialog==="stockWarning"||keyboardDialog==="priceWarning") cancelKeyboardWarning(); else if (keyboardDialog==="quantity"||keyboardDialog==="price") setKeyboardDialog("options"); else setKeyboardDialog(null); return; }
         if (keyboardDialog==="products" || keyboardDialog==="favorites") {
