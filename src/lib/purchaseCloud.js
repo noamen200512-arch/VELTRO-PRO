@@ -116,3 +116,24 @@ export async function savePurchaseInvoiceToCloud(invoice, suppliers = [], option
 
   return true;
 }
+
+export async function deletePurchaseInvoiceFromCloud(invoiceId) {
+  if (!invoiceId) throw new Error("The purchase invoice has no ID.");
+  const { organizationId } = await getAccount();
+
+  const { error: itemsError } = await supabase
+    .from("purchase_invoice_items")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("invoice_id", String(invoiceId));
+  if (itemsError) throw itemsError;
+
+  const { error } = await supabase
+    .from("purchase_invoices")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("id", String(invoiceId));
+  if (error) throw error;
+
+  return true;
+}
