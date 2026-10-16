@@ -225,18 +225,8 @@ export function savePendingInvoice(invoice) {
       };
     }
 
-    const available = getAvailableStock(productId, invoice.id);
-
-    if (quantity > available) {
-      return {
-        ok: false,
-        error: "INSUFFICIENT_STOCK",
-        productId,
-        productName: product.name,
-        requested: quantity,
-        available,
-      };
-    }
+    // Pending invoices may reserve quantities beyond current stock. The POS
+    // requires explicit confirmation before allowing this at entry time.
   }
 
   const savedInvoice = {
@@ -324,20 +314,8 @@ export function completeSale(invoice) {
       };
     }
 
-    const stock = Math.max(0, Number(product.stock) || 0);
-    const reservedByOthers = getReservedQuantity(productId, invoice.id);
-    const availableForThisSale = stock - reservedByOthers;
-
-    if (quantity > availableForThisSale) {
-      return {
-        ok: false,
-        error: "INSUFFICIENT_STOCK",
-        productId,
-        productName: product.name,
-        requested: quantity,
-        available: Math.max(0, availableForThisSale),
-      };
-    }
+    // Confirmed POS sales may exceed available stock; the resulting balance
+    // is allowed to become negative and remains visible in inventory reports.
   }
 
   const updatedProducts = products.map((product) => {
@@ -347,7 +325,7 @@ export function completeSale(invoice) {
 
     return {
       ...product,
-      stock: Math.max(0, (Number(product.stock) || 0) - quantity),
+      stock: (Number(product.stock) || 0) - quantity,
     };
   });
 
