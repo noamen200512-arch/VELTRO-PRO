@@ -4805,7 +4805,10 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
  .closed-invoice-overlay,.closed-invoice-overlay * { visibility:visible !important; }
  .closed-invoice-overlay { position:absolute; inset:0; display:block; padding:0; background:white; backdrop-filter:none; }
  .closed-invoice-panel { width:100%; max-height:none; overflow:visible; color:#111; background:white; border:0; box-shadow:none; }
- .closed-invoice-header,.closed-invoice-navigation,.closed-invoice-actions,.closed-invoice-password-backdrop { display:none !important; }
+ .closed-invoice-header,.closed-invoice-actions,.closed-invoice-password-backdrop { display:none !important; }
+ .closed-invoice-navigation { display:grid !important; grid-template-columns:1fr !important; border:0; background:white; }
+ .closed-invoice-navigation > button { display:none !important; }
+ .closed-invoice-navigation > div strong,.closed-invoice-navigation > div span { color:#111 !important; }
  .closed-invoice-meta > div,.closed-invoice-table th { background:#f3f4f6; color:#111; }
  .closed-invoice-meta strong,.closed-invoice-table td,.closed-invoice-totals > div strong { color:#111; }
  .closed-invoice-table-wrap { overflow:visible; }
