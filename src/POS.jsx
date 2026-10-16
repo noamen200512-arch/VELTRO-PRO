@@ -1113,6 +1113,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const chooseCustomer = () => {
+    if (isReviewingClosedInvoice) return;
     setCustomerRecords(getCustomerRecords());
     setCustomerSearch("");
     setShowCustomerPicker(true);
@@ -1141,6 +1142,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   });
 
   const openPendingInvoice = (pendingId) => {
+    if (closedInvoiceMode) {
+      notify(locale === "ar" ? "ارجع إلى البون الحالي قبل فتح بون معلّق." : locale === "fr" ? "Revenez à la facture actuelle avant d’ouvrir une facture en attente." : "Return to the current invoice before opening a pending invoice.", "info");
+      return;
+    }
     const pending = getPendingInvoice(pendingId);
 
     if (!pending) {
@@ -1550,7 +1555,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           onNew={createNewInvoice}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
-          onPending={() => setShowPending((current) => !current)}
+          onPending={() => { if (!closedInvoiceMode) setShowPending((current) => !current); }}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
           newDisabled={items.length === 0}
