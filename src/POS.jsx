@@ -1885,26 +1885,28 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             onShowProducts={setShowProducts}
           />
 
-          {items.length > 0 && items[selectedCartIndex] && (
-            <section
-              className="pos-selected-product-preview"
-              aria-live="polite"
-              aria-label={locale === "ar" ? "معاينة المنتج المحدد" : locale === "fr" ? "Aperçu du produit sélectionné" : "Selected product preview"}
-              dir={locale === "ar" ? "rtl" : "ltr"}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 14,
-                margin: "0 0 10px",
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(45, 212, 191, 0.38)",
-                background: "linear-gradient(110deg, rgba(13, 148, 136, 0.15), rgba(99, 102, 241, 0.10))",
-                boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
-                minWidth: 0,
-              }}
-            >
+          <section
+            className={`pos-selected-product-preview${items.length ? "" : " is-empty"}`}
+            aria-live="polite"
+            aria-label={locale === "ar" ? "معاينة المنتج المحدد" : locale === "fr" ? "Aperçu du produit sélectionné" : "Selected product preview"}
+            dir={locale === "ar" ? "rtl" : "ltr"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: items.length ? "space-between" : "center",
+              gap: 14,
+              margin: 0,
+              padding: "8px 12px",
+              minHeight: 62,
+              borderRadius: 12,
+              border: items.length ? "1px solid rgba(45, 212, 191, 0.38)" : "1px dashed rgba(148, 163, 184, 0.32)",
+              background: items.length ? "linear-gradient(110deg, rgba(13, 148, 136, 0.15), rgba(99, 102, 241, 0.10))" : "rgba(16, 23, 34, 0.72)",
+              boxShadow: "0 6px 20px rgba(0,0,0,0.10)",
+              minWidth: 0,
+            }}
+          >
+            {items.length > 0 && items[selectedCartIndex] ? (
+              <>
               <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                 <span style={{
                   display: "grid",
@@ -1959,8 +1961,23 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                   </div>
                 </div>
               </div>
-            </section>
-          )}
+              </>
+            ) : (
+              <div className="pos-selected-product-empty" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, width: "100%", textAlign: "center" }}>
+                <span aria-hidden="true" style={{ display: "grid", placeItems: "center", width: 34, height: 34, flex: "0 0 34px", borderRadius: 10, color: "#94a3b8", background: "rgba(148, 163, 184, 0.08)", border: "1px solid rgba(148, 163, 184, 0.16)" }}>
+                  <span style={{ fontSize: 20, lineHeight: 1 }}>＋</span>
+                </span>
+                <span style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+                  <strong style={{ color: "#dbe5f1", fontSize: 12, fontWeight: 750 }}>
+                    {locale === "ar" ? "قائمة المنتجات فارغة" : locale === "fr" ? "La liste est vide" : "Product list is empty"}
+                  </strong>
+                  <span style={{ color: "#8494aa", fontSize: 10 }}>
+                    {locale === "ar" ? "امسح الباركود أو ابحث عن منتج لإضافته إلى الفاتورة." : locale === "fr" ? "Scannez un code-barres ou recherchez un produit pour l'ajouter." : "Scan a barcode or search for a product to add it to the invoice."}
+                  </span>
+                </span>
+              </div>
+            )}
+          </section>
 
           <InvoiceTable
             items={items}
