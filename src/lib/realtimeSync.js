@@ -62,11 +62,15 @@ async function bootstrapLocalData(organizationId) {
   const task = (async () => {
     let safeToClearEmptyCaches = true;
     const migrationKey = `veltro_cloud_migration_incomplete_${organizationId}`;
-    let retryIncompleteMigration = false;
+    const salesMigrationKey = `${migrationKey}_sales`;
+    const purchaseMigrationKey = `${migrationKey}_purchases`;
+    let retrySalesMigration = false;
+    let retryPurchaseMigration = false;
     try {
-      retryIncompleteMigration = localStorage.getItem(migrationKey) === "1";
+      retrySalesMigration = localStorage.getItem(salesMigrationKey) === "1";
+      retryPurchaseMigration = localStorage.getItem(purchaseMigrationKey) === "1";
     } catch {
-      // The in-memory retry below still protects this session.
+      // In-memory retry still protects this session.
     }
 
     try {
@@ -96,7 +100,7 @@ async function bootstrapLocalData(organizationId) {
     if (salesCount.error) {
       safeToClearEmptyCaches = false;
       console.warn("VELTRO-PRO could not check existing cloud sales:", salesCount.error.message);
-    } else if (salesCount.count === 0 || retryIncompleteMigration) {
+    } else if (salesCount.count === 0 || retrySalesMigration) {
       const localSales = getCompletedSales();
       const localPending = getPendingInvoices();
       for (const sale of localSales) {
@@ -104,6 +108,7 @@ async function bootstrapLocalData(organizationId) {
           await saveSaleToCloud(sale, { status: "posted" });
         } catch (error) {
           safeToClearEmptyCaches = false;
+          retrySalesMigration = true;
           console.warn("VELTRO-PRO could not migrate a saved sale:", sale?.invoiceNumber, error?.message || error);
         }
       }
@@ -112,6 +117,7 @@ async function bootstrapLocalData(organizationId) {
           await saveSaleToCloud(sale, { status: "pending" });
         } catch (error) {
           safeToClearEmptyCaches = false;
+          retrySalesMigration = true;
           console.warn("VELTRO-PRO could not migrate a pending invoice:", sale?.invoiceNumber, error?.message || error);
         }
       }
@@ -125,19 +131,29 @@ async function bootstrapLocalData(organizationId) {
     if (purchaseCount.error) {
       safeToClearEmptyCaches = false;
       console.warn("VELTRO-PRO could not check existing cloud purchases:", purchaseCount.error.message);
-    } else if (purchaseCount.count === 0 || retryIncompleteMigration) {
+    } else if (purchaseCount.count === 0 || retryPurchaseMigration) {
       const suppliers = getPurchaseSuppliers();
       for (const invoice of getPurchaseInvoices()) {
         try {
           await savePurchaseInvoiceToCloud(invoice, suppliers, { replaceItems: true });
         } catch (error) {
           safeToClearEmptyCaches = false;
+          retryPurchaseMigration = true;
           console.warn("VELTRO-PRO could not migrate a saved purchase:", invoice?.number, error?.message || error);
         }
       }
     }
 
-    if (safeToClearEmptyCaches) {
+    try {
+      if (retrySalesMigration) localStorage.setItem(salesMigrationKey, "1");
+      else localStorage.removeItem(salesMigrationKey);
+      if (retryPurchaseMigration) localStorage.setItem(purchaseMigrationKey, "1");
+      else localStorage.removeItem(purchaseMigrationKey);
+    } catch {
+      // Keep the session usable when browser storage is restricted.
+    }
+
+    if (safeToClearEmptyCaches && !retrySalesMigration && !retryPurchaseMigration) {
       bootstrapReadyOrganizations.add(organizationId);
       try { localStorage.removeItem(migrationKey); } catch { /* ignore unavailable storage */ }
     } else {
