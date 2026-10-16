@@ -700,7 +700,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   };
 
   return (
-    <section className="settings-page">
+    <section className="settings-page" dir={locale === "ar" ? "rtl" : "ltr"}>
       <div className="settings-intro">
         <div className="settings-intro-mark"><SlidersHorizontal size={22} /></div>
         <div className="settings-intro-copy">
