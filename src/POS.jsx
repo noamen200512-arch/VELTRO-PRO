@@ -274,8 +274,10 @@ function mergeItems(currentItems, product, quantity = 1) {
   const normalized = normalizeItem(product, quantity);
   const productId = normalized.productId;
 
+  // Carton lines represent a distinct pack sale and must never absorb
+  // subsequent single-unit scans/additions.
   const index = currentItems.findIndex(
-    (item) => getProductId(item) === productId
+    (item) => getProductId(item) === productId && !item.isCartonLine
   );
 
   if (index === -1) {
@@ -722,7 +724,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
 
-    setSelectedCartIndex(currentQuantity > 0 ? Math.max(0, items.findIndex((item) => getProductId(item) === productId)) : items.length);
+    const existingUnitLineIndex = items.findIndex(
+      (item) => getProductId(item) === productId && !item.isCartonLine
+    );
+    setSelectedCartIndex(existingUnitLineIndex >= 0 ? existingUnitLineIndex : items.length);
     setInvoice((current) => ({
       ...current,
       items: mergeItems(
@@ -817,6 +822,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addUnit = (item) => {
+    // Adding a loose unit beside a carton must create/use a separate unit line.
+    if (item?.isCartonLine) {
+      addProduct(item);
+      return;
+    }
     updateItem(item.id, "quantity", getQuantity(item) + 1);
   };
 
