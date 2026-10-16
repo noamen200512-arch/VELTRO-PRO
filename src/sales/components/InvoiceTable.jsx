@@ -140,24 +140,38 @@ export function InvoiceTable({
     confirm: "Delete product", cancel: "Go back", hint: "Enter to confirm · Esc to go back"
   };
 
+  // Delete opens the confirmation for the currently selected invoice row.
+  // Ignore text fields so Delete/Backspace continue to edit the text normally.
   useEffect(() => {
-    if (!pendingDelete) return;
     const handler = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        setPendingDelete(null);
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        event.stopPropagation();
-        const item = pendingDelete;
-        setPendingDelete(null);
-        removeItem(item);
+      if (pendingDelete) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          setPendingDelete(null);
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
+          const item = pendingDelete;
+          setPendingDelete(null);
+          removeItem(item);
+        }
+        return;
       }
+
+      if (event.key !== "Delete" || selectedIndex < 0) return;
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase();
+      if (tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable) return;
+      const item = items[selectedIndex];
+      if (!item) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setPendingDelete(item);
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
-  }, [pendingDelete]);
+  }, [pendingDelete, selectedIndex, items]);
 
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
