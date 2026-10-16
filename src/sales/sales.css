@@ -3446,3 +3446,37 @@
   max-height: none;
   overflow-y: auto;
 }
+
+
+/* Fix full-screen POS stacking: keep invoice information visible in its own
+   left-hand grid cell instead of allowing it to sit beneath the invoice table. */
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(1),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(1) {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  align-self: start;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 0;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(2),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(2) {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+  align-self: start;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 0;
+}
+
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section {
+  grid-column: 2 !important;
+  grid-row: 2 / 4 !important;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
