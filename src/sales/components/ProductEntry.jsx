@@ -18,7 +18,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-import { getProducts } from "../../productStore.js";
+import { getProducts, saveProducts } from "../../productStore.js";
+import { loadProductsFromCloud } from "../../lib/productCloud.js";
 
 function normalize(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -104,24 +105,62 @@ export function ProductEntry({
     }
   }, []);
 
-  const refreshProducts = useCallback(() => {
+  const refreshProducts = useCallback(async () => {
     if (refreshTimerRef.current) {
       window.clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
     }
 
     setRefreshing(true);
 
-    refreshTimerRef.current = window.setTimeout(() => {
-      loadProducts(true);
+    try {
+      const cloudProducts = await loadProductsFromCloud(getProducts());
+      if (!saveProducts(cloudProducts)) {
+        throw new Error("Could not update the local product cache.");
+      }
+
+      setProducts(cloudProducts);
+      setNotice(`Inventory refreshed from cloud. ${cloudProducts.length} product(s) loaded.`);
+    } catch (error) {
+      console.warn("Cloud inventory refresh unavailable:", error);
+      loadProducts();
+      setNotice("Cloud refresh failed. Showing products saved on this device.");
+    } finally {
       setRefreshing(false);
-      refreshTimerRef.current = null;
-    }, 150);
+    }
   }, [loadProducts]);
 
   useEffect(() => {
+    let active = true;
+
+    // Show the local cache immediately, then replace it with the latest
+    // organization inventory from Supabase when the cloud is reachable.
     loadProducts();
 
-    const handleFocus = () => loadProducts();
+    const syncCloudProducts = async () => {
+      try {
+        const cloudProducts = await loadProductsFromCloud(getProducts());
+        if (!active) return;
+
+        if (!saveProducts(cloudProducts)) {
+          throw new Error("Could not update the local product cache.");
+        }
+
+        setProducts(cloudProducts);
+      } catch (error) {
+        if (!active) return;
+        console.warn("Cloud inventory load unavailable; keeping local products:", error);
+        loadProducts();
+        setNotice("Cloud sync unavailable. Showing products saved on this device.");
+      }
+    };
+
+    syncCloudProducts();
+
+    const handleFocus = () => {
+      loadProducts();
+      syncCloudProducts();
+    };
 
     const handleStorage = (event) => {
       if (!event.key || event.key === "veltro_products") {
@@ -133,6 +172,7 @@ export function ProductEntry({
     window.addEventListener("storage", handleStorage);
 
     return () => {
+      active = false;
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleStorage);
 
