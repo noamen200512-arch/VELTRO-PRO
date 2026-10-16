@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { X, Search, Star, Scale, Settings2, Check, Plus, Package } from "lucide-react";
+import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter } from "lucide-react";
 
 const COPY = {
   en: {
@@ -7,7 +7,7 @@ const COPY = {
     noFavorites:"No favorite products configured.", noWeighed:"No products configured for weighing.", close:"Close", add:"Add to invoice",
     choose:"Choose a product", category:"Category", all:"All categories", nuts:"Nuts", grains:"Grains", spices:"Spices", other:"Other",
     weight:"Weight", amount:"Amount to pay", kg:"kg", priceKg:"Price per kg", total:"Total", onePound:"1 pound", halfPound:"½ pound",
-    customCategories:"Manage categories", newCategory:"New category name", addCategory:"Add category", favorite:"Favorite", weighed:"Sell by weight", showCategoryOnWeighPage:"Show this category in the weigh-sale page",
+    customCategories:"Manage categories", newCategory:"New category name", addCategory:"Add category", favorite:"Favorite", weighed:"Sell by weight", showCategoryOnWeighPage:"Show this category in the weigh-sale page", categoryVisibilityButton:"Choose categories shown in weigh-sale",
     save:"Save settings", cancel:"Cancel", noProducts:"No products found.", select:"Select", quantity:"Weight in kg", paidAmount:"Amount in DA",
     invalidPrice:"This product needs a price greater than zero to calculate weight.", invalidWeight:"Enter a weight or amount greater than zero.",
     selected:"Selected product", setupHint:"Choose which products appear in each quick-sale screen and assign a category to weighed products.",
@@ -18,7 +18,7 @@ const COPY = {
     noFavorites:"Aucun produit favori configuré.", noWeighed:"Aucun produit configuré pour la pesée.", close:"Fermer", add:"Ajouter à la facture",
     choose:"Choisir un produit", category:"Catégorie", all:"Toutes les catégories", nuts:"Fruits à coque", grains:"Céréales", spices:"Épices", other:"Autre",
     weight:"Poids", amount:"Montant à payer", kg:"kg", priceKg:"Prix au kg", total:"Total", onePound:"1 livre", halfPound:"½ livre",
-    customCategories:"Gérer les catégories", newCategory:"Nom de la nouvelle catégorie", addCategory:"Ajouter la catégorie", favorite:"Favori", weighed:"Vente au poids", showCategoryOnWeighPage:"Afficher cette catégorie dans la vente au poids",
+    customCategories:"Gérer les catégories", newCategory:"Nom de la nouvelle catégorie", addCategory:"Ajouter la catégorie", favorite:"Favori", weighed:"Vente au poids", showCategoryOnWeighPage:"Afficher cette catégorie dans la vente au poids", categoryVisibilityButton:"Choisir les catégories affichées pour la vente au poids",
     save:"Enregistrer", cancel:"Annuler", noProducts:"Aucun produit trouvé.", select:"Sélectionner", quantity:"Poids en kg", paidAmount:"Montant en DA",
     invalidPrice:"Ce produit doit avoir un prix supérieur à zéro pour calculer le poids.", invalidWeight:"Saisissez un poids ou un montant supérieur à zéro.",
     selected:"Produit sélectionné", setupHint:"Choisissez les produits affichés dans chaque écran et classez les produits vendus au poids.",
@@ -29,7 +29,7 @@ const COPY = {
     noFavorites:"لم تُحدَّد منتجات مفضلة بعد.", noWeighed:"لم تُحدَّد منتجات للبيع بالميزان.", close:"إغلاق", add:"إضافة إلى الفاتورة",
     choose:"اختر منتجًا", category:"الفئة", all:"كل الفئات", nuts:"مكسرات", grains:"حبوب", spices:"توابل", other:"أخرى",
     weight:"الوزن", amount:"المبلغ المراد دفعه", kg:"كغ", priceKg:"السعر لكل كغ", total:"الإجمالي", onePound:"رطل واحد", halfPound:"نصف رطل",
-    customCategories:"إدارة الفئات", newCategory:"اسم الفئة الجديدة", addCategory:"إضافة الفئة", favorite:"مفضّل", weighed:"بيع بالميزان", showCategoryOnWeighPage:"إظهار هذه الفئة في صفحة البيع بالميزان",
+    customCategories:"إدارة الفئات", newCategory:"اسم الفئة الجديدة", addCategory:"إضافة الفئة", favorite:"مفضّل", weighed:"بيع بالميزان", showCategoryOnWeighPage:"إظهار هذه الفئة في صفحة البيع بالميزان", categoryVisibilityButton:"اختيار الفئات الظاهرة في صفحة البيع بالميزان",
     save:"حفظ الإعدادات", cancel:"إلغاء", noProducts:"لم يُعثر على منتجات.", select:"اختيار", quantity:"الوزن بالكيلوغرام", paidAmount:"المبلغ بالدج",
     invalidPrice:"يجب أن يكون سعر الكيلوغرام أكبر من صفر لحساب الوزن.", invalidWeight:"أدخل وزنًا أو مبلغًا أكبر من صفر.",
     selected:"المنتج المحدد", setupHint:"اختر المنتجات التي تظهر في كل شاشة، وصنّف المنتجات المباعة بالميزان.",
@@ -60,11 +60,13 @@ export default function PosQuickSaleDialogs({
   const [draftCategories, setDraftCategories] = useState({ ...categoriesByProduct });
   const [draftCategoryList, setDraftCategoryList] = useState([...categories]);
   const [draftVisibleCategories, setDraftVisibleCategories] = useState([...visibleWeighedCategories]);
+  const [showCategoryVisibility, setShowCategoryVisibility] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [draftPound, setDraftPound] = useState(String(poundGrams || 500));
 
   useEffect(() => {
     if (dialog === "settings") {
+      setShowCategoryVisibility(false);
       setDraftFavorites(favoriteIds.map(String));
       setDraftWeighed(weighedIds.map(String));
       setDraftCategories({ ...categoriesByProduct });
@@ -139,9 +141,8 @@ export default function PosQuickSaleDialogs({
           <div className="pos-quick-new-category"><input value={newCategory} onChange={(e) => setNewCategory(e.target.value)} placeholder={t.newCategory}/><button type="button" onClick={() => { const value = newCategory.trim(); if (value && !draftCategoryList.includes(value)) setDraftCategoryList((old) => [...old, value]); setNewCategory(""); }}><Plus size={16}/>{t.addCategory}</button></div>
         </div>
         <div className="pos-quick-category-visibility" aria-label={t.customCategories}>
-          <strong>{t.customCategories}</strong>
-          <p>{t.showCategoryOnWeighPage}</p>
-          <div className="pos-quick-category-row">{draftCategoryList.map((category) => <label className="pos-quick-check" key={category}><input type="checkbox" checked={draftVisibleCategories.includes(category)} onChange={(e) => setDraftVisibleCategories((old) => e.target.checked ? [...new Set([...old, category])] : old.filter((x) => x !== category))}/>{categoryLabel(category)}</label>)}</div>
+          <button type="button" onClick={() => setShowCategoryVisibility((open) => !open)} aria-expanded={showCategoryVisibility} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", justifyContent: "space-between", padding: "11px 13px", borderRadius: 10, border: "1px solid rgba(45,212,191,.28)", background: "rgba(45,212,191,.08)", color: "#5eead4", fontWeight: 750, cursor: "pointer" }}><span style={{ display: "flex", alignItems: "center", gap: 8 }}><ListFilter size={17}/>{t.categoryVisibilityButton}</span><span>{showCategoryVisibility ? "−" : "+"}</span></button>
+          {showCategoryVisibility && <div style={{ padding: "10px 2px 2px" }}><p>{t.showCategoryOnWeighPage}</p><div className="pos-quick-category-row">{draftCategoryList.map((category) => <label className="pos-quick-check" key={category}><input type="checkbox" checked={draftVisibleCategories.includes(category)} onChange={(e) => setDraftVisibleCategories((old) => e.target.checked ? [...new Set([...old, category])] : old.filter((x) => x !== category))}/>{categoryLabel(category)}</label>)}</div></div>}
         </div>
         <div className="pos-quick-settings-list">{products.map((p) => {
           const id = idOf(p);
