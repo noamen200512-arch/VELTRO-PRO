@@ -647,11 +647,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     if (busy) return;
 
     if (items.length === 0) {
-      setInvoice(createInvoice());
-      setRemovedItem(null);
-      setShowPending(false);
-      setShowEmptyWarning(false);
-      notify("A new invoice is ready.", "success");
+      notify(
+        "Add at least one product to the current invoice before creating a new invoice.",
+        "error"
+      );
       return;
     }
 
