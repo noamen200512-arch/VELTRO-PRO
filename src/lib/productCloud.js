@@ -85,7 +85,30 @@ const { data, error } = await supabase
 if (error) throw error;
 
 if (data.length > 0) {
-return data.map(fromDatabase);
+  // Remove only exact legacy demo-seed rows; keep real inventory untouched.
+  const demoNamesById = {
+    "PRD-001": "Premium Coffee", "PRD-002": "Mineral Water",
+    "PRD-003": "Chocolate Biscuits", "PRD-004": "Orange Juice",
+    "PRD-005": "Potato Chips", "PRD-006": "Fresh Milk",
+    "PRD-007": "Dark Chocolate", "PRD-008": "Apple Juice",
+    "PRD-009": "Energy Drink", "PRD-010": "Biscuits Mini",
+    "PRD-011": "Yogurt", "PRD-012": "Sparkling Water",
+  };
+  const legacyRows = data.filter((row) =>
+    demoNamesById[row.id] &&
+    String(row.name || "").trim().toLowerCase() === demoNamesById[row.id].toLowerCase() &&
+    !String(row.barcode || "").trim() &&
+    !(Array.isArray(row.barcode_aliases) && row.barcode_aliases.some(Boolean))
+  );
+  if (legacyRows.length) {
+    const { error: cleanupError } = await supabase
+      .from("products")
+      .delete()
+      .eq("organization_id", organizationId)
+      .in("id", legacyRows.map((row) => row.id));
+    if (cleanupError) console.warn("Could not remove legacy demo products from cloud inventory:", cleanupError);
+  }
+  return data.filter((row) => !legacyRows.some((legacy) => legacy.id === row.id)).map(fromDatabase);
 }
 
 // First-time migration: copy existing local products only
