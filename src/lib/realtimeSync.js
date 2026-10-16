@@ -435,13 +435,23 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
   if (!organizationId || !userId) return () => {};
 
   let stopped = false;
+  const sessionKey = `${userId}:${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
   const channel = supabase.channel(`veltro-org-sync-${organizationId}`, {
-    config: { broadcast: { self: false } },
+    config: { broadcast: { self: false }, presence: { key: sessionKey } },
   });
   organizationChannels.set(organizationId, channel);
   channel.on("broadcast", { event: "sync_now" }, (message) => {
     if (stopped || message?.payload?.organizationId !== organizationId) return;
     void refreshOrganizationCache(organizationId);
+  });
+  channel.on("broadcast", { event: "revoke_session" }, async (message) => {
+    if (stopped || message?.payload?.organizationId !== organizationId) return;
+    if (String(message?.payload?.userId || "") !== String(userId)) return;
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } finally {
+      window.location.reload();
+    }
   });
 
   for (const table of ORGANIZATION_TABLES) {
@@ -476,14 +486,46 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
       detail: { organizationId, status },
     }));
     if (status === "SUBSCRIBED") {
+      void channel.track({
+        userId: String(userId),
+        organizationId: String(organizationId),
+        deviceLabel: `${navigator.platform || "Device"} · ${navigator.userAgent.includes("Edg/") ? "Edge" : navigator.userAgent.includes("Firefox/") ? "Firefox" : navigator.userAgent.includes("Chrome/") ? "Chrome" : "Browser"}`,
+        connectedAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
+      });
       void bootstrapLocalData(organizationId).finally(() => refreshOrganizationCache(organizationId));
     }
   });
 
+  const presenceHeartbeat = window.setInterval(() => {
+    if (!stopped) void channel.track({
+      userId: String(userId),
+      organizationId: String(organizationId),
+      deviceLabel: `${navigator.platform || "Device"} · ${navigator.userAgent.includes("Edg/") ? "Edge" : navigator.userAgent.includes("Firefox/") ? "Firefox" : navigator.userAgent.includes("Chrome/") ? "Chrome" : "Browser"}`,
+      lastSeenAt: new Date().toISOString(),
+    });
+  }, 30000);
+
   return () => {
     stopped = true;
+    window.clearInterval(presenceHeartbeat);
     if (refreshTimer) window.clearTimeout(refreshTimer);
     if (organizationChannels.get(organizationId) === channel) organizationChannels.delete(organizationId);
     void supabase.removeChannel(channel);
   };
+}
+
+
+/** Broadcast a request for connected sessions belonging to one user to sign out locally. */
+export async function requestSessionRevocation(organizationId, userId) {
+  if (!organizationId || !userId) throw new Error("Missing organization or user ID.");
+  const channel = organizationChannels.get(organizationId);
+  if (!channel) throw new Error("Organization real-time channel is not connected.");
+  const sent = await channel.send({
+    type: "broadcast",
+    event: "revoke_session",
+    payload: { organizationId, userId: String(userId), requestedAt: new Date().toISOString() },
+  });
+  if (sent !== "ok") throw new Error("Could not send the session termination request.");
+  return { sent: true, requestedAt: new Date().toISOString() };
 }
