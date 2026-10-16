@@ -1169,8 +1169,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         await saveProductsToCloud(getProducts());
       } catch (cloudError) {
         console.error("VELTRO-PRO could not synchronize the completed sale:", cloudError);
+        const detail = String(cloudError?.message || cloudError || "Unknown cloud error").slice(0, 240);
         notify(
-          "Sale completed on this device, but cloud synchronization failed. Keep this device online and retry synchronization.",
+          `Sale completed on this device, but cloud synchronization failed: ${detail}`,
           "error"
         );
       }
@@ -1197,8 +1198,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         notify("Sale completed. Stock deducted and synchronized with cloud.", "success");
       } catch (cloudError) {
         console.error("VELTRO sale inventory cloud sync failed:", cloudError);
+        const detail = String(cloudError?.message || cloudError || "Unknown cloud error").slice(0, 240);
         notify(
-          "Sale completed and stock deducted on this device, but cloud inventory sync failed. Check your connection before using another device.",
+          `Sale completed locally, but cloud inventory sync failed: ${detail}`,
           "error"
         );
       }
