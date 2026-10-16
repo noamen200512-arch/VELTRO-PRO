@@ -1354,6 +1354,8 @@ export default function POS({ currentUserName = "" } = {}) {
           />
 
           <InvoiceSummary
+            compactCustomerInfo={isFullscreen}
+            onChooseCustomer={chooseCustomer}
             subtotal={subtotal}
             discount={discount}
             onDiscountChange={(value) =>
