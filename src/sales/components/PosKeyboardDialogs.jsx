@@ -134,9 +134,9 @@ export function PosKeyboardDialogs({
           </div>
           <p className="pos-keyboard-no-change">{t.unchanged}</p>
           <div className="pos-keyboard-options-actions">
-            <button type="button" onClick={onOpenQuantity}><Calculator size={18}/><span>{t.editQty}</span><kbd>F7</kbd></button>
-            <button type="button" onClick={onOpenPrice}><Banknote size={18}/><span>{t.editPrice}</span><kbd>F8</kbd></button>
-            <button type="button" onClick={onConvertCarton}><Boxes size={18}/><span>{t.carton}</span><kbd>F6</kbd></button>
+            <button type="button" onClick={onOpenQuantity}><Calculator size={18}/><span>{t.editQty}</span><kbd>F3</kbd></button>
+            <button type="button" onClick={onOpenPrice}><Banknote size={18}/><span>{t.editPrice}</span><kbd>F4</kbd></button>
+            <button type="button" onClick={onConvertCarton}><Boxes size={18}/><span>{t.carton}</span><kbd>F3</kbd></button>
           </div>
         </div>}
 
