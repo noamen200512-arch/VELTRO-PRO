@@ -80,7 +80,7 @@ export function PosKeyboardDialogs({
 
   return (
     <div className="pos-keyboard-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !["stockWarning","priceWarning"].includes(dialog)) onClose(); }}>
-      {["quantity", "price", "stockWarning", "priceWarning"].includes(dialog) && (
+      {(["quantity", "price", "priceWarning"].includes(dialog) || (dialog === "stockWarning" && (warningPayload?.returnTo || warningPayload?.type === "convertCarton"))) && (
         <section className="pos-keyboard-modal pos-keyboard-parent-under" aria-hidden="true" dir={locale === "ar" ? "rtl" : "ltr"}>
           <header className="pos-keyboard-header">
             <div className="pos-keyboard-title-icon"><Boxes size={20}/></div>
