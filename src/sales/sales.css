@@ -4491,3 +4491,22 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-keyboard-comparison-row strong { font-size: 15px; }
   .pos-keyboard-comparison-total { align-items: flex-start; flex-direction: column; }
 }
+
+/* Native browser fullscreen fills the actual viewport and hides browser chrome. */
+.pos-page:fullscreen,
+.pos-page.pos-fullscreen-active {
+  box-sizing: border-box;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0;
+  height: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
+  overflow-x: hidden;
+}
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(250px, 0.78fr) minmax(0, 2fr);
+}
