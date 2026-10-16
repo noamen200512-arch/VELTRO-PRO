@@ -70,9 +70,10 @@ function EditablePriceInput({ item, value, onCommit }) {
 function EditableQuantityInput({ item, value, onCommit }) {
   const formatQuantity = (quantity) => {
     const numeric = Number(quantity);
-    return Number.isFinite(numeric) && numeric >= 1
-      ? String(Math.floor(numeric))
-      : "1";
+    if (item.weighedSale || item.unitLabel === "kg") {
+      return Number.isFinite(numeric) && numeric > 0 ? String(Number(numeric.toFixed(3))) : "0.001";
+    }
+    return Number.isFinite(numeric) && numeric >= 1 ? String(Math.floor(numeric)) : "1";
   };
 
   const [draft, setDraft] = useState(() => formatQuantity(value));
@@ -85,12 +86,13 @@ function EditableQuantityInput({ item, value, onCommit }) {
     const normalized = String(draft).trim();
     const numeric = normalized === "" ? NaN : Number(normalized);
 
-    if (!Number.isFinite(numeric) || numeric < 1) {
+    const isWeighed = item.weighedSale || item.unitLabel === "kg";
+    if (!Number.isFinite(numeric) || numeric <= 0 || (!isWeighed && numeric < 1)) {
       setDraft(formatQuantity(value));
       return;
     }
 
-    const quantity = Math.floor(numeric);
+    const quantity = isWeighed ? Number(numeric.toFixed(3)) : Math.floor(numeric);
     onCommit(item, "quantity", quantity);
     setDraft(String(quantity));
   };
@@ -98,13 +100,13 @@ function EditableQuantityInput({ item, value, onCommit }) {
   return (
     <input
       type="text"
-      inputMode="numeric"
-      pattern="[0-9]*"
+      inputMode={item.weighedSale || item.unitLabel === "kg" ? "decimal" : "numeric"}
+      pattern={item.weighedSale || item.unitLabel === "kg" ? "[0-9]*[.,]?[0-9]*" : "[0-9]*"}
       autoComplete="off"
       aria-label={`Quantity of ${item.name}`}
       value={draft}
       onFocus={(event) => event.currentTarget.select()}
-      onChange={(event) => setDraft(event.target.value.replace(/[^0-9]/g, ""))}
+      onChange={(event) => setDraft(event.target.value.replace(item.weighedSale || item.unitLabel === "kg" ? /[^0-9.,]/g : /[^0-9]/g, ""))}
       onBlur={commit}
       onKeyDown={(event) => {
         if (event.key === "Enter") event.currentTarget.blur();
