@@ -356,6 +356,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [customerRecords, setCustomerRecords] = useState([]);
   const [showSaleReview, setShowSaleReview] = useState(false);
   const [showSaleConfirm, setShowSaleConfirm] = useState(false);
+  const [showEditInvoiceConfirm, setShowEditInvoiceConfirm] = useState(false);
   const [showBelowCostWarning, setShowBelowCostWarning] = useState(false);
   const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
@@ -1561,7 +1562,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
         <SalesToolbar
           onNew={createNewInvoice}
-          onEditInvoice={reopenSelectedClosedInvoice}
+          onEditInvoice={() => setShowEditInvoiceConfirm(true)}
           editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
@@ -1970,6 +1971,87 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               ]).map(([group, rows]) => <section className="pos-shortcuts-group" key={group}><h3>{group}</h3>{rows.map(([key, label]) => <div className="pos-shortcuts-row" key={key + label}><kbd>{key}</kbd><span>{label}</span></div>)}</section>)}
             </div>
             <footer className="pos-shortcuts-footer"><span>{locale === "ar" ? "تلميح: افتح هذا الدليل في أي وقت باستخدام Ctrl + I." : locale === "fr" ? "Astuce : ouvrez ce guide à tout moment avec Ctrl + I." : "Tip: reopen this guide anytime with Ctrl + I."}</span><button type="button" onClick={() => setShowShortcutsHelp(false)}>{locale === "ar" ? "فهمت" : locale === "fr" ? "Compris" : "Got it"}</button></footer>
+          </section>
+        </div>
+      )}
+
+      {showEditInvoiceConfirm && (
+        <div
+          className="pos-edit-invoice-confirm-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowEditInvoiceConfirm(false);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") setShowEditInvoiceConfirm(false);
+            if (event.key === "Enter") {
+              event.preventDefault();
+              setShowEditInvoiceConfirm(false);
+              reopenSelectedClosedInvoice();
+            }
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 10000,
+            display: "grid",
+            placeItems: "center",
+            padding: 20,
+            background: "rgba(2, 6, 23, 0.78)",
+            backdropFilter: "blur(7px)",
+          }}
+        >
+          <section
+            className="pos-edit-invoice-confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pos-edit-invoice-confirm-title"
+            dir={locale === "ar" ? "rtl" : "ltr"}
+            style={{
+              width: "min(100%, 460px)",
+              color: "#eaf2ff",
+              background: "linear-gradient(145deg, #111c30, #0b1220)",
+              border: "1px solid rgba(45, 212, 191, 0.35)",
+              borderRadius: 18,
+              boxShadow: "0 24px 80px rgba(0,0,0,.5)",
+              overflow: "hidden",
+            }}
+          >
+            <header style={{ display: "flex", alignItems: "center", gap: 13, padding: "20px 22px 14px" }}>
+              <span style={{ display: "grid", placeItems: "center", flex: "0 0 44px", width: 44, height: 44, borderRadius: 13, color: "#5eead4", background: "rgba(45,212,191,.12)", border: "1px solid rgba(45,212,191,.24)" }}>
+                <AlertTriangle size={23} />
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <h2 id="pos-edit-invoice-confirm-title" style={{ margin: 0, fontSize: 18, fontWeight: 850, color: "#f8fafc" }}>
+                  {locale === "ar" ? "تأكيد تعديل الفاتورة" : locale === "fr" ? "Confirmer la modification" : "Confirm invoice edit"}
+                </h2>
+                <p style={{ margin: "5px 0 0", fontSize: 12, lineHeight: 1.6, color: "#9aabc2" }}>
+                  {locale === "ar" ? "هل تريد فتح الفاتورة المحددة للتعديل؟ لن تُحفظ التغييرات إلا بعد تأكيد البيع." : locale === "fr" ? "Voulez-vous rouvrir cette facture pour la modifier ? Les changements seront enregistrés après validation de la vente." : "Do you want to reopen this invoice for editing? Changes will only be saved when you complete the sale."}
+                </p>
+              </div>
+              <button type="button" aria-label={locale === "ar" ? "إغلاق" : locale === "fr" ? "Fermer" : "Close"} onClick={() => setShowEditInvoiceConfirm(false)} style={{ marginInlineStart: "auto", alignSelf: "flex-start", border: 0, borderRadius: 9, padding: 7, color: "#9aabc2", background: "rgba(148,163,184,.09)", cursor: "pointer" }}>
+                <X size={17} />
+              </button>
+            </header>
+            <div style={{ margin: "0 22px 18px", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(129,140,248,.22)", background: "rgba(99,102,241,.08)" }}>
+              <div style={{ fontSize: 10, letterSpacing: ".08em", fontWeight: 800, color: "#a5b4fc", marginBottom: 4 }}>
+                {locale === "ar" ? "الفاتورة المحددة" : locale === "fr" ? "FACTURE SÉLECTIONNÉE" : "SELECTED INVOICE"}
+              </div>
+              <strong style={{ fontSize: 15, color: "#f8fafc" }}>
+                {selectedClosedInvoice?.invoiceNumber || selectedClosedInvoice?.reference || selectedClosedInvoice?.id || "—"}
+              </strong>
+              <span style={{ display: "block", marginTop: 4, fontSize: 12, color: "#a7b5ca" }}>
+                {selectedClosedInvoice?.customerName || "Anonyme"}
+              </span>
+            </div>
+            <footer style={{ display: "flex", justifyContent: "flex-end", gap: 10, padding: "0 22px 22px" }}>
+              <button type="button" onClick={() => setShowEditInvoiceConfirm(false)} style={{ minHeight: 40, padding: "0 16px", borderRadius: 10, border: "1px solid rgba(148,163,184,.25)", color: "#cbd5e1", background: "rgba(148,163,184,.08)", fontWeight: 750, cursor: "pointer" }}>
+                {locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}
+              </button>
+              <button type="button" disabled={!selectedClosedInvoice || !isReviewingClosedInvoice || busy} onClick={() => { setShowEditInvoiceConfirm(false); reopenSelectedClosedInvoice(); }} style={{ minHeight: 40, padding: "0 18px", borderRadius: 10, border: "1px solid rgba(45,212,191,.42)", color: "#042f2e", background: "linear-gradient(135deg,#5eead4,#2dd4bf)", fontWeight: 850, cursor: "pointer", opacity: (!selectedClosedInvoice || !isReviewingClosedInvoice || busy) ? .55 : 1 }}>
+                {locale === "ar" ? "تأكيد التعديل" : locale === "fr" ? "Confirmer" : "Confirm edit"}
+              </button>
+            </footer>
           </section>
         </div>
       )}
