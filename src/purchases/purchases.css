@@ -1662,3 +1662,91 @@
   .purchase-product-full { grid-column: auto; }
   .purchase-product-barcode-card { align-items: flex-start; }
 }
+
+
+/* Secondary barcode manager popup */
+.purchase-secondary-barcode-modal {
+  display: grid;
+  gap: 16px;
+}
+.purchase-secondary-barcode-list {
+  display: grid;
+  gap: 8px;
+  max-height: min(34vh, 280px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.purchase-secondary-barcode-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--purchase-border);
+  border-radius: 10px;
+  background: rgba(8, 13, 24, .5);
+}
+.purchase-secondary-barcode-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 9px;
+  color: var(--purchase-accent);
+  background: rgba(50, 214, 197, .09);
+}
+.purchase-secondary-barcode-value {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.purchase-secondary-barcode-remove {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 1px solid rgba(248, 113, 113, .28);
+  border-radius: 9px;
+  color: #f87171;
+  background: rgba(248, 113, 113, .08);
+}
+.purchase-secondary-barcode-remove:hover {
+  background: rgba(248, 113, 113, .16);
+}
+.purchase-secondary-barcode-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 26px 14px;
+  border: 1px dashed var(--purchase-border);
+  border-radius: 12px;
+  color: var(--purchase-muted);
+  text-align: center;
+}
+.purchase-secondary-barcode-empty svg {
+  color: var(--purchase-accent);
+}
+.purchase-secondary-barcode-empty strong {
+  color: var(--purchase-text);
+  font-size: 13px;
+}
+.purchase-secondary-barcode-empty span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.purchase-secondary-barcode-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.purchase-secondary-barcode-entry input {
+  flex: 1;
+}
+.purchase-secondary-barcode-entry button {
+  flex: 0 0 auto;
+}
