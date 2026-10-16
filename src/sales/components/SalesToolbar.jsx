@@ -3,6 +3,7 @@ import React from "react";
 import {
   Keyboard,
   FilePlus2,
+  FilePenLine,
   Printer,
   UserRound,
   ClipboardList,
@@ -18,6 +19,11 @@ const toolbarButtons = [
     label: "New Invoice",
     icon: FilePlus2,
     action: "new",
+  },
+  {
+    label: "Edit Invoice",
+    icon: FilePenLine,
+    action: "edit",
   },
   {
     label: "Print Invoice",
@@ -38,6 +44,8 @@ const toolbarButtons = [
 
 export function SalesToolbar({
   onNew,
+  onEditInvoice,
+  editInvoiceDisabled = true,
   onPrint,
   onCustomer,
   onPending,
@@ -56,6 +64,7 @@ export function SalesToolbar({
 }) {
   const actions = {
     new: onNew,
+    edit: onEditInvoice,
     print: onPrint,
     customer: onCustomer,
     pending: onPending,
@@ -118,6 +127,7 @@ export function SalesToolbar({
               disabled={
                 disabled ||
                 (button.action === "new" && newDisabled) ||
+                (button.action === "edit" && editInvoiceDisabled) ||
                 typeof actions[button.action] !== "function"
               }
               aria-expanded={isPending ? showPending : undefined}
