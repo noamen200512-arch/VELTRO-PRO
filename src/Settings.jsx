@@ -797,9 +797,9 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
         </aside>
 
         <div className="settings-content">
-          {loading ? (
+          {section !== "productSettings" && loading ? (
             <div className="settings-state"><RefreshCw size={23} className="settings-spin" /><span>{t.loading}</span></div>
-          ) : error ? (
+          ) : section !== "productSettings" && error ? (
             <div className="settings-state settings-state-error">
               <AlertCircle size={23} />
               <span>{t.loadError}</span>
