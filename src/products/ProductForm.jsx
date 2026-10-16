@@ -99,19 +99,23 @@ export default function ProductForm({
           </div>
         </Section>
 
-        <Section icon={Boxes} title="Packaging Information">
+        <Section icon={Boxes} title={form.weighedSale ? "Measured Stock" : "Packaging Information"}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 180px), 1fr))", gap: 13, alignItems: "end" }}>
-            {!editingId
-              ? <Field label="Cartons Received"><input className="veltro-product-input" style={inputStyle} type="number" min="0" step="1" value={form.cartonsReceived ?? "0"} onChange={(e) => updateField("cartonsReceived", e.target.value)} placeholder="0" /></Field>
-              : <Field label="Current Stock (Units)"><input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.stock} onChange={(e) => updateField("stock", e.target.value)} placeholder="0" /></Field>}
-            <Field label="Units per Carton">
-              <input className="veltro-product-input" style={inputStyle} type="number" min="1" step="1" value={form.piecesPerCarton} onChange={(e) => updateField("piecesPerCarton", e.target.value)} required />
-            </Field>
-            {!editingId && <div style={{ border: "1px solid rgba(53,214,208,.28)", background: "rgba(53,214,208,.07)", borderRadius: 10, padding: "10px 12px", minHeight: 43 }}>
-              <div style={{ color: C.muted, fontSize: 11, marginBottom: 5 }}>Total Units</div>
-              <div style={{ color: C.cyan, fontSize: 20, fontWeight: 800 }}>{Number.isFinite(totalUnits) ? totalUnits.toLocaleString("fr-FR") : "0"}</div>
-              <div style={{ color: C.muted, fontSize: 10, marginTop: 3 }}>{cartons} × {qty}</div>
-            </div>}
+            {form.weighedSale ? <Field label={\`Initial Stock (\${form.unit || "kg"})\`}>
+              <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="0.001" value={form.stock} onChange={(e) => updateField("stock", e.target.value)} placeholder="0" />
+            </Field> : <>
+              {!editingId
+                ? <Field label="Cartons Received"><input className="veltro-product-input" style={inputStyle} type="number" min="0" step="1" value={form.cartonsReceived ?? "0"} onChange={(e) => updateField("cartonsReceived", e.target.value)} placeholder="0" /></Field>
+                : <Field label="Current Stock (Units)"><input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.stock} onChange={(e) => updateField("stock", e.target.value)} placeholder="0" /></Field>}
+              <Field label="Units per Carton">
+                <input className="veltro-product-input" style={inputStyle} type="number" min="1" step="1" value={form.piecesPerCarton} onChange={(e) => updateField("piecesPerCarton", e.target.value)} required />
+              </Field>
+              {!editingId && <div style={{ border: "1px solid rgba(53,214,208,.28)", background: "rgba(53,214,208,.07)", borderRadius: 10, padding: "10px 12px", minHeight: 43 }}>
+                <div style={{ color: C.muted, fontSize: 11, marginBottom: 5 }}>Total Units</div>
+                <div style={{ color: C.cyan, fontSize: 20, fontWeight: 800 }}>{Number.isFinite(totalUnits) ? totalUnits.toLocaleString("fr-FR") : "0"}</div>
+                <div style={{ color: C.muted, fontSize: 10, marginTop: 3 }}>{cartons} × {qty}</div>
+              </div>}
+            </>}
           </div>
         </Section>
 
@@ -120,7 +124,7 @@ export default function ProductForm({
             <Field label="Purchase Price per Carton (DA)">
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.purchaseCartonPrice} onChange={(e) => updateField("purchaseCartonPrice", e.target.value)} placeholder="0.00" />
             </Field>
-            <Field label="Purchase Price per Unit (DA)">
+            <Field label={form.weighedSale ? `Purchase Price per ${form.unit || "kg"} (DA)` : "Purchase Price per Unit (DA)"}>
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.purchasePrice} onChange={(e) => updateField("purchasePrice", e.target.value)} placeholder="0.00" />
             </Field>
           </div>
@@ -129,7 +133,7 @@ export default function ProductForm({
 
         <Section icon={BadgePercent} title="Sales Information">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 230px), 1fr))", gap: 13 }}>
-            <Field label="Retail Selling Price per Unit (DA)">
+            <Field label={form.weighedSale ? `Retail Selling Price per ${form.unit || "kg"} (DA)` : "Retail Selling Price per Unit (DA")}>
               <input className="veltro-product-input" style={inputStyle} type="number" min="0" step="any" value={form.price} onChange={(e) => updateField("price", e.target.value)} placeholder="0.00" />
             </Field>
             <Field label="Manual Unit Profit Margin (%)">
