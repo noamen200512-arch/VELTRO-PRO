@@ -10,6 +10,8 @@ import { InvoiceSummary } from "./sales/components/InvoiceSummary";
 
 import {
   createInvoice,
+  getAutoSavedDraft,
+  saveAutoSavedDraft,
   getPendingInvoices,
   savePendingInvoice,
   getPendingInvoice,
@@ -140,7 +142,7 @@ function getErrorMessage(result) {
 export default function POS({ currentUserName = "" } = {}) {
   const posPageRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [invoice, setInvoice] = useState(() => createInvoice());
+  const [invoice, setInvoice] = useState(() => getAutoSavedDraft() || createInvoice());
 
   const [pendingInvoices, setPendingInvoices] = useState(
     () => getPendingInvoices()
@@ -196,6 +198,20 @@ export default function POS({ currentUserName = "" } = {}) {
   useEffect(() => {
     setPaidDraft(String(invoice.paid ?? 0));
   }, [invoice.id, invoice.paid]);
+
+  // Persist every unconfirmed invoice change immediately. The draft lives
+  // separately from the pending-invoice list and is restored on next launch.
+  useEffect(() => {
+    saveAutoSavedDraft({
+      ...invoice,
+      subtotal,
+      total,
+      paid,
+      remaining,
+      status: "Draft",
+    });
+  }, [invoice, subtotal, total, paid, remaining]);
+
   const discount = money(invoice.discount);
 
   // The store calculates debt from this customer's completed sales.
