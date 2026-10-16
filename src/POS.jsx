@@ -362,6 +362,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [warningPayload, setWarningPayload] = useState(null);
   const [selectedPendingIndex, setSelectedPendingIndex] = useState(0);
 
+  const dialogText = (locale === "ar" ? {
+    belowCostTitle:"تنبيه: البيع بأقل من سعر الشراء", belowCostDescription:"بعض المنتجات مسعرة بأقل من تكلفة شرائها المسجلة، وقد ينتج عن البيع خسارة.", belowCostQuestion:"هل تريد متابعة البيع رغم ذلك؟", cancelSale:"إلغاء البيع", continueAnyway:"متابعة على أي حال", qty:"الكمية", lossPerUnit:"الخسارة لكل وحدة", cost:"التكلفة",
+    reviewTitle:"مراجعة حساب الزبون", reviewDescription:"راجع الرصيد ومبالغ الفاتورة قبل المتابعة.", confirmTitle:"تأكيد إتمام البيع", confirmDescription:"أكد رغبتك في إتمام عملية البيع.", selectedCustomer:"الزبون المحدد", previousDebt:"الدين السابق", invoiceTotal:"إجمالي الفاتورة", amountPaid:"المبلغ المدفوع", unpaid:"المبلغ المتبقي", totalDebt:"إجمالي الدين بعد البيع", nextStep:"الخطوة التالية هي تأكيد إتمام هذه الفاتورة.", backInvoice:"العودة إلى الفاتورة", continue:"متابعة", completeInvoice:"إتمام الفاتورة", anonymousSale:"سيُسجّل هذا البيع باسم Anonyme دون إضافة ديون سابقة للزبون.", customerSale:"سيُسجّل هذا البيع لحساب الزبون المحدد. يرجى التحقق من المبالغ قبل الإتمام.", cancel:"إلغاء", completing:"جارٍ الإتمام...", confirmSale:"تأكيد البيع"
+  } : locale === "fr" ? {
+    belowCostTitle:"Alerte : vente sous le coût d'achat", belowCostDescription:"Certains produits sont vendus sous leur coût d'achat enregistré. Cette vente peut entraîner une perte.", belowCostQuestion:"Voulez-vous continuer malgré tout ?", cancelSale:"Annuler la vente", continueAnyway:"Continuer quand même", qty:"Qté", lossPerUnit:"Perte par unité", cost:"Coût",
+    reviewTitle:"Vérifier le compte client", reviewDescription:"Vérifiez le solde et les montants avant de continuer.", confirmTitle:"Confirmer la vente", confirmDescription:"Confirmez que vous souhaitez finaliser cette vente.", selectedCustomer:"Client sélectionné", previousDebt:"Dette précédente", invoiceTotal:"Total de la facture", amountPaid:"Montant payé", unpaid:"Montant impayé", totalDebt:"Dette totale après la vente", nextStep:"L'étape suivante permet de confirmer cette facture.", backInvoice:"Retour à la facture", continue:"Continuer", completeInvoice:"Finaliser la facture", anonymousSale:"Cette vente sera enregistrée sous Anonyme, sans dette client antérieure.", customerSale:"Cette vente sera enregistrée pour le client sélectionné. Vérifiez les montants avant de finaliser.", cancel:"Annuler", completing:"Finalisation...", confirmSale:"Confirmer la vente"
+  } : {
+    belowCostTitle:"{dialogText.belowCostTitle}", belowCostDescription:"{dialogText.belowCostDescription}", belowCostQuestion:"{dialogText.belowCostQuestion}", cancelSale:"{dialogText.cancelSale}", continueAnyway:"{dialogText.continueAnyway}", qty:"Qty", lossPerUnit:"Loss per unit", cost:"Cost",
+    reviewTitle:"Review customer account", reviewDescription:"Review the balance and invoice amounts before proceeding.", confirmTitle:"Confirm sale completion", confirmDescription:"Please confirm that you want to finalize this sale.", selectedCustomer:"Selected customer", previousDebt:"Previous debt", invoiceTotal:"Invoice total", amountPaid:"Amount paid", unpaid:"Current unpaid amount", totalDebt:"Total debt after this sale", nextStep:"{dialogText.nextStep}", backInvoice:"Back to invoice", continue:"Continue", completeInvoice:"Complete invoice", anonymousSale:"This sale will be recorded under Anonyme. No previous customer debt will be applied.", customerSale:"This sale will be recorded for the selected customer. Please verify the amounts before finalizing.", cancel:"Cancel", completing:"Completing...", confirmSale:"Confirm sale"
+  });
+
+
   useEffect(() => {
     const syncFullscreenState = () => {
       setIsFullscreen(document.fullscreenElement === posPageRef.current);
@@ -1580,13 +1592,13 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                   <span>
                     <strong>{item.name}</strong>
                     <small style={{ display: "block", marginTop: 4 }}>
-                      Qty: {item.quantity} · Loss per unit: {item.lossPerUnit.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                      {dialogText.qty}: {item.quantity} · {dialogText.lossPerUnit}: {item.lossPerUnit.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
                     </small>
                   </span>
                   <span style={{ textAlign: "right" }}>
                     <strong>{item.sellingPrice.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong>
                     <small style={{ display: "block", marginTop: 4 }}>
-                      Cost: {item.purchaseCost.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
+                      {dialogText.cost}: {item.purchaseCost.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA
                     </small>
                   </span>
                 </div>
@@ -1631,8 +1643,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 {showSaleReview ? <ReceiptText size={22} /> : <BadgeCheck size={22} />}
               </div>
               <div className="sale-confirm-heading-copy">
-                <h2 id="sale-confirm-title">{showSaleReview ? "Review customer account" : "Confirm sale completion"}</h2>
-                <p>{showSaleReview ? "Review the balance and invoice amounts before proceeding." : "Please confirm that you want to finalize this sale."}</p>
+                <h2 id="sale-confirm-title">{showSaleReview ? dialogText.reviewTitle : dialogText.confirmTitle}</h2>
+                <p>{showSaleReview ? dialogText.reviewDescription : dialogText.confirmDescription}</p>
               </div>
               <button type="button" className="sale-confirm-close" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(false); }} disabled={busy} aria-label="Close"><X size={18} /></button>
             </header>
@@ -1640,32 +1652,32 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               <>
                 <div className="sale-confirm-customer">
                   <span className="sale-confirm-customer-avatar"><UserRound size={18} /></span>
-                  <span className="sale-confirm-customer-name"><small>Selected customer</small><strong>{customer}</strong></span>
+                  <span className="sale-confirm-customer-name"><small>{dialogText.selectedCustomer}</small><strong>{customer}</strong></span>
                   <span className="sale-confirm-invoice-number">{invoice.invoiceNumber}</span>
                 </div>
                 <div className="sale-confirm-amounts">
-                  <div className="sale-confirm-amount-row"><span><WalletCards size={15} /> Previous debt</span><strong>{previousDebt.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
-                  <div className="sale-confirm-amount-row"><span><ReceiptText size={15} /> Invoice total</span><strong>{total.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
-                  <div className="sale-confirm-amount-row sale-confirm-paid-row"><label htmlFor="review-paid-amount"><Check size={15} /> Amount paid</label><div className="sale-confirm-paid-input-wrap"><input id="review-paid-amount" className="sale-confirm-paid-input" type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} disabled={busy} onFocus={() => { if (paidDraft === "0" || paidDraft === "0.00") setPaidDraft(""); }} onChange={(event) => setPaidDraft(event.target.value)} onBlur={() => { const value = paidDraft.trim() === "" ? 0 : Number(paidDraft); if (Number.isFinite(value)) { setPaidDraft(String(value)); updateInvoice({ paid: value }); } else { setPaidDraft(String(paid)); }} } aria-label="Amount paid in DA" /><span>DA</span></div></div>
-                  <div className="sale-confirm-amount-row current"><span><AlertTriangle size={15} /> Current unpaid amount</span><strong>{remaining.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
-                  <div className="sale-confirm-total-debt"><span>Total debt after this sale</span><strong>{(previousDebt + remaining).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row"><span><WalletCards size={15} /> {dialogText.previousDebt}</span><strong>{previousDebt.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row"><span><ReceiptText size={15} /> {dialogText.invoiceTotal}</span><strong>{total.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-amount-row sale-confirm-paid-row"><label htmlFor="review-paid-amount"><Check size={15} /> {dialogText.amountPaid}</label><div className="sale-confirm-paid-input-wrap"><input id="review-paid-amount" className="sale-confirm-paid-input" type="number" inputMode="decimal" min="0" max={total} step="any" value={paidDraft} disabled={busy} onFocus={() => { if (paidDraft === "0" || paidDraft === "0.00") setPaidDraft(""); }} onChange={(event) => setPaidDraft(event.target.value)} onBlur={() => { const value = paidDraft.trim() === "" ? 0 : Number(paidDraft); if (Number.isFinite(value)) { setPaidDraft(String(value)); updateInvoice({ paid: value }); } else { setPaidDraft(String(paid)); }} } aria-label="Amount paid in DA" /><span>DA</span></div></div>
+                  <div className="sale-confirm-amount-row current"><span><AlertTriangle size={15} /> {dialogText.unpaid}</span><strong>{remaining.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                  <div className="sale-confirm-total-debt"><span>{dialogText.totalDebt}</span><strong>{(previousDebt + remaining).toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                 </div>
                 <p className="sale-confirm-note">The next step will ask you to confirm completion of this invoice.</p>
                 <footer className="sale-confirm-actions">
-                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleReview(false)}>Back to invoice</button>
-                  <button type="button" className="sale-confirm-primary" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(true); }}>Continue <Check size={16} /></button>
+                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleReview(false)}>{dialogText.backInvoice}</button>
+                  <button type="button" className="sale-confirm-primary" onClick={() => { setShowSaleReview(false); setShowSaleConfirm(true); }}>{dialogText.continue} <Check size={16} /></button>
                 </footer>
               </>
             ) : (
               <>
                 <div className="sale-confirm-message">
                   <span className="sale-confirm-message-icon"><AlertTriangle size={21} /></span>
-                  <div><strong>Complete invoice {invoice.invoiceNumber}?</strong><p>{isAnonymousCustomer ? "This sale will be recorded under Anonyme. No previous customer debt will be applied." : `This sale will be recorded for ${customer}. Please verify the amounts before finalizing.`}</p></div>
+                  <div><strong>{dialogText.completeInvoice} {invoice.invoiceNumber}?</strong><p>{isAnonymousCustomer ? dialogText.anonymousSale : dialogText.customerSale}</p></div>
                 </div>
-                <div className="sale-confirm-final-amount"><span>Invoice total</span><strong>{total.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
+                <div className="sale-confirm-final-amount"><span>{dialogText.invoiceTotal}</span><strong>{total.toLocaleString(document.documentElement.lang === "ar" ? "ar-DZ" : document.documentElement.lang === "fr" ? "fr-DZ" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA</strong></div>
                 <footer className="sale-confirm-actions">
-                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleConfirm(false)} disabled={busy}>Cancel</button>
-                  <button type="button" className="sale-confirm-primary" onClick={confirmSaleCompletion} disabled={busy}>{busy ? "Completing..." : <> <Check size={16} /> Confirm sale </>}</button>
+                  <button type="button" className="sale-confirm-secondary" onClick={() => setShowSaleConfirm(false)} disabled={busy}>{dialogText.cancel}</button>
+                  <button type="button" className="sale-confirm-primary" onClick={confirmSaleCompletion} disabled={busy}>{busy ? dialogText.completing : <> <Check size={16} /> {dialogText.confirmSale} </>}</button>
                 </footer>
               </>
             )}
