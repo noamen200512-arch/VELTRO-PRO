@@ -76,19 +76,27 @@ export function PosKeyboardDialogs({
   const moneyFormat = (n) => format(n) + " DA";
   const format = (n) => (Number(n) || 0).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 });
   const [keypadReplace, setKeypadReplace] = React.useState(true);
-  React.useEffect(() => { setKeypadReplace(true); }, [dialog]);
+  const [weighedInputMode, setWeighedInputMode] = React.useState("quantity");
+  React.useEffect(() => { setKeypadReplace(true); setWeighedInputMode("quantity"); }, [dialog, selectedItem?.id]);
   const keyButtons = ["1","2","3","4","5","6","7","8","9","⌫","0","."];
   const pushKey = (key, type) => {
-    const setter = type === "quantity" ? setQuantityDraft : setPriceDraft;
-    const current = String(type === "quantity" ? quantityDraft : priceDraft);
-    if (key === "⌫") {
-      setter(keypadReplace ? "" : current.slice(0, -1));
-      setKeypadReplace(false);
-      return;
-    }
-    if (key === "." && type === "quantity" && !(selectedItem?.weighedSale || selectedItem?.unitLabel)) return;
+    const weighed = Boolean(selectedItem?.weighedSale || selectedItem?.unitLabel);
+    const activeType = type === "quantity" && weighed ? weighedInputMode : type;
+    const setter = activeType === "quantity" ? setQuantityDraft : setPriceDraft;
+    const current = String(activeType === "quantity" ? quantityDraft : priceDraft);
+    const next = key === "⌫"
+      ? (keypadReplace ? "" : current.slice(0, -1))
+      : keypadReplace ? (key === "." ? "0." : key) : (current === "0" && key !== "." ? key : current + key);
+    if (key === "." && activeType === "quantity" && !weighed) return;
     if (key === "." && !keypadReplace && current.includes(".")) return;
-    setter(keypadReplace ? (key === "." ? "0." : key) : (current === "0" && key !== "." ? key : current + key));
+    setter(next);
+    if (weighed && dialog === "quantity") {
+      const numeric = Number(String(next).replace(",", "."));
+      if (Number.isFinite(numeric)) {
+        if (activeType === "quantity") setPriceDraft(String((numeric * currentPrice).toFixed(2)));
+        else if (currentPrice > 0) setQuantityDraft(String(Number((numeric / currentPrice).toFixed(3))));
+      }
+    }
     setKeypadReplace(false);
   };
   const title = dialog === "products" ? t.products : dialog === "favorites" ? (locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products") : dialog === "options" ? t.options : dialog === "quantity" ? t.editQty : dialog === "price" ? t.editPrice : dialog === "stockWarning" ? t.stockTitle : t.priceTitle;
@@ -148,8 +156,8 @@ export function PosKeyboardDialogs({
             <div className="pos-keyboard-comparison-total"><span>{t.lineTotal}</span><strong>{moneyFormat(currentQty * currentPrice)} <ChevronRight size={14}/> {moneyFormat(previewQty * previewPrice)}</strong></div>
           </div>
           {dialog === "quantity" && (selectedItem?.weighedSale || selectedItem?.unitLabel) ? <>
-            <label>{locale === "ar" ? "الكمية / الوزن" : locale === "fr" ? "Quantité / mesure" : "Quantity / measurement"}<input autoFocus type="text" inputMode="decimal" value={quantityDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setQuantityDraft(next); const q = Number(next.replace(",", ".")); if (Number.isFinite(q)) setPriceDraft(String((q * currentPrice).toFixed(2))); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
-            <label>{locale === "ar" ? "المبلغ (دج)" : locale === "fr" ? "Montant (DA)" : "Amount (DA)"}<input type="text" inputMode="decimal" value={priceDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setPriceDraft(next); const amount = Number(next.replace(",", ".")); if (Number.isFinite(amount) && currentPrice > 0) setQuantityDraft(String(Number((amount / currentPrice).toFixed(3)))); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
+            <label>{locale === "ar" ? "الكمية / الوزن" : locale === "fr" ? "Quantité / mesure" : "Quantity / measurement"}<input autoFocus type="text" inputMode="decimal" value={quantityDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setQuantityDraft(next); const q = Number(next.replace(",", ".")); if (Number.isFinite(q)) setPriceDraft(String((q * currentPrice).toFixed(2))); setKeypadReplace(false); }} onFocus={(e) => { setWeighedInputMode("quantity"); e.currentTarget.select(); setKeypadReplace(true); }}/></label>
+            <label>{locale === "ar" ? "المبلغ (دج)" : locale === "fr" ? "Montant (DA)" : "Amount (DA)"}<input type="text" inputMode="decimal" value={priceDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setPriceDraft(next); const amount = Number(next.replace(",", ".")); if (Number.isFinite(amount) && currentPrice > 0) setQuantityDraft(String(Number((amount / currentPrice).toFixed(3)))); setKeypadReplace(false); }} onFocus={(e) => { setWeighedInputMode("amount"); e.currentTarget.select(); setKeypadReplace(true); }}/></label>
           </> : <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => { (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, "")); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>}
           <div className="pos-keyboard-keypad"><span>{t.keypad}</span><div>{keyButtons.map((key) => <button type="button" key={key} onClick={() => pushKey(key, dialog)}>{key}</button>)}</div></div>
           <footer className="pos-keyboard-footer"><span>{t.enter} · {t.esc}</span><button type="button" className="primary" onClick={() => dialog === "quantity" ? onApplyQuantity(quantityDraft) : onApplyPrice(priceDraft)}><Check size={15}/>{t.confirm}</button></footer>
