@@ -804,6 +804,7 @@ export default function Products() {
           Math.max(1, Number(form.piecesPerCarton) || 1),
       minStock: numberValue(form.minStock),
       unit: form.unit || "piece",
+      weighedSale: Boolean(form.weighedSale),
       image: form.image || "",
       expiryDate: form.expiryDate || "",
     };
