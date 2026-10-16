@@ -1424,11 +1424,31 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   return (
     <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}`}>
       <header className="pos-heading">
-        <div>
+        <div className="pos-heading-copy">
           <div className="pos-eyebrow">VELTRO-PRO / COMMERCE</div>
           <h1>Point of Sale</h1>
           <p>Manage invoices, products and payments.</p>
         </div>
+
+        <SalesToolbar
+          onNew={createNewInvoice}
+          onPrint={printInvoice}
+          onCustomer={chooseCustomer}
+          onPending={() => setShowPending((current) => !current)}
+          pendingCount={pendingInvoices.length}
+          showPending={showPending}
+          newDisabled={items.length === 0}
+          disabled={busy}
+          message={message ? translatePosMessage(message, locale) : ""}
+          messageType={messageType}
+          onDismissMessage={() => setMessage("")}
+          onUndo={removedItem ? () => undoRemove(removedItem.item) : undefined}
+          undoLabel={translatePosMessage("Undo", locale)}
+          dismissLabel={translatePosMessage("Dismiss message", locale)}
+          locale={locale}
+          onShortcuts={() => setShowShortcutsHelp(true)}
+        />
+
         <button
           type="button"
           className="pos-fullscreen-button"
@@ -1441,25 +1461,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           <span>{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
         </button>
       </header>
-
-      <SalesToolbar
-        onNew={createNewInvoice}
-        onPrint={printInvoice}
-        onCustomer={chooseCustomer}
-        onPending={() => setShowPending((current) => !current)}
-        pendingCount={pendingInvoices.length}
-        showPending={showPending}
-        newDisabled={items.length === 0}
-        disabled={busy}
-        message={message ? translatePosMessage(message, locale) : ""}
-        messageType={messageType}
-        onDismissMessage={() => setMessage("")}
-        onUndo={removedItem ? () => undoRemove(removedItem.item) : undefined}
-        undoLabel={translatePosMessage("Undo", locale)}
-        dismissLabel={translatePosMessage("Dismiss message", locale)}
-        locale={locale}
-        onShortcuts={() => setShowShortcutsHelp(true)}
-      />
 
       {showEmptyWarning && (
         <div className="pos-empty-warning" role="alert">
