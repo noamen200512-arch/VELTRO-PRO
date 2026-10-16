@@ -198,9 +198,11 @@ export function InvoiceTable({
     Math.max(1, Number(item.piecesPerCarton) || 1);
 
   const updateQuantity = (item, nextQuantity) => {
-    const quantity = Math.floor(Number(nextQuantity));
+    const isWeighed = item.weighedSale || item.unitLabel === "kg";
+    const numeric = Number(nextQuantity);
+    const quantity = isWeighed ? Number(numeric.toFixed(3)) : Math.floor(numeric);
 
-    if (!Number.isFinite(quantity) || quantity < 1) return;
+    if (!Number.isFinite(quantity) || (isWeighed ? quantity <= 0 : quantity < 1)) return;
 
     onUpdate?.(item.id, "quantity", quantity);
   };
