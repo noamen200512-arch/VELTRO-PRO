@@ -344,8 +344,14 @@ export function InvoiceTable({
                       </div>
 
                       <div className="invoice-product-details">
-                        <strong>
+                        <strong className="invoice-product-name">
                           {item.name || "Unnamed product"}
+                          {item.isCartonLine && (
+                            <span className="invoice-carton-badge" title={locale === "ar" ? "بيع كرتونة" : locale === "fr" ? "Vente par carton" : "Carton sale"}>
+                              <Boxes size={11} />
+                              {locale === "ar" ? "كرتونة" : locale === "fr" ? "Carton" : "CARTON"}
+                            </span>
+                          )}
                         </strong>
 
                         <span>
