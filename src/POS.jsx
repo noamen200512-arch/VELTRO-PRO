@@ -1,6 +1,6 @@
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList } from "lucide-react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ClipboardList, Maximize2, Minimize2 } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -138,6 +138,8 @@ function getErrorMessage(result) {
 }
 
 export default function POS({ currentUserName = "" } = {}) {
+  const posPageRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [invoice, setInvoice] = useState(() => createInvoice());
 
   const [pendingInvoices, setPendingInvoices] = useState(
@@ -159,6 +161,19 @@ export default function POS({ currentUserName = "" } = {}) {
   const [showBelowCostWarning, setShowBelowCostWarning] = useState(false);
   const [belowCostItems, setBelowCostItems] = useState([]);
   const [paidDraft, setPaidDraft] = useState("0");
+
+  useEffect(() => {
+    const syncFullscreenState = () => {
+      setIsFullscreen(document.fullscreenElement === posPageRef.current);
+    };
+
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    syncFullscreenState();
+
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreenState);
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -899,14 +914,41 @@ export default function POS({ currentUserName = "" } = {}) {
     window.print();
   };
 
+  const toggleFullscreen = async () => {
+    const page = posPageRef.current;
+    if (!page) return;
+
+    try {
+      if (document.fullscreenElement === page) {
+        await document.exitFullscreen();
+      } else {
+        await page.requestFullscreen();
+      }
+    } catch (error) {
+      console.error("Could not toggle full-screen POS mode:", error);
+      notify("Full-screen mode is unavailable in this browser or permission context.", "error");
+    }
+  };
+
   return (
-    <div className="pos-page">
+    <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}`}>
       <header className="pos-heading">
         <div>
           <div className="pos-eyebrow">VELTRO-PRO / COMMERCE</div>
           <h1>Point of Sale</h1>
           <p>Manage invoices, products and payments.</p>
         </div>
+        <button
+          type="button"
+          className="pos-fullscreen-button"
+          onClick={toggleFullscreen}
+          aria-pressed={isFullscreen}
+          title={isFullscreen ? "Exit full-screen mode (Esc)" : "Expand sales screen"}
+          aria-label={isFullscreen ? "Exit full-screen sales mode" : "Expand sales screen to full screen"}
+        >
+          {isFullscreen ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
+          <span>{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
+        </button>
       </header>
 
       <SalesToolbar
