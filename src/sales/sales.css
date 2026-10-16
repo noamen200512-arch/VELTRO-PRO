@@ -2986,3 +2986,155 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Compact full-screen POS so the primary workflow fits on one screen. */
+.pos-page:fullscreen,
+.pos-page.pos-fullscreen-active {
+  padding: 8px 12px;
+  overflow: hidden;
+}
+
+.pos-page:fullscreen .pos-heading,
+.pos-page.pos-fullscreen-active .pos-heading {
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.pos-page:fullscreen .pos-heading h1,
+.pos-page.pos-fullscreen-active .pos-heading h1 {
+  font-size: 19px;
+}
+
+.pos-page:fullscreen .sales-toolbar,
+.pos-page.pos-fullscreen-active .sales-toolbar {
+  gap: 7px;
+  padding: 6px 9px;
+  margin-bottom: 8px;
+}
+
+.pos-page:fullscreen .sales-toolbar-button,
+.pos-page.pos-fullscreen-active .sales-toolbar-button {
+  min-height: 31px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  gap: 7px 10px;
+  grid-template-rows: auto minmax(0, auto) minmax(0, auto) auto auto;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(1),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(1),
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(2),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(2),
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry,
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section,
+.pos-page:fullscreen .invoice-summary,
+.pos-page.pos-fullscreen-active .invoice-summary {
+  padding: 9px;
+  border-radius: 9px;
+}
+
+.pos-page:fullscreen .product-entry-header,
+.pos-page.pos-fullscreen-active .product-entry-header {
+  margin-bottom: 7px;
+}
+
+.pos-page:fullscreen .product-barcode-field,
+.pos-page.pos-fullscreen-active .product-barcode-field {
+  min-height: 38px;
+  margin-bottom: 7px;
+}
+
+.pos-page:fullscreen .product-barcode-field input,
+.pos-page.pos-fullscreen-active .product-barcode-field input {
+  min-height: 35px;
+}
+
+.pos-page:fullscreen .product-entry-fields,
+.pos-page.pos-fullscreen-active .product-entry-fields {
+  gap: 6px;
+}
+
+.pos-page:fullscreen .product-search-results,
+.pos-page.pos-fullscreen-active .product-search-results {
+  margin-top: 6px;
+}
+
+.pos-page:fullscreen .invoice-table-scroll,
+.pos-page.pos-fullscreen-active .invoice-table-scroll {
+  max-height: min(30vh, 300px);
+  min-height: 76px;
+}
+
+.pos-page:fullscreen .invoice-table th,
+.pos-page.pos-fullscreen-active .invoice-table th,
+.pos-page:fullscreen .invoice-table td,
+.pos-page.pos-fullscreen-active .invoice-table td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.pos-page:fullscreen .sales-account-section,
+.pos-page.pos-fullscreen-active .sales-account-section {
+  padding: 8px;
+}
+
+.pos-page:fullscreen .sales-account-section .sales-account-card,
+.pos-page.pos-fullscreen-active .sales-account-section .sales-account-card {
+  gap: 6px 10px;
+  margin: 6px 0;
+}
+
+.pos-page:fullscreen .invoice-summary-content,
+.pos-page.pos-fullscreen-active .invoice-summary-content {
+  gap: 8px;
+}
+
+.pos-page:fullscreen .invoice-summary-total,
+.pos-page.pos-fullscreen-active .invoice-summary-total {
+  padding: 8px;
+}
+
+.pos-page:fullscreen .invoice-summary-actions,
+.pos-page.pos-fullscreen-active .invoice-summary-actions {
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pos-page:fullscreen .invoice-summary-actions button,
+.pos-page.pos-fullscreen-active .invoice-summary-actions button {
+  min-height: 31px;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+.pos-page:fullscreen .invoice-summary-note,
+.pos-page.pos-fullscreen-active .invoice-summary-note {
+  margin-top: 5px;
+}
+
+@media (max-height: 800px) and (min-width: 761px) {
+  .pos-page:fullscreen .invoice-table-scroll,
+  .pos-page.pos-fullscreen-active .invoice-table-scroll {
+    max-height: 25vh;
+  }
+
+  .pos-page:fullscreen .sales-account-section .sales-account-card,
+  .pos-page.pos-fullscreen-active .sales-account-section .sales-account-card {
+    gap: 4px 8px;
+    margin: 4px 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen,
+  .pos-page.pos-fullscreen-active {
+    overflow-y: auto;
+  }
+}
