@@ -1308,7 +1308,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       setKeyboardDialog("options");
     } else if (w.type === "quantity") {
       updateItem(w.itemId, "quantity", w.value, { allowOversell: true });
-      setKeyboardDialog("options");
+      setKeyboardDialog(w.returnTo ? "options" : null);
     } else if (w.type === "convertCarton") {
       applyCartonConversion(w.item, true);
     } else if (w.type === "addProduct") {
