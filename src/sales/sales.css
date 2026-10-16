@@ -4297,3 +4297,18 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 @media (max-width:760px) { .pos-shortcuts-backdrop {padding:10px}.pos-shortcuts-modal {padding:17px;border-radius:15px;max-height:92vh}.pos-shortcuts-grid {grid-template-columns:1fr}.pos-shortcuts-group {padding:12px}.pos-shortcuts-row span {font-size:12px}.sales-toolbar-shortcut-hint {display:none}.pos-shortcuts-footer {align-items:flex-start} }
 @media (min-width:761px) and (max-width:980px) { .pos-shortcuts-grid {grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (prefers-reduced-motion:reduce) { .pos-shortcuts-backdrop {animation:none} }
+
+
+/* App-level fullscreen (not the browser Fullscreen API) lets Escape close
+   POS dialogs without forcing the entire screen out of fullscreen mode. */
+.pos-page.pos-fullscreen-active {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  box-sizing: border-box !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+}
