@@ -649,7 +649,7 @@ function ProductModal({
             </div>
           </div>
           <div className="purchase-product-fields purchase-product-quantity-extra">
-            <Field label={form.weighedSale ? `Total Quantity (${form.unit || "kg"}) (Editable)` : "Total Units (Editable")}>
+            <Field label={form.weighedSale ? `Total Quantity (${form.unit || "kg"}) (Editable)` : "Total Units (Editable)"}>
               <input type="number" min="0" step="any" value={quantity} onChange={e => setQuantity(e.target.value)} />
             </Field>
           </div>
@@ -664,7 +664,7 @@ function ProductModal({
             <Field label="Purchase Price per Carton (DA)">
               <input type="number" min="0" step="any" value={buyCarton} onChange={e => updateBuyCarton(e.target.value)} placeholder="0.00" />
             </Field>
-            <Field label={form.weighedSale ? `Purchase Price per ${form.unit || "kg"} (DA)` : "Purchase Price per Unit (DA")}>
+            <Field label={form.weighedSale ? `Purchase Price per ${form.unit || "kg"} (DA)` : "Purchase Price per Unit (DA)"}>
               <input type="number" min="0" step="any" value={buyUnit} onChange={e => updateBuyUnit(e.target.value)} placeholder="0.00" />
             </Field>
           </div>
@@ -677,7 +677,7 @@ function ProductModal({
             <h3>Sales Information</h3>
           </div>
           <div className="purchase-product-fields">
-            <Field label={form.weighedSale ? `Retail Selling Price per ${form.unit || "kg"} (DA)` : "Retail Selling Price per Unit (DA")}>
+            <Field label={form.weighedSale ? `Retail Selling Price per ${form.unit || "kg"} (DA)` : "Retail Selling Price per Unit (DA)"}>
               <input type="number" min="0" step="any" value={form.price} onChange={e => updateRetailPrice(e.target.value)} placeholder="0.00" />
             </Field>
             <Field label="Manual Unit Profit Margin (%)">
