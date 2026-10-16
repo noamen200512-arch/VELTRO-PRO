@@ -1,5 +1,10 @@
 const dictionaries = {
   en: {
+    "Sync now": "Sync now",
+    "Synchronizing…": "Synchronizing…",
+    "Synchronized at": "Synchronized at",
+    "Synchronization failed.": "Synchronization failed.",
+    "Synchronize all connected users in this organization": "Synchronize all connected users in this organization",
     "Customer directory": "Customer directory",
     "Manage customer profiles, unique IDs and contact details.": "Manage customer profiles, unique IDs and contact details.",
     "Each registered customer has a unique ID used when selecting a customer for sales.": "Each registered customer has a unique ID used when selecting a customer for sales.",
@@ -64,6 +69,11 @@ const dictionaries = {
     "Showing vouchers created today only": "Showing vouchers created today only",
     "Amounts shown in Algerian dinars (DA)": "Amounts shown in Algerian dinars (DA)",},
   fr: {
+    "Sync now": "Synchroniser maintenant",
+    "Synchronizing…": "Synchronisation…",
+    "Synchronized at": "Synchronisé à",
+    "Synchronization failed.": "Échec de la synchronisation.",
+    "Synchronize all connected users in this organization": "Synchroniser tous les utilisateurs connectés de cette organisation",
     "The customer ID is generated automatically and remains unchanged.": "L’ID client est généré automatiquement et reste inchangé.",
     "Add new customer": "Ajouter un nouveau client",
     "Edit customer": "Modifier le client",
@@ -876,6 +886,11 @@ const dictionaries = {
     "Anonyme": "Client anonyme",
   },
   ar: {
+    "Sync now": "مزامنة الآن",
+    "Synchronizing…": "جارٍ المزامنة…",
+    "Synchronized at": "تمت المزامنة في",
+    "Synchronization failed.": "فشلت المزامنة.",
+    "Synchronize all connected users in this organization": "مزامنة جميع المستخدمين المتصلين في هذه المؤسسة",
     "The customer ID is generated automatically and remains unchanged.": "يُنشأ معرّف العميل تلقائيًا ويبقى ثابتًا.",
     "Add new customer": "إضافة عميل جديد",
     "Edit customer": "تعديل العميل",
