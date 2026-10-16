@@ -147,6 +147,13 @@ export default function ProductForm({
 
         <Section icon={Tag} title="Additional Details">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))", gap: 13 }}>
+            <div style={{ gridColumn: "1 / -1", border: \`1px solid \${form.weighedSale ? "rgba(53,214,208,.42)" : C.border}\`, background: form.weighedSale ? "rgba(53,214,208,.07)" : "transparent", borderRadius: 10, padding: 12, display: "flex", alignItems: "center", gap: 10 }}>
+              <input id="veltro-weighed-sale" type="checkbox" checked={Boolean(form.weighedSale)} onChange={(e) => updateField("weighedSale", e.target.checked)} style={{ width: 18, height: 18, accentColor: C.cyan }} />
+              <label htmlFor="veltro-weighed-sale" style={{ cursor: "pointer", display: "grid", gap: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 750 }}>Sell by measured quantity</span>
+                <span style={{ color: C.muted, fontSize: 11 }}>Enable weight, volume, or length-based sales. The selling price is the price per selected unit.</span>
+              </label>
+            </div>
             <Field label="Unit of Measure">
               <select className="veltro-product-input" style={inputStyle} value={form.unit} onChange={(e) => updateField("unit", e.target.value)}>
                 <option value="piece">Piece / Unit</option><option value="pack">Pack</option><option value="carton">Carton</option>
