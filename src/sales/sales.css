@@ -3298,8 +3298,47 @@
 .pos-page:fullscreen .invoice-summary-details .invoice-summary-debt-row,
 .pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-debt-row,
 .pos-page:fullscreen .invoice-summary-details .invoice-summary-customer,
-.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-customer,
-.pos-page:fullscreen .invoice-summary-details .invoice-summary-debt-row + .invoice-summary-row,
-.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-debt-row + .invoice-summary-row {
+.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-customer {
   display: none;
+}
+
+
+/* Invoice summary readability: make the single final total the visual focus. */
+.invoice-summary-total-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+}
+
+.invoice-summary-total-heading > div {
+  min-width: 0;
+}
+
+.invoice-summary-total .invoice-summary-total-amount {
+  display: block;
+  flex-shrink: 0;
+  color: #55e6d3;
+  font-size: clamp(34px, 3.4vw, 48px);
+  line-height: 1.08;
+  font-weight: 900;
+  letter-spacing: -0.7px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 24px rgba(53, 214, 194, 0.14);
+}
+
+.invoice-summary-compact-customer-metrics > div {
+  min-width: 0;
+}
+
+.invoice-summary-compact-customer-metrics strong {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 520px) {
+  .invoice-summary-total .invoice-summary-total-amount {
+    font-size: clamp(27px, 7vw, 36px);
+  }
 }
