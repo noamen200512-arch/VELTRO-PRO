@@ -4312,3 +4312,120 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   max-height: none !important;
   margin: 0 !important;
 }
+
+
+/* Restore true edge-to-edge POS fullscreen sizing. */
+.pos-page.pos-fullscreen-active {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box !important;
+  overflow: auto !important;
+  border-radius: 0 !important;
+}
+.pos-page.pos-fullscreen-active > .pos-heading,
+.pos-page.pos-fullscreen-active > .sales-toolbar,
+.pos-page.pos-fullscreen-active > .sales-layout {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+.pos-page.pos-fullscreen-active .sales-layout {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.pos-page.pos-fullscreen-active .sales-workspace,
+.pos-page.pos-fullscreen-active .sales-sidebar {
+  min-width: 0 !important;
+}
+
+/* Product delete confirmation — compact premium dark dialog. */
+.invoice-delete-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(3, 8, 16, .76);
+  backdrop-filter: blur(8px);
+}
+.invoice-delete-confirm-modal {
+  width: min(440px, 100%);
+  box-sizing: border-box;
+  padding: 25px;
+  border: 1px solid rgba(248, 113, 113, .3);
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 0 0, rgba(248, 113, 113, .10), transparent 48%), #0d1624;
+  color: #e7eef7;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .55);
+  animation: invoiceDeleteIn .14s ease-out;
+}
+.invoice-delete-confirm-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(248, 113, 113, .28);
+  border-radius: 14px;
+  background: rgba(248, 113, 113, .1);
+  color: #fb7185;
+}
+.invoice-delete-confirm-modal h3 { margin: 0 0 8px; font-size: 19px; font-weight: 800; }
+.invoice-delete-confirm-modal p { margin: 0 0 17px; color: #a7b6c9; font-size: 13px; line-height: 1.65; }
+.invoice-delete-confirm-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 12px 13px;
+  border: 1px solid rgba(148, 163, 184, .16);
+  border-radius: 12px;
+  background: rgba(148, 163, 184, .055);
+}
+.invoice-delete-confirm-product strong { min-width: 0; overflow-wrap: anywhere; color: #f1f5f9; font-size: 13px; }
+.invoice-delete-confirm-product span { flex-shrink: 0; color: #91a4bb; font-size: 12px; }
+.invoice-delete-confirm-actions { display: flex; gap: 10px; }
+.invoice-delete-confirm-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  min-height: 42px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.invoice-delete-cancel { border: 1px solid rgba(148, 163, 184, .24); background: rgba(148, 163, 184, .08); color: #d7e1ed; }
+.invoice-delete-accept { border: 1px solid rgba(248, 113, 113, .45); background: linear-gradient(135deg, #ef4444, #be123c); color: white; }
+.invoice-delete-confirm-actions kbd {
+  padding: 2px 5px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, .16);
+  font-size: 10px;
+  font-family: inherit;
+}
+.invoice-delete-confirm-modal > small { display: block; margin-top: 13px; color: #8193a9; font-size: 11px; text-align: center; }
+.invoice-delete-confirm-modal[dir="rtl"] { text-align: right; }
+@keyframes invoiceDeleteIn { from { opacity: 0; transform: translateY(5px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .invoice-delete-confirm-modal { animation: none; } }
+@media (max-width: 520px) {
+  .invoice-delete-confirm-modal { padding: 19px; }
+  .invoice-delete-confirm-actions { flex-direction: column-reverse; }
+}
