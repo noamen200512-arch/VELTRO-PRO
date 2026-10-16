@@ -41,10 +41,15 @@ export function InvoiceSummary({
   const safeTotal = Math.max(0, Number(total) || 0);
   const safePaid = Number.isFinite(Number(paid)) ? Number(paid) : 0;
   const [paidDraft, setPaidDraft] = useState(String(paid ?? 0));
+  const [discountDraft, setDiscountDraft] = useState(String(discount ?? 0));
 
   useEffect(() => {
     setPaidDraft(String(paid ?? 0));
   }, [paid]);
+
+  useEffect(() => {
+    setDiscountDraft(String(discount ?? 0));
+  }, [discount]);
   const safeRemaining = Math.max(0, Number(remaining) || 0);
   const safePreviousDebt = Math.max(0, Number(previousDebt) || 0);
 
@@ -93,17 +98,32 @@ export function InvoiceSummary({
               min="0"
               max={Math.max(0, Number(subtotal) || 0)}
               step="0.01"
-              value={discount}
+              value={discountDraft}
               disabled={busy}
+              onFocus={() => {
+                if (discountDraft === "0" || discountDraft === "0.00") {
+                  setDiscountDraft("");
+                }
+              }}
               onChange={(event) => {
-                const value = Math.max(
-                  0,
-                  Number(event.target.value) || 0
-                );
-
-                onDiscountChange?.(
-                  Math.min(value, Math.max(0, Number(subtotal) || 0))
-                );
+                const rawValue = event.target.value;
+                setDiscountDraft(rawValue);
+                const value = rawValue.trim() === "" ? 0 : Number(rawValue);
+                if (Number.isFinite(value)) {
+                  onDiscountChange?.(
+                    Math.min(Math.max(0, value), Math.max(0, Number(subtotal) || 0))
+                  );
+                }
+              }}
+              onBlur={() => {
+                const value = discountDraft.trim() === "" ? 0 : Number(discountDraft);
+                if (Number.isFinite(value)) {
+                  const normalized = Math.min(Math.max(0, value), Math.max(0, Number(subtotal) || 0));
+                  setDiscountDraft(String(normalized));
+                  onDiscountChange?.(normalized);
+                } else {
+                  setDiscountDraft(String(safeDiscount));
+                }
               }}
             />
           </div>
