@@ -16,6 +16,7 @@ import {
   getPendingInvoices,
   savePendingInvoice,
   getPendingInvoice,
+  cancelPendingInvoice,
   completeSale,
   getCustomerDebt,
   getCompletedSales,
@@ -925,12 +926,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     );
   };
 
-  const removeItem = (id) => {
+  const removeItem = (itemOrId) => {
+    // InvoiceTable passes the full item from its confirmation dialog; also
+    // support callers that pass only the item id.
+    const itemId = itemOrId && typeof itemOrId === "object"
+      ? itemOrId.id
+      : itemOrId;
     const removed = items.find(
-      (item) => String(item.id) === String(id)
+      (item) => String(item.id) === String(itemId)
     );
 
     if (!removed) return;
+
+    const nextItems = items.filter(
+      (item) => String(item.id) !== String(itemId)
+    );
 
     setRemovedItem({
       item: { ...removed },
@@ -940,11 +950,36 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setInvoice((current) => ({
       ...current,
       items: (current.items || []).filter(
-        (item) => String(item.id) !== String(id)
+        (item) => String(item.id) !== String(itemId)
       ),
       status: "Draft",
       updatedAt: new Date().toISOString(),
     }));
+
+    // If this invoice was already saved as pending, keep its saved copy in
+    // sync with the live invoice. Remove it from Pending Invoices entirely
+    // when its last product is deleted, so it cannot appear falsely filled.
+    const savedPending = getPendingInvoice(invoice.id);
+    if (savedPending) {
+      if (nextItems.length === 0) {
+        cancelPendingInvoice(invoice.id);
+      } else {
+        const nextSubtotal = calculateSubtotal(nextItems);
+        const nextTotal = Math.max(0, nextSubtotal - money(invoice.discount));
+        const nextPaid = money(invoice.paid);
+        savePendingInvoice({
+          ...invoice,
+          items: nextItems,
+          subtotal: nextSubtotal,
+          total: nextTotal,
+          paid: nextPaid,
+          remaining: Math.max(0, nextTotal - nextPaid),
+          status: "Pending",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      refreshPending();
+    }
 
     notify(`${removed.name} removed. You can undo this action.`, "info");
   };
