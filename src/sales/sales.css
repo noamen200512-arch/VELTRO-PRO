@@ -4179,3 +4179,77 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 @media (max-width: 760px) {
   .sales-toolbar-notice { grid-column: 1 / -1; width: 100%; max-width: none; min-width: 0; }
 }
+
+/* POS keyboard workflow dialogs */
+.pos-keyboard-backdrop {
+  position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center;
+  padding: 18px; background: rgba(3, 7, 14, .78); backdrop-filter: blur(7px);
+}
+.pos-keyboard-modal {
+  width: min(680px, 96vw); max-height: min(86vh, 860px); overflow: hidden;
+  display: flex; flex-direction: column; color: #edf4ff; background: #0e1623;
+  border: 1px solid #2a3a50; border-radius: 16px; box-shadow: 0 24px 90px rgba(0,0,0,.55);
+}
+.pos-keyboard-products { width: min(1000px, 96vw); }
+.pos-keyboard-compact { width: min(510px, 96vw); }
+.pos-keyboard-header { display: flex; align-items: center; gap: 12px; padding: 17px 19px; border-bottom: 1px solid #263449; }
+.pos-keyboard-title-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; color: #43dfd0; background: rgba(50,213,197,.11); border: 1px solid rgba(50,213,197,.25); border-radius: 11px; }
+.pos-keyboard-title-copy { flex: 1; min-width: 0; }
+.pos-keyboard-title-copy h2 { margin: 0; font-size: 17px; font-weight: 700; }
+.pos-keyboard-title-copy p { margin: 4px 0 0; color: #8e9db2; font-size: 12px; }
+.pos-keyboard-close { display: grid; place-items: center; width: 35px; height: 35px; color: #9ba9bd; background: transparent; border: 1px solid #29364a; border-radius: 8px; cursor: pointer; }
+.pos-keyboard-search { display: flex; align-items: center; gap: 10px; margin: 15px 18px 10px; padding: 0 12px; min-height: 44px; color: #8da1b8; background: #080e17; border: 1px solid #2a3b50; border-radius: 10px; }
+.pos-keyboard-search:focus-within { border-color: #39cfc1; box-shadow: 0 0 0 3px rgba(57,207,193,.1); }
+.pos-keyboard-search input { width: 100%; min-width: 0; color: #eff5ff; background: transparent; border: 0; outline: 0; font: inherit; font-size: 13px; }
+.pos-keyboard-table-wrap { overflow: auto; min-height: 160px; max-height: 55vh; margin: 0 18px; border: 1px solid #27374b; border-radius: 10px; }
+.pos-keyboard-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+.pos-keyboard-table th { position: sticky; top: 0; z-index: 1; padding: 12px; color: #9fadc0; text-align: start; background: #172235; border-bottom: 1px solid #2a3b50; }
+.pos-keyboard-table td { padding: 11px 12px; color: #dbe5f3; border-bottom: 1px solid rgba(42,59,80,.65); }
+.pos-keyboard-table tbody tr { cursor: pointer; }
+.pos-keyboard-table tbody tr:hover, .pos-keyboard-table tbody tr.is-selected { background: rgba(53,214,194,.12); outline: 1px solid rgba(53,214,194,.35); outline-offset: -1px; }
+.pos-keyboard-table tbody tr:last-child td { border-bottom: 0; }
+.pos-stock-out { color: #ff626b !important; font-weight: 700; }
+.pos-stock-low { color: #e8ad43 !important; font-weight: 700; }
+.pos-stock-ok { color: #43d7a0 !important; font-weight: 650; }
+.pos-stock-pill { display: inline-flex; margin-inline-start: 8px; padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 800; vertical-align: middle; }
+.pos-stock-pill.out { color: #ff7c83; background: rgba(255,80,92,.12); }
+.pos-stock-pill.low { color: #f0bd5d; background: rgba(230,165,47,.12); }
+.pos-keyboard-empty { padding: 30px !important; color: #92a1b5 !important; text-align: center; }
+.pos-keyboard-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 13px 18px 16px; color: #8e9db2; font-size: 11px; }
+.pos-keyboard-footer > div { display: flex; gap: 7px; flex-wrap: wrap; }
+.pos-keyboard-footer button, .pos-keyboard-options button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 8px 11px; color: #cbd7e7; background: #172235; border: 1px solid #304158; border-radius: 8px; cursor: pointer; font: inherit; font-size: 11px; }
+.pos-keyboard-footer button:disabled { opacity: .4; cursor: not-allowed; }
+.pos-keyboard-footer button.primary { color: #061815; background: #43d9cb; border-color: #43d9cb; font-weight: 800; }
+.pos-keyboard-options { display: grid; gap: 9px; padding: 18px; }
+.pos-keyboard-selected-product { display: flex; align-items: center; gap: 12px; padding: 13px; margin-bottom: 4px; color: #44d9cd; background: rgba(54,214,196,.07); border: 1px solid rgba(54,214,196,.2); border-radius: 10px; }
+.pos-keyboard-selected-product div { display: grid; gap: 4px; min-width: 0; }
+.pos-keyboard-selected-product small, .pos-keyboard-selected-product span { color: #94a4b8; font-size: 11px; }
+.pos-keyboard-selected-product strong { color: #edf4ff; font-size: 14px; overflow-wrap: anywhere; }
+.pos-keyboard-options button { justify-content: flex-start; min-height: 48px; padding: 12px; font-size: 13px; }
+.pos-keyboard-options button > span { flex: 1; text-align: start; }
+.pos-keyboard-options button > svg { color: #43d9cb; }
+.pos-keyboard-options kbd { padding: 3px 7px; color: #aebbd0; background: #0a111c; border: 1px solid #33445b; border-radius: 5px; font: inherit; font-size: 10px; }
+.pos-keyboard-editor { padding: 18px; }
+.pos-keyboard-editor > label { display: grid; gap: 8px; color: #aab8ca; font-size: 12px; }
+.pos-keyboard-editor > label input { width: 100%; min-height: 55px; padding: 12px; color: #f4f8ff; background: #070d16; border: 1px solid #34455b; border-radius: 10px; outline: 0; font-size: 24px; font-weight: 750; text-align: center; }
+.pos-keyboard-editor > label input:focus { border-color: #43d9cb; box-shadow: 0 0 0 3px rgba(67,217,203,.1); }
+.pos-keyboard-keypad { margin-top: 15px; }
+.pos-keyboard-keypad > span { display: block; margin-bottom: 8px; color: #8799b0; font-size: 11px; }
+.pos-keyboard-keypad > div { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 7px; }
+.pos-keyboard-keypad button { min-height: 43px; color: #eef5ff; background: #182437; border: 1px solid #2e4058; border-radius: 8px; font-size: 16px; font-weight: 650; cursor: pointer; }
+.pos-keyboard-keypad button:hover { border-color: #43d9cb; background: #1b3040; }
+.pos-keyboard-warning { padding: 20px; text-align: center; }
+.pos-keyboard-warning > svg { color: #e6ad43; }
+.pos-keyboard-warning p { color: #e4ecf7; font-size: 14px; line-height: 1.65; }
+.pos-keyboard-warning-stats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin: 15px 0; }
+.pos-keyboard-warning-stats span { display: grid; gap: 6px; padding: 12px; color: #94a5ba; background: #111c2b; border: 1px solid #2b3b50; border-radius: 9px; font-size: 11px; }
+.pos-keyboard-warning-stats strong { color: #edf4ff; font-size: 17px; }
+.invoice-table tbody tr.invoice-row-keyboard-selected { background: rgba(53,214,194,.12); outline: 1px solid rgba(53,214,194,.42); outline-offset: -1px; }
+.pending-invoices-row.keyboard-selected { background: rgba(53,214,194,.12); outline: 1px solid rgba(53,214,194,.4); outline-offset: -1px; }
+@media (max-width: 640px) {
+  .pos-keyboard-backdrop { padding: 8px; }
+  .pos-keyboard-header { padding: 12px; }
+  .pos-keyboard-table-wrap { margin: 0 10px; }
+  .pos-keyboard-table th, .pos-keyboard-table td { padding: 9px 7px; font-size: 10px; }
+  .pos-keyboard-footer { padding: 10px; }
+}
