@@ -1561,6 +1561,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
         <SalesToolbar
           onNew={createNewInvoice}
+          onEditInvoice={reopenSelectedClosedInvoice}
+          editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
           onPending={() => { if (!closedInvoiceMode) setShowPending((current) => !current); }}
@@ -1600,9 +1602,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <small>{selectedClosedInvoice ? `${closedInvoiceIndex + 1} / ${closedInvoices.length} · ${selectedClosedInvoice.customerName || "Anonyme"}` : `${closedInvoices.length} ${locale === "ar" ? "بون مغلق" : locale === "fr" ? "factures clôturées" : "closed invoices"}`}</small>
           </div>
           <button type="button" className="closed-invoice-arrow" onMouseDown={(event) => event.preventDefault()} onClick={() => navigateClosedInvoice("next")} disabled={closedInvoiceMode !== null && closedInvoiceIndex <= 0} title={locale === "ar" ? "البون التالي" : locale === "fr" ? "Facture suivante" : "Next closed invoice"}><ChevronRight size={20}/></button>
-          {isReviewingClosedInvoice && selectedClosedInvoice ? (
-            <button type="button" className="closed-invoice-reopen" onClick={reopenSelectedClosedInvoice}><RotateCcw size={16}/>{locale === "ar" ? "إعادة فتح البون" : locale === "fr" ? "Rouvrir la facture" : "Reopen invoice"}</button>
-          ) : isEditingClosedInvoice ? (
+          {isEditingClosedInvoice ? (
             <span className="closed-invoice-edit-hint">{locale === "ar" ? "احفظ التغييرات بزر إتمام البيع" : locale === "fr" ? "Enregistrez via Finaliser la vente" : "Save changes using Complete Sale"}</span>
           ) : null}
           {closedInvoiceMode && <button type="button" className="closed-invoice-return" onClick={returnToCurrentInvoice}>{locale === "ar" ? "العودة للبون الحالي" : locale === "fr" ? "Revenir à la facture actuelle" : "Return to current invoice"}</button>}
