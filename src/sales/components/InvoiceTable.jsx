@@ -417,9 +417,9 @@ export function InvoiceTable({
                           <button
                             type="button"
                             aria-label={`Decrease quantity of ${item.name}`}
-                            disabled={quantity <= 1}
+                            disabled={(item.weighedSale || item.unitLabel === "kg") ? quantity <= 0.001 : quantity <= 1}
                             onClick={() =>
-                              updateQuantity(item, quantity - 1)
+                              updateQuantity(item, (item.weighedSale || item.unitLabel === "kg") ? Math.max(0.001, quantity - 0.1) : quantity - 1)
                             }
                           >
                             <Minus size={13} />
