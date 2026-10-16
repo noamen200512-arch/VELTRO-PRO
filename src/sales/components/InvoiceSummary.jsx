@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Wallet,
   LoaderCircle,
+  UserRound,
 } from "lucide-react";
 
 export function InvoiceSummary({
@@ -21,6 +22,8 @@ export function InvoiceSummary({
   remaining = 0,
   previousDebt = 0,
   customerName = "",
+  compactCustomerInfo = false,
+  onChooseCustomer,
   onViewDebtDetails,
   onSavePending,
   onPrint,
@@ -169,12 +172,57 @@ export function InvoiceSummary({
         </div>
 
         <div className="invoice-summary-total">
-          <div>
-            <span>TOTAL AMOUNT</span>
-            <p>Final amount due</p>
+          <div className="invoice-summary-total-heading">
+            <div>
+              <span>TOTAL AMOUNT</span>
+              <p>Final amount due</p>
+            </div>
+            <strong>{money(safeTotal)}</strong>
           </div>
 
-          <strong>{money(safeTotal)}</strong>
+          {compactCustomerInfo && (
+            <div className="invoice-summary-compact-customer">
+              <div className="invoice-summary-compact-customer-header">
+                <div className="invoice-summary-compact-customer-identity">
+                  <span className="invoice-summary-compact-eyebrow">CUSTOMER ACCOUNT</span>
+                  <strong className="invoice-summary-compact-customer-name">
+                    {customerName || "Anonyme"}
+                  </strong>
+                </div>
+
+                <button
+                  type="button"
+                  className="invoice-summary-change-customer"
+                  disabled={busy}
+                  onClick={() => onChooseCustomer?.()}
+                >
+                  <UserRound size={14} />
+                  Change
+                </button>
+              </div>
+
+              <div className="invoice-summary-compact-customer-metrics">
+                <div>
+                  <span>Previous debt</span>
+                  <strong>{money(safePreviousDebt)}</strong>
+                </div>
+                <div>
+                  <span>Paid now</span>
+                  <strong>{money(safePaid)}</strong>
+                </div>
+                <div>
+                  <span>New debt</span>
+                  <strong className="invoice-summary-compact-new-debt">
+                    {money(
+                      String(customerName || "").trim().toLowerCase() === "anonyme"
+                        ? 0
+                        : safePreviousDebt + safeRemaining
+                    )}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
