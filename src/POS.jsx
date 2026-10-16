@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle, Star, Scale, Settings2 } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle, Star, Scale } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -2212,7 +2212,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           <div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
             <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
             <button type="button" className="pos-quick-launch-weigh" onClick={() => setQuickSaleDialog("weigh")}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
-            <button type="button" className="pos-quick-launch-settings" onClick={() => setQuickSaleDialog("settings")} title={locale === "ar" ? "إعدادات البيع السريع" : locale === "fr" ? "Réglages de vente rapide" : "Quick-sale settings"}><Settings2 size={18}/></button>
           </div>
           <ProductEntry
             onAddProduct={addProduct}
