@@ -8,6 +8,7 @@ import { ProductEntry } from "./sales/components/ProductEntry";
 import { InvoiceTable } from "./sales/components/InvoiceTable";
 import { InvoiceSummary } from "./sales/components/InvoiceSummary";
 import { PosKeyboardDialogs } from "./sales/components/PosKeyboardDialogs";
+import ClosedInvoiceNavigator from "./sales/components/ClosedInvoiceNavigator.jsx";
 
 import {
   createInvoice,
@@ -20,6 +21,7 @@ import {
   completeSale,
   getCustomerDebt,
   getCompletedSales,
+  editCompletedSale,
 } from "./sales/salesStore.js";
 
 import { getProducts } from "./productStore.js";
@@ -342,6 +344,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const [showProducts, setShowProducts] = useState(true);
   const [showPending, setShowPending] = useState(false);
+  const [showClosedInvoices, setShowClosedInvoices] = useState(false);
   const [showEmptyWarning, setShowEmptyWarning] = useState(false);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("info");
@@ -1388,6 +1391,27 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     notify(locale === "ar" ? "لا يوجد اتصال مباشر بدرج النقود. يلزم ربط الطابعة أو برنامج تشغيل متوافق." : locale === "fr" ? "Aucun pilote de tiroir-caisse n'est connecté." : "No compatible cash-drawer driver is connected.", "info");
   };
 
+  const saveClosedInvoiceEdits = async (updatedInvoice) => {
+    const result = editCompletedSale(updatedInvoice.id || updatedInvoice.invoiceId || updatedInvoice.invoiceNumber, updatedInvoice);
+    if (!result?.ok) {
+      const messages = {
+        EMPTY_INVOICE: locale === "ar" ? "لا يمكن حفظ بون فارغ." : locale === "fr" ? "Une facture vide ne peut pas être enregistrée." : "An empty invoice cannot be saved.",
+        INVOICE_NOT_FOUND: locale === "ar" ? "البون المغلق غير موجود." : locale === "fr" ? "Facture clôturée introuvable." : "Closed invoice not found.",
+        INSUFFICIENT_STOCK: locale === "ar" ? "المخزون غير كافٍ لحفظ التعديلات." : locale === "fr" ? "Stock insuffisant pour enregistrer les modifications." : "Insufficient stock to save these changes.",
+      };
+      return { ...result, message: messages[result?.error] || (locale === "ar" ? "تعذر حفظ التعديلات." : locale === "fr" ? "Impossible d’enregistrer les modifications." : "Could not save changes.") };
+    }
+    try {
+      await saveProductsToCloud(getProducts());
+      await saveSaleToCloud(result.sale, { status: "completed" });
+    } catch (error) {
+      console.error("VELTRO-PRO could not sync edited invoice:", error);
+      notify(locale === "ar" ? "تم حفظ البون محليًا، لكن فشلت المزامنة السحابية." : locale === "fr" ? "Facture enregistrée localement, mais la synchronisation cloud a échoué." : "Invoice saved locally, but cloud sync failed.", "error");
+    }
+    window.dispatchEvent(new Event("veltro:cloud-sync"));
+    return result;
+  };
+
   const printInvoice = () => {
     if (items.length === 0) {
       notify("Add products before printing.", "error");
@@ -1470,6 +1494,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
           onPending={() => setShowPending((current) => !current)}
+          onClosedInvoices={() => setShowClosedInvoices(true)}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
           newDisabled={items.length === 0}
@@ -1860,6 +1885,15 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <footer className="pos-shortcuts-footer"><span>{locale === "ar" ? "تلميح: افتح هذا الدليل في أي وقت باستخدام Ctrl + I." : locale === "fr" ? "Astuce : ouvrez ce guide à tout moment avec Ctrl + I." : "Tip: reopen this guide anytime with Ctrl + I."}</span><button type="button" onClick={() => setShowShortcutsHelp(false)}>{locale === "ar" ? "فهمت" : locale === "fr" ? "Compris" : "Got it"}</button></footer>
           </section>
         </div>
+      )}
+
+      {showClosedInvoices && (
+        <ClosedInvoiceNavigator
+          sales={getCompletedSales()}
+          locale={locale}
+          onClose={() => setShowClosedInvoices(false)}
+          onSave={saveClosedInvoiceEdits}
+        />
       )}
 
       <PosKeyboardDialogs
