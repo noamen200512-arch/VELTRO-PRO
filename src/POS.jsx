@@ -498,18 +498,19 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   }, [draftIdentity?.userId, draftIdentity?.organizationId]);
 
   useEffect(() => {
-    if (!draftCloudReady || !draftIdentity?.userId || !draftIdentity?.organizationId) return undefined;
+    if (closedInvoiceMode || !draftCloudReady || !draftIdentity?.userId || !draftIdentity?.organizationId) return undefined;
     const timeoutId = window.setTimeout(() => {
       saveCloudInvoiceDraft(draftIdentity.organizationId, draftIdentity.userId, {
         ...invoice, subtotal, total, paid, remaining, status: "Draft",
       }).catch((error) => console.warn("VELTRO-PRO could not sync the invoice draft to Supabase:", error));
     }, 500);
     return () => window.clearTimeout(timeoutId);
-  }, [draftCloudReady, draftIdentity?.userId, draftIdentity?.organizationId, invoice, subtotal, total, paid, remaining]);
+  }, [closedInvoiceMode, draftCloudReady, draftIdentity?.userId, draftIdentity?.organizationId, invoice, subtotal, total, paid, remaining]);
 
   // Persist every unconfirmed invoice change immediately. The draft lives
   // separately from the pending-invoice list and is restored on next launch.
   useEffect(() => {
+    if (closedInvoiceMode) return;
     saveAutoSavedDraft({
       ...invoice,
       subtotal,
@@ -518,7 +519,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       remaining,
       status: "Draft",
     });
-  }, [invoice, subtotal, total, paid, remaining]);
+  }, [closedInvoiceMode, invoice, subtotal, total, paid, remaining]);
 
   const refreshPending = useCallback(() => {
     setPendingInvoices(getPendingInvoices());
@@ -602,6 +603,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const saveCurrentAsPending = useCallback(
     (silent = false) => {
+      if (closedInvoiceMode) {
+        notify(locale === "ar" ? "أعد البون إلى وضع التعديل أو ارجع إلى البون الحالي أولًا." : locale === "fr" ? "Rouvrez la facture ou revenez à la facture actuelle d’abord." : "Reopen this invoice or return to the current invoice first.", "info");
+        return false;
+      }
       if (items.length === 0) {
         if (!silent) {
           notify(
@@ -648,6 +653,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       paid,
       remaining,
       refreshPending,
+      closedInvoiceMode,
+      locale,
     ]
   );
 
@@ -655,6 +662,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   // Non-empty invoices are saved as pending before the next invoice is created.
   const createNewInvoice = () => {
     if (busy) return;
+    if (closedInvoiceMode) {
+      notify(locale === "ar" ? "ارجع إلى البون الحالي قبل إنشاء بون جديد." : locale === "fr" ? "Revenez à la facture actuelle avant d’en créer une nouvelle." : "Return to the current invoice before creating a new one.", "info");
+      return;
+    }
 
     if (items.length === 0) {
       notify(
@@ -688,6 +699,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addProduct = (product) => {
+    if (closedInvoiceMode) return;
     const productId = getProductId(product);
 
     const inventoryProduct = getProducts().find(
@@ -753,6 +765,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const updateItem = (id, field, value, options = {}) => {
+    if (isReviewingClosedInvoice) return;
     const currentItem = items.find(
       (item) => String(item.id) === String(id)
     );
@@ -935,6 +948,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const removeItem = (itemOrId) => {
+    if (isReviewingClosedInvoice) return;
     // InvoiceTable passes the full item from its confirmation dialog; also
     // support callers that pass only the item id.
     const itemId = itemOrId && typeof itemOrId === "object"
@@ -1169,6 +1183,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const completeCurrentSale = () => {
     if (busy) return;
+    if (isReviewingClosedInvoice) {
+      notify(locale === "ar" ? "اضغط «إعادة فتح البون» قبل تعديله أو إتمامه." : locale === "fr" ? "Cliquez sur « Rouvrir la facture » avant de la modifier ou finaliser." : "Click Reopen Invoice before editing or completing this sale.", "info");
+      return;
+    }
     if (items.length === 0) {
       notify("Add products before completing the sale.", "error");
       return;
@@ -1220,7 +1238,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setShowSaleConfirm(false);
     setBusy(true);
     try {
-      const result = completeSale({
+      const salePayload = {
         ...invoice,
         subtotal,
         total,
@@ -1229,7 +1247,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         customerName: customer,
         customerId: isAnonymousCustomer ? "" : invoice.customerId,
         status: "Completed",
-      });
+      };
+      const result = isEditingClosedInvoice
+        ? editCompletedSale(selectedClosedInvoice?.id || selectedClosedInvoice?.invoiceId || selectedClosedInvoice?.invoiceNumber, salePayload)
+        : completeSale(salePayload);
       if (!result.ok) {
         notify(getErrorMessage(result), "error");
         return;
@@ -1250,7 +1271,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
       // Remove the confirmed invoice from cloud drafts before starting a
       // fresh invoice, so a restart cannot resurrect an already completed sale.
-      if (draftIdentity?.userId && draftIdentity?.organizationId) {
+      if (!isEditingClosedInvoice && draftIdentity?.userId && draftIdentity?.organizationId) {
         try {
           await deleteCloudInvoiceDraft(draftIdentity.organizationId, draftIdentity.userId);
         } catch (draftError) {
@@ -1268,6 +1289,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       // cloud quantities and appear to undo the sale.
       setInvoice(createInvoice());
       setRemovedItem(null);
+      if (isEditingClosedInvoice) {
+        setClosedInvoiceMode(null);
+        setClosedInvoiceIndex(-1);
+        invoiceBeforeClosedBrowseRef.current = null;
+      }
       refreshPending();
 
       try {
@@ -1512,7 +1538,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   });
 
   return (
-    <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}`}>
+    <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}${isReviewingClosedInvoice ? " closed-invoice-review-mode" : ""}`}>
       <header className="pos-heading">
         <div className="pos-heading-copy">
           <div className="pos-eyebrow">VELTRO-PRO / COMMERCE</div>
