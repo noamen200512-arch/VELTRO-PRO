@@ -3964,3 +3964,50 @@
     transform: translateY(-10px);
   }
 }
+
+
+/* Final alignment pass for the fullscreen POS cards. */
+@media (min-width: 761px) {
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section:first-child,
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:first-child {
+    transform: translateY(-16px) !important;
+  }
+
+  .pos-page:fullscreen .invoice-summary-total .invoice-summary-total-amount,
+  .pos-page.pos-fullscreen-active .invoice-summary-total .invoice-summary-total-amount {
+    font-size: clamp(42px, 4vw, 58px) !important;
+    line-height: 1.04;
+  }
+
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry {
+    position: relative;
+    margin-bottom: -6px;
+    padding-bottom: 15px !important;
+    box-sizing: border-box;
+  }
+}
+
+/* Product-removal notices float inside the product card without changing its layout size. */
+.product-entry {
+  position: relative;
+}
+
+.product-entry .product-entry-notice {
+  position: absolute;
+  z-index: 8;
+  left: 10px;
+  right: 10px;
+  bottom: 54px;
+  margin: 0 !important;
+  box-sizing: border-box;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 760px) {
+  .product-entry .product-entry-notice {
+    bottom: 54px;
+    left: 8px;
+    right: 8px;
+  }
+}
