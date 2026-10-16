@@ -146,37 +146,37 @@ function translatePosMessage(message, locale = "en") {
   if (!message || locale === "en") return message;
   const dictionary = POS_MESSAGE_TRANSLATIONS[locale] || {};
   if (dictionary[message]) return dictionary[message];
-  let match = message.match(/^(.+) removed\\. You can undo this action\\.$/);
+  let match = message.match(/^(.+) removed\. You can undo this action\.$/);
   if (match) {
     if (locale === "fr") return match[1] + " retiré de la facture. Vous pouvez annuler cette action.";
     if (locale === "ar") return "تم حذف " + match[1] + " من الفاتورة. يمكنك التراجع عن الحذف.";
   }
-  match = message.match(/^(.+) restored to the invoice\\.$/);
+  match = message.match(/^(.+) restored to the invoice\.$/);
   if (match) {
     if (locale === "fr") return match[1] + " rétabli dans la facture.";
     if (locale === "ar") return "تمت إعادة " + match[1] + " إلى الفاتورة.";
   }
-  match = message.match(/^Added one carton of (.+) \\((\\d+) units\\)\\.$/);
+  match = message.match(/^Added one carton of (.+) \((\d+) units\)\.$/);
   if (match) {
     if (locale === "fr") return "Un carton de " + match[1] + " (" + match[2] + " unités) a été ajouté.";
     if (locale === "ar") return "تمت إضافة كرتون من " + match[1] + " يحتوي على " + match[2] + " وحدة.";
   }
-  match = message.match(/^Added one carton of (.+) as (\\d+) units at the unit price\\.$/);
+  match = message.match(/^Added one carton of (.+) as (\d+) units at the unit price\.$/);
   if (match) {
     if (locale === "fr") return "Un carton de " + match[1] + " (" + match[2] + " unités) a été ajouté au prix unitaire.";
     if (locale === "ar") return "تمت إضافة كرتون من " + match[1] + " بكمية " + match[2] + " وحدة وبسعر الوحدة.";
   }
-  match = message.match(/^(.+): only (\\d+) additional units are available\\.$/);
+  match = message.match(/^(.+): only (\d+) additional units are available\.$/);
   if (match) {
     if (locale === "fr") return match[1] + " : seulement " + match[2] + " unité(s) supplémentaire(s) disponible(s).";
     if (locale === "ar") return match[1] + ": المتاح " + match[2] + " وحدة إضافية فقط.";
   }
-  match = message.match(/^(.+): only (\\d+) units are available for this line\\.$/);
+  match = message.match(/^(.+): only (\d+) units are available for this line\.$/);
   if (match) {
     if (locale === "fr") return match[1] + " : seulement " + match[2] + " unité(s) disponible(s) pour cette ligne.";
     if (locale === "ar") return match[1] + ": المتاح لهذا السطر " + match[2] + " وحدة فقط.";
   }
-  match = message.match(/^(.+) has ([\\d.,]+) DA in previous unpaid balances\\.$/);
+  match = message.match(/^(.+) has ([\d.,]+) DA in previous unpaid balances\.$/);
   if (match) {
     if (locale === "fr") return match[1] + " a " + match[2] + " DA d’impayés antérieurs.";
     if (locale === "ar") return "لدى " + match[1] + " ديون سابقة غير مدفوعة بقيمة " + match[2] + " دج.";
