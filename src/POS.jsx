@@ -1505,7 +1505,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                       <button
                         type="button"
                         key={pending.id}
-                        className="pending-invoices-row"
+                        className={"pending-invoices-row " + (pendingInvoices.findIndex((row) => row.id === pending.id) === selectedPendingIndex ? "keyboard-selected" : "")}
                         onClick={() => openPendingInvoice(pending.id)}
                       >
                         <span className="pending-invoices-main">
@@ -1756,6 +1756,34 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         </div>
       )}
 
+      <PosKeyboardDialogs
+        dialog={keyboardDialog}
+        locale={locale}
+        products={getProducts()}
+        selectedItem={items[selectedCartIndex] || null}
+        selectedCartIndex={selectedCartIndex}
+        productSearch={productPickerSearch}
+        setProductSearch={setProductPickerSearch}
+        productPage={productPickerPage}
+        setProductPage={setProductPickerPage}
+        selectedProductIndex={selectedProductIndex}
+        setSelectedProductIndex={setSelectedProductIndex}
+        quantityDraft={quantityDraft}
+        setQuantityDraft={setQuantityDraft}
+        priceDraft={priceDraft}
+        setPriceDraft={setPriceDraft}
+        warningPayload={warningPayload}
+        onClose={() => setKeyboardDialog(null)}
+        onSelectProduct={chooseProductFromKeyboardList}
+        onConvertCarton={() => applyCartonConversion(items[selectedCartIndex])}
+        onOpenQuantity={openQuantityEditor}
+        onOpenPrice={openPriceEditor}
+        onApplyQuantity={applyQuantityEditor}
+        onApplyPrice={applyPriceEditor}
+        onConfirmWarning={confirmKeyboardWarning}
+        onCancelWarning={cancelKeyboardWarning}
+      />
+
       <div className="sales-layout">
         <SalesSidebar
           invoiceNumber={invoice.invoiceNumber}
@@ -1788,6 +1816,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
           <InvoiceTable
             items={items}
+            selectedIndex={selectedCartIndex}
+            onSelectRow={setSelectedCartIndex}
             onUpdate={updateItem}
             onRemove={removeItem}
             onUndoRemove={undoRemove}
