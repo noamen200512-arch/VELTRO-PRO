@@ -3917,3 +3917,29 @@
     grid-row: 2 / 4 !important;
   }
 }
+
+
+/* Give the final invoice total more visual width than the subtotal/details card. */
+@media (min-width: 761px) {
+  .invoice-summary-content {
+    grid-template-columns: minmax(0, 0.7fr) minmax(260px, 1.3fr);
+    gap: 12px;
+  }
+
+  .pos-page:fullscreen .invoice-summary-content,
+  .pos-page.pos-fullscreen-active .invoice-summary-content {
+    grid-template-columns: minmax(0, 0.65fr) minmax(280px, 1.35fr) !important;
+    gap: 10px !important;
+  }
+
+  .pos-page:fullscreen .invoice-summary-total,
+  .pos-page.pos-fullscreen-active .invoice-summary-total {
+    padding: 14px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .invoice-summary-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
