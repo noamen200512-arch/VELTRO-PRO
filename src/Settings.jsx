@@ -138,6 +138,75 @@ function formatModule(value = "") {
   return value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+const arabicPermissionModules = {
+  cash_register: "صندوق النقد",
+  customers: "الزبائن",
+  dashboard: "لوحة التحكم",
+  inventory: "المخزون",
+  payments: "المدفوعات",
+  products: "المنتجات",
+  profits: "الأرباح",
+  purchases: "المشتريات",
+  reports: "التقارير",
+  sales: "المبيعات",
+  settings: "الإعدادات",
+  suppliers: "الموردون",
+  users: "المستخدمون والأدوار",
+};
+
+const arabicPermissionDescriptions = {
+  "cash_register.close": "إغلاق جلسات صندوق النقد",
+  "cash_register.manage": "إدارة صندوق النقد",
+  "cash_register.open_drawer": "فتح درج النقود دون إجراء عملية بيع",
+  "cash_register.view": "عرض صندوق النقد",
+  "customers.create": "إضافة الزبائن",
+  "customers.debts.view": "عرض أرصدة الزبائن وديونهم",
+  "customers.delete": "حذف الزبائن",
+  "customers.edit": "تعديل بيانات الزبائن",
+  "customers.view": "عرض الزبائن",
+  "dashboard.view": "عرض لوحة التحكم",
+  "inventory.adjust": "تسوية المخزون وتعديل الكميات",
+  "inventory.view": "عرض المخزون",
+  "payments.manage": "إدارة تسديدات الحسابات",
+  "payments.view": "عرض المدفوعات وتسديدات الحسابات",
+  "products.create": "إضافة المنتجات",
+  "products.delete": "حذف المنتجات",
+  "products.edit": "تعديل المنتجات",
+  "products.view": "عرض المنتجات",
+  "profits.view": "عرض الأرباح",
+  "purchases.create": "إنشاء فواتير المشتريات",
+  "purchases.edit": "تعديل المشتريات",
+  "purchases.view": "عرض المشتريات",
+  "reports.view": "عرض التقارير",
+  "sales.create": "إنشاء عمليات البيع",
+  "sales.credit": "البيع بالدَّين على حساب الزبون",
+  "sales.delete": "حذف عمليات البيع",
+  "sales.discount": "تطبيق التخفيضات على الأسعار",
+  "sales.edit": "تعديل عمليات البيع",
+  "sales.price_override": "تغيير أسعار المنتجات يدويًا أثناء البيع",
+  "sales.view": "عرض عمليات البيع",
+  "sales.void": "إلغاء عملية بيع مكتملة مع تسجيل سبب الإلغاء في سجل المراجعة",
+  "settings.manage": "إدارة الإعدادات",
+  "suppliers.create": "إضافة الموردين",
+  "suppliers.debts.view": "عرض أرصدة الموردين وديونهم",
+  "suppliers.delete": "حذف الموردين",
+  "suppliers.edit": "تعديل بيانات الموردين",
+  "suppliers.view": "عرض الموردين",
+  "roles.manage": "إنشاء أدوار مخصصة وتحديد صلاحياتها",
+  "users.manage": "إدارة المستخدمين والأدوار",
+  "users.view": "عرض المستخدمين",
+};
+
+function getPermissionModuleLabel(value = "", locale = "en") {
+  if (locale === "ar") return arabicPermissionModules[value] || formatModule(value);
+  return formatModule(value);
+}
+
+function getPermissionDescription(permission, locale = "en") {
+  if (locale === "ar") return arabicPermissionDescriptions[permission.code] || permission.description || "";
+  return permission.description || "";
+}
+
 export default function SettingsPage({ locale = "en", onLocaleChange, currentUser }) {
   const t = copy[locale] || copy.en;
   const [section, setSection] = useState("business");
@@ -510,7 +579,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     </form>}
                     {isOwner && selectedRole && !ownerRoleIds.has(selectedRole.id) && <div className="settings-role-editor">
                       <div className="settings-card-heading"><ShieldCheck size={18} /><div><h4>{t.editPermissions}: {selectedRole.name}</h4><p>{t.chooseRole}</p></div><button type="button" className="settings-cancel-button" onClick={() => setSelectedRoleId("")}>{t.cancelEdit}</button></div>
-                      <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{formatModule(module)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <label className="settings-permission-row" key={permission.id}><input type="checkbox" checked={selectedPermissionCodes.includes(permission.code)} onChange={(event) => setSelectedPermissionCodes((previous) => event.target.checked ? [...new Set([...previous, permission.code])] : previous.filter((code) => code !== permission.code))} /><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{permission.description}</small></span></label>)}</div></section>)}</div>
+                      <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{getPermissionModuleLabel(module, locale)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <label className="settings-permission-row" key={permission.id}><input type="checkbox" checked={selectedPermissionCodes.includes(permission.code)} onChange={(event) => setSelectedPermissionCodes((previous) => event.target.checked ? [...new Set([...previous, permission.code])] : previous.filter((code) => code !== permission.code))} /><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{getPermissionDescription(permission, locale)}</small></span></label>)}</div></section>)}</div>
                       <div className="settings-profile-actions"><button type="button" className="settings-save-button" onClick={saveRolePermissions} disabled={savingRole}><Save size={15} />{savingRole ? t.savingRole : t.savePermissions}</button></div>
                     </div>}
                     {roleMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{roleMessage}</div>}
@@ -522,7 +591,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
               {section === "permissions" && (
                 <div className="settings-card">
                   <div className="settings-card-heading"><ShieldCheck size={18} /><div><h4>{t.accessRules}</h4><p>{t.accessRulesText}</p></div><span className="settings-count">{data.permissions.length}</span></div>
-                  <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{formatModule(module)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <div className="settings-permission-row" key={permission.id}><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{permission.description}</small></span></div>)}</div></section>)}</div>
+                  <div className="settings-permission-groups">{Object.entries(data.permissions.reduce((groups, permission) => { const key = permission.module || "other"; (groups[key] ||= []).push(permission); return groups; }, {})).map(([module, permissions]) => <section className="settings-permission-group" key={module}><div className="settings-permission-group-heading"><span>{getPermissionModuleLabel(module, locale)}</span><span>{permissions.length}</span></div><div className="settings-permission-list">{permissions.map((permission) => <div className="settings-permission-row" key={permission.id}><span className="settings-permission-icon"><CheckCircle2 size={15} /></span><span><strong>{permission.code}</strong><small>{getPermissionDescription(permission, locale)}</small></span></div>)}</div></section>)}</div>
                   {!data.permissions.length && <p className="settings-empty">{t.noPermissions}</p>}
                 </div>
               )}
