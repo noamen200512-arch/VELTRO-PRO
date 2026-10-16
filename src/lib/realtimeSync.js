@@ -43,6 +43,34 @@ let refreshAgain = false;
 const bootstrapPromises = new Map();
 const bootstrapReadyOrganizations = new Set();
 const organizationChannels = new Map();
+const activeTrackedSessions = new Map();
+
+function makeSessionId() {
+  return typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+        const random = Math.random() * 16 | 0;
+        return (char === "x" ? random : (random & 3 | 8)).toString(16);
+      });
+}
+
+/** Close this browser session in the persistent audit log before auth is cleared. */
+export async function endTrackedSession(organizationId, userId, reason = "signed_out") {
+  const tracked = activeTrackedSessions.get(String(organizationId));
+  if (!tracked || String(tracked.userId) !== String(userId) || tracked.ended) return;
+  tracked.ended = true;
+  const { error } = await supabase.from("user_session_history").update({
+    logout_at: new Date().toISOString(),
+    last_seen_at: new Date().toISOString(),
+    logout_reason: reason,
+  }).eq("session_id", tracked.sessionId).eq("user_id", String(userId));
+  if (error) {
+    tracked.ended = false;
+    console.warn("VELTRO-PRO could not record session logout:", error.message);
+    throw error;
+  }
+  activeTrackedSessions.delete(String(organizationId));
+}
 
 /** Owner-triggered organization-wide refresh; connected clients sync without approval. */
 export async function requestOrganizationSync(organizationId) {
@@ -435,7 +463,10 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
   if (!organizationId || !userId) return () => {};
 
   let stopped = false;
-  const sessionKey = `${userId}:${typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+  let sessionStarted = false;
+  const sessionId = makeSessionId();
+  const sessionKey = `${userId}:${sessionId}`;
+  const deviceLabel = `${navigator.platform || "Device"} · ${navigator.userAgent.includes("Edg/") ? "Edge" : navigator.userAgent.includes("Firefox/") ? "Firefox" : navigator.userAgent.includes("Chrome/") ? "Chrome" : "Browser"}`;
   const channel = supabase.channel(`veltro-org-sync-${organizationId}`, {
     config: { broadcast: { self: false }, presence: { key: sessionKey } },
   });
@@ -453,6 +484,7 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
         event: "revoke_session_ack",
         payload: { organizationId, userId: String(userId), receivedAt: new Date().toISOString() },
       });
+      await endTrackedSession(organizationId, userId, "ended_by_owner");
       await supabase.auth.signOut({ scope: "local" });
     } finally {
       window.location.reload();
@@ -491,29 +523,45 @@ export function startOrganizationRealtimeSync({ organizationId, userId }) {
       detail: { organizationId, status },
     }));
     if (status === "SUBSCRIBED") {
+      const now = new Date().toISOString();
       void channel.track({
         userId: String(userId),
         organizationId: String(organizationId),
-        deviceLabel: `${navigator.platform || "Device"} · ${navigator.userAgent.includes("Edg/") ? "Edge" : navigator.userAgent.includes("Firefox/") ? "Firefox" : navigator.userAgent.includes("Chrome/") ? "Chrome" : "Browser"}`,
-        connectedAt: new Date().toISOString(),
-        lastSeenAt: new Date().toISOString(),
+        deviceLabel,
+        connectedAt: now,
+        lastSeenAt: now,
       });
+      if (!sessionStarted) {
+        sessionStarted = true;
+        activeTrackedSessions.set(String(organizationId), { sessionId, userId: String(userId), ended: false });
+        void supabase.from("user_session_history").insert({
+          session_id: sessionId,
+          organization_id: organizationId,
+          user_id: String(userId),
+          login_at: now,
+          last_seen_at: now,
+          device_label: deviceLabel,
+        }).then(({ error }) => {
+          if (error) console.warn("VELTRO-PRO could not record session login:", error.message);
+        });
+      }
       void bootstrapLocalData(organizationId).finally(() => refreshOrganizationCache(organizationId));
     }
   });
 
   const presenceHeartbeat = window.setInterval(() => {
-    if (!stopped) void channel.track({
-      userId: String(userId),
-      organizationId: String(organizationId),
-      deviceLabel: `${navigator.platform || "Device"} · ${navigator.userAgent.includes("Edg/") ? "Edge" : navigator.userAgent.includes("Firefox/") ? "Firefox" : navigator.userAgent.includes("Chrome/") ? "Chrome" : "Browser"}`,
-      lastSeenAt: new Date().toISOString(),
-    });
+    if (!stopped) {
+      const lastSeenAt = new Date().toISOString();
+      void channel.track({ userId: String(userId), organizationId: String(organizationId), deviceLabel, lastSeenAt });
+      if (sessionStarted) void supabase.from("user_session_history").update({ last_seen_at: lastSeenAt })
+        .eq("session_id", sessionId).eq("user_id", String(userId)).is("logout_at", null);
+    }
   }, 30000);
 
   return () => {
     stopped = true;
     window.clearInterval(presenceHeartbeat);
+    if (!sessionStarted) activeTrackedSessions.delete(String(organizationId));
     if (refreshTimer) window.clearTimeout(refreshTimer);
     if (organizationChannels.get(organizationId) === channel) organizationChannels.delete(organizationId);
     void supabase.removeChannel(channel);
