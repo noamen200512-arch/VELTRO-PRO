@@ -76,6 +76,15 @@ export function PosKeyboardDialogs({
 
   return (
     <div className="pos-keyboard-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !["stockWarning","priceWarning"].includes(dialog)) onClose(); }}>
+      {["quantity", "price", "stockWarning", "priceWarning"].includes(dialog) && (
+        <section className="pos-keyboard-modal pos-keyboard-parent-under" aria-hidden="true" dir={locale === "ar" ? "rtl" : "ltr"}>
+          <header className="pos-keyboard-header">
+            <div className="pos-keyboard-title-icon"><Boxes size={20}/></div>
+            <div className="pos-keyboard-title-copy"><h2>{dialog === "quantity" || warningPayload?.returnTo === "quantity" ? t.editQty : dialog === "price" || warningPayload?.returnTo === "price" ? t.editPrice : t.options}</h2><p>{selectedItem?.name || ""}</p></div>
+          </header>
+          <div className="pos-keyboard-selected-product"><Package size={20}/><div><small>{t.selected}</small><strong>{selectedItem?.name || ""}</strong></div></div>
+        </section>
+      )}
       <section className={`pos-keyboard-modal ${dialog === "products" ? "pos-keyboard-products" : "pos-keyboard-compact"}`} role="dialog" aria-modal="true" aria-label={title} dir={locale === "ar" ? "rtl" : "ltr"}>
         <header className="pos-keyboard-header">
           <div className="pos-keyboard-title-icon">{dialog === "products" ? <Package size={20}/> : dialog === "quantity" ? <Calculator size={20}/> : dialog === "price" ? <Banknote size={20}/> : dialog === "options" ? <Boxes size={20}/> : <AlertTriangle size={20}/>}</div>
