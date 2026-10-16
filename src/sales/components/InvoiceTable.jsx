@@ -383,7 +383,7 @@ export function InvoiceTable({
                             `Product #${index + 1}`}
                         </span>
 
-                        {cartonSize > 1 && (
+                        {cartonSize > 1 && !(item.weighedSale || item.unitLabel === "kg") && (
                           <small className="invoice-carton-details">
                             {cartons > 0 && (
                               <span>
