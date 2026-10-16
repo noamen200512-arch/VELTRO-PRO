@@ -1352,32 +1352,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     window.print();
   };
 
-  const toggleFullscreen = async () => {
-    const page = posPageRef.current;
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-        return;
-      }
-      if (page && typeof page.requestFullscreen === "function") {
-        await page.requestFullscreen({ navigationUI: "hide" });
-      } else {
-        // Fallback for browsers without the Fullscreen API.
-        setIsFullscreen((current) => !current);
-      }
-    } catch (error) {
-      console.warn("Native fullscreen was unavailable; using app fullscreen:", error);
-      setIsFullscreen((current) => !current);
-    }
+  // Use app-level fullscreen only. Native browser fullscreen treats Escape as
+  // a forced exit, which conflicts with the POS dialogs' Escape-to-cancel behavior.
+  const toggleFullscreen = () => {
+    setIsFullscreen((current) => !current);
   };
-
-  useEffect(() => {
-    const syncFullscreenState = () => {
-      setIsFullscreen(document.fullscreenElement === posPageRef.current);
-    };
-    document.addEventListener("fullscreenchange", syncFullscreenState);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
-  }, []);
 
 
   useEffect(() => {
