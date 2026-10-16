@@ -3293,3 +3293,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+.pos-page:fullscreen .invoice-summary-details .invoice-summary-debt-row,
+.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-debt-row,
+.pos-page:fullscreen .invoice-summary-details .invoice-summary-customer,
+.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-customer,
+.pos-page:fullscreen .invoice-summary-details .invoice-summary-debt-row + .invoice-summary-row,
+.pos-page.pos-fullscreen-active .invoice-summary-details .invoice-summary-debt-row + .invoice-summary-row {
+  display: none;
+}
