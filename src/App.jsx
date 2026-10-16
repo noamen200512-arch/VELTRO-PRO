@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { ResponsiveContainer, BarChart, Bar, AreaChart, Area, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { CalendarDays, TrendingUp, RefreshCw, AlertTriangle } from "lucide-react";
+import { CalendarDays, TrendingUp, AlertTriangle } from "lucide-react";
 
 import {
   LayoutDashboard,
@@ -39,6 +39,7 @@ import Customers from "./customers/Customers.jsx";
 import SupplierDebts from "./suppliers/SupplierDebts.jsx";
 import { translatePage } from "./i18n.js";
 import SettingsPage from "./Settings.jsx";
+import SessionCenter from "./SessionCenter.jsx";
 import { supabase } from "./lib/supabase.js";
 import { startOrganizationRealtimeSync, requestOrganizationSync } from "./lib/realtimeSync.js";
 
@@ -61,7 +62,7 @@ const translations = {
  en: {},
  fr: {
  "GENERAL":"GÉNÉRAL","COMMERCE":"COMMERCE","PARTNERS":"PARTENAIRES","FINANCE & REPORTS":"FINANCES ET RAPPORTS",
- "Dashboard":"Tableau de bord","Settings":"Paramètres","Point of Sale":"Point de vente","Sales History":"Historique des ventes",
+ "Dashboard":"Tableau de bord","Settings":"Paramètres","Sync & Sessions":"Synchronisation et sessions","Point of Sale":"Point de vente","Sales History":"Historique des ventes",
  "Purchases":"Achats","Purchase History":"Historique des achats","Products":"Produits","Product List":"Liste des produits",
  "Product Purchase History":"Historique des achats par produit","Product Sales History":"Historique des ventes par produit",
  "Categories":"Catégories","Orders":"Commandes","Suppliers List":"Liste des fournisseurs","Supplier Debts":"Dettes fournisseurs",
@@ -86,7 +87,7 @@ const translations = {
  },
  ar: {
  "GENERAL":"عام","COMMERCE":"التجارة","PARTNERS":"الشركاء","FINANCE & REPORTS":"المالية والتقارير",
- "Dashboard":"لوحة التحكم","Settings":"الإعدادات","Point of Sale":"نقطة البيع","Sales History":"سجل المبيعات",
+ "Dashboard":"لوحة التحكم","Settings":"الإعدادات","Sync & Sessions":"المزامنة والجلسات","Point of Sale":"نقطة البيع","Sales History":"سجل المبيعات",
  "Purchases":"المشتريات","Purchase History":"سجل المشتريات","Products":"المنتجات","Product List":"قائمة المنتجات",
  "Product Purchase History":"سجل مشتريات المنتج","Product Sales History":"سجل مبيعات المنتج",
  "Categories":"الفئات","Orders":"الطلبات","Suppliers List":"قائمة الموردين","Supplier Debts":"ديون الموردين",
@@ -121,6 +122,7 @@ const navGroups = [
     items: [
       { label: "Dashboard", icon: LayoutDashboard },
       { label: "Settings", icon: Settings },
+      { label: "Sync & Sessions", icon: RefreshCw },
     ],
   },
   {
@@ -187,23 +189,7 @@ function Sidebar({
   onLocaleChange,
   onLogout,
   isOwner,
-  organizationId,
 }) {
-  const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
-  const handleSyncNow = async () => {
-    if (syncing) return;
-    setSyncing(true);
-    setSyncMessage("");
-    try {
-      const result = await requestOrganizationSync(organizationId);
-      setSyncMessage(`${tr(locale, "Synchronized at")} ${new Date(result.refreshedAt).toLocaleTimeString()}`);
-    } catch (error) {
-      setSyncMessage(error?.message || "Synchronization failed.");
-    } finally {
-      setSyncing(false);
-    }
-  };
   const [expanded, setExpanded] = useState({
     "Point of Sale": activePage === "Sales History",
     Purchases: activePage === "Purchases" || activePage === "Purchase History",
@@ -358,15 +344,6 @@ function Sidebar({
         </nav>
 
         <div className="sidebar-bottom">
-          {isOwner && (
-            <div className="sidebar-sync-control">
-              <button className="nav-item sidebar-sync-button" type="button" onClick={handleSyncNow} disabled={syncing} title="Synchronize all connected users in this organization">
-                <RefreshCw size={18} className={syncing ? "sync-spinning" : ""} />
-                <span>{syncing ? tr(locale, "Synchronizing…") : tr(locale, "Sync now")}</span>
-              </button>
-              {syncMessage && <div className="sidebar-sync-message" role="status">{syncMessage}</div>}
-            </div>
-          )}
           <div className="sidebar-language">
             <div className="sidebar-language-title"><Languages size={15} /><span>{tr(locale, "Language")}</span></div>
             <div className="sidebar-language-options" role="group" aria-label={tr(locale, "Language")}>
@@ -731,6 +708,7 @@ const pagePermissionOptions = {
   Customers: ["customers.view", "customers.create", "customers.edit", "customers.delete"],
   "Cash Register": ["cash_register.view", "cash_register.manage", "cash_register.open_drawer", "cash_register.close"],
   Reports: ["reports.view", "profits.view"],
+  "Sync & Sessions": [],
 };
 
 export default function App({ onLogout, currentUser }) {
@@ -920,7 +898,6 @@ export default function App({ onLogout, currentUser }) {
           canAccessPage={canAccessPage}
           onLogout={onLogout}
           isOwner={Boolean(workspaceAccess.profile?.is_owner)}
-          organizationId={workspaceAccess.profile?.organization_id}
           mobileOpen={mobileOpen}
           onClose={() => setMobileOpen(false)}
         />
@@ -949,6 +926,8 @@ export default function App({ onLogout, currentUser }) {
         <div className="page-content">
           {activePage === "Settings" ? (
             <SettingsPage locale={locale} onLocaleChange={setLocale} currentUser={workspaceUser} />
+          ) : activePage === "Sync & Sessions" && workspaceAccess.profile?.is_owner ? (
+            <SessionCenter locale={locale} organizationId={workspaceAccess.profile?.organization_id} currentUser={workspaceUser} />
           ) : activePage === "Dashboard" ? (
             <Dashboard onNavigate={navigateToPage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
