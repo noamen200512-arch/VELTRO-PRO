@@ -4011,3 +4011,105 @@
     right: 8px;
   }
 }
+
+
+/* Keep the undo notification inside Invoice Items; it must not push the table down. */
+.pos-page .invoice-table-section {
+  position: relative;
+}
+
+.pos-page .invoice-table-section .invoice-remove-notice {
+  position: absolute;
+  z-index: 12;
+  top: 54px;
+  left: 12px;
+  right: 12px;
+  margin: 0 !important;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(8px);
+}
+
+@media (min-width: 761px) {
+  .pos-page:fullscreen .invoice-table-section .invoice-remove-notice,
+  .pos-page.pos-fullscreen-active .invoice-table-section .invoice-remove-notice {
+    top: 48px;
+  }
+}
+
+/* Responsive safety: preserve the compact layout at normal heights, but allow
+   the page to scroll on short viewports so no card or control is clipped away. */
+@media (max-height: 760px) and (min-width: 761px) {
+  .pos-page:fullscreen,
+  .pos-page.pos-fullscreen-active {
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    grid-template-rows: minmax(220px, auto) minmax(160px, auto) minmax(100px, auto) !important;
+  }
+
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry {
+    min-height: 220px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .pos-page:fullscreen .invoice-summary,
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section:first-child,
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:first-child {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen,
+  .pos-page.pos-fullscreen-active {
+    min-height: 100dvh;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+  }
+
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    grid-template-rows: auto !important;
+  }
+
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-summary,
+  .pos-page.pos-fullscreen-active .invoice-summary {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .pos-page:fullscreen .invoice-table-section .invoice-remove-notice,
+  .pos-page.pos-fullscreen-active .invoice-table-section .invoice-remove-notice {
+    top: 48px;
+    left: 8px;
+    right: 8px;
+    max-width: calc(100% - 16px);
+  }
+}
