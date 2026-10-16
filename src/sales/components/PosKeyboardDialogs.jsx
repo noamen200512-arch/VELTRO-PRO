@@ -86,7 +86,7 @@ export function PosKeyboardDialogs({
       setKeypadReplace(false);
       return;
     }
-    if (key === "." && type === "quantity") return;
+    if (key === "." && type === "quantity" && !(selectedItem?.weighedSale || selectedItem?.unitLabel)) return;
     if (key === "." && !keypadReplace && current.includes(".")) return;
     setter(keypadReplace ? (key === "." ? "0." : key) : (current === "0" && key !== "." ? key : current + key));
     setKeypadReplace(false);
@@ -147,7 +147,10 @@ export function PosKeyboardDialogs({
             <div className="pos-keyboard-comparison-row"><span><small>{t.currentPrice}</small><strong>{moneyFormat(currentPrice)}</strong></span><span><small>{t.newPrice}</small><strong>{moneyFormat(previewPrice)}</strong></span></div>
             <div className="pos-keyboard-comparison-total"><span>{t.lineTotal}</span><strong>{moneyFormat(currentQty * currentPrice)} <ChevronRight size={14}/> {moneyFormat(previewQty * previewPrice)}</strong></div>
           </div>
-          <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => { (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, "")); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
+          {dialog === "quantity" && (selectedItem?.weighedSale || selectedItem?.unitLabel) ? <>
+            <label>{locale === "ar" ? "الكمية / الوزن" : locale === "fr" ? "Quantité / mesure" : "Quantity / measurement"}<input autoFocus type="text" inputMode="decimal" value={quantityDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setQuantityDraft(next); const q = Number(next.replace(",", ".")); if (Number.isFinite(q)) setPriceDraft(String((q * currentPrice).toFixed(2))); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
+            <label>{locale === "ar" ? "المبلغ (دج)" : locale === "fr" ? "Montant (DA)" : "Amount (DA)"}<input type="text" inputMode="decimal" value={priceDraft} onChange={(e) => { const next = e.target.value.replace(/[^0-9.,]/g, ""); setPriceDraft(next); const amount = Number(next.replace(",", ".")); if (Number.isFinite(amount) && currentPrice > 0) setQuantityDraft(String(Number((amount / currentPrice).toFixed(3)))); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>
+          </> : <label>{dialog === "quantity" ? t.qty : t.price}<input autoFocus type="text" inputMode={dialog === "quantity" ? "numeric" : "decimal"} value={dialog === "quantity" ? quantityDraft : priceDraft} onChange={(e) => { (dialog === "quantity" ? setQuantityDraft : setPriceDraft)(e.target.value.replace(dialog === "quantity" ? /[^0-9]/g : /[^0-9.,]/g, "")); setKeypadReplace(false); }} onFocus={(e) => { e.currentTarget.select(); setKeypadReplace(true); }}/></label>}
           <div className="pos-keyboard-keypad"><span>{t.keypad}</span><div>{keyButtons.map((key) => <button type="button" key={key} onClick={() => pushKey(key, dialog)}>{key}</button>)}</div></div>
           <footer className="pos-keyboard-footer"><span>{t.enter} · {t.esc}</span><button type="button" className="primary" onClick={() => dialog === "quantity" ? onApplyQuantity(quantityDraft) : onApplyPrice(priceDraft)}><Check size={15}/>{t.confirm}</button></footer>
         </div>}
