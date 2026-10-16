@@ -1105,23 +1105,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         disabled={busy}
       />
 
-      {message && (
-        <div
-          className={`pos-message pos-message-${messageType}`}
-          role="status"
-        >
-          <span>{message}</span>
-
-          <button
-            type="button"
-            onClick={() => setMessage("")}
-            aria-label="Dismiss"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
       {showEmptyWarning && (
         <div className="pos-empty-warning" role="alert">
           <div>
