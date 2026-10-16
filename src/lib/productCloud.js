@@ -19,7 +19,7 @@ pieces_per_carton: Math.max(
 1,
 Number(product.piecesPerCarton || 1)
 ),
-stock: Math.max(0, Number(product.stock || 0)),
+stock: Number(product.stock || 0),
 min_stock: Math.max(0, Number(product.minStock || 0)),
 unit: String(product.unit || "piece"),
 image: String(product.image || ""),
