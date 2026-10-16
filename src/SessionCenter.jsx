@@ -106,10 +106,10 @@ export default function SessionCenter({ locale = "en", organizationId, currentUs
       const userId = String(message?.payload?.userId || "");
       if (!userId) return;
       setSessionStatus((previous) => ({ ...previous, [userId]: "acknowledged" }));
-      addEvent("success", (locale === "ar" ? "تأكيد تسجيل الخروج للحساب: " : locale === "fr" ? "Déconnexion confirmée pour le compte : " : "Sign-out confirmed for account: ") + userId.slice(0,8));
+      addEvent("notice", (locale === "ar" ? "استلم الجهاز طلب إنهاء الجلسة للحساب: " : locale === "fr" ? "Demande de déconnexion reçue par l’appareil : " : "Device acknowledged the sign-out request for account: ") + userId.slice(0,8));
     });
     channel.subscribe((status) => { if (status === "SUBSCRIBED") updatePresence(); });
-    const timer = window.setInterval(updatePresence, 10000);
+    const timer = window.setInterval(updatePresence, 1000);
     const onSync = (event) => {
       if (event.detail?.organizationId !== organizationId) return;
       setLastSync(event.detail.refreshedAt || new Date().toISOString());
