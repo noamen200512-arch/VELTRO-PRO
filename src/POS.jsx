@@ -1583,7 +1583,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         }
         setSelectedPendingIndex(0);setShowPending(true);return;
       }
-      if(e.key==="F10"){stop();setProductPickerSearch("");setProductPickerPage(1);setSelectedProductIndex(0);setKeyboardDialog("favorites");return;}
+      if(e.key==="F10"){stop();setQuickSaleDialog("favorites");return;}
       if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
     };
     document.addEventListener("keydown",handler,true);
@@ -2148,6 +2148,34 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         onCancelWarning={cancelKeyboardWarning}
       />
 
+      <PosQuickSaleDialogs
+        dialog={quickSaleDialog}
+        locale={locale}
+        products={getProducts()}
+        favoriteIds={favoriteProductIds}
+        weighedIds={weighedProductIds}
+        categoriesByProduct={weighedCategories}
+        categories={weighedCategoryList}
+        poundGrams={poundGrams}
+        onClose={() => setQuickSaleDialog(null)}
+        onAddProduct={(product) => { setQuickSaleDialog(null); addProduct(product); }}
+        onToggleFavorite={toggleFavoriteProduct}
+        onSaveSettings={(settings) => {
+          setFavoriteProductIds(settings.favoriteIds);
+          setWeighedProductIds(settings.weighedIds);
+          setWeighedCategories(settings.categoriesByProduct);
+          setWeighedCategoryList(settings.categories);
+          setPoundGrams(settings.poundGrams);
+          try {
+            localStorage.setItem("veltro_pos_favorite_products", JSON.stringify(settings.favoriteIds));
+            localStorage.setItem("veltro_pos_weighed_products", JSON.stringify(settings.weighedIds));
+            localStorage.setItem("veltro_pos_weighed_categories", JSON.stringify(settings.categoriesByProduct));
+            localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(settings.categories));
+            localStorage.setItem("veltro_pos_pound_grams", String(settings.poundGrams));
+          } catch (error) { console.warn("Could not save quick-sale settings:", error); }
+        }}
+      />
+
       <div className="sales-layout">
         <SalesSidebar
           invoiceNumber={invoice.invoiceNumber}
@@ -2171,6 +2199,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         />
 
         <main className="sales-workspace">
+          <div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
+            <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
+            <button type="button" className="pos-quick-launch-weigh" onClick={() => setQuickSaleDialog("weigh")}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
+            <button type="button" className="pos-quick-launch-settings" onClick={() => setQuickSaleDialog("settings")} title={locale === "ar" ? "إعدادات البيع السريع" : locale === "fr" ? "Réglages de vente rapide" : "Quick-sale settings"}><Settings2 size={18}/></button>
+          </div>
           <ProductEntry
             onAddProduct={addProduct}
             onAddCarton={addCarton}
