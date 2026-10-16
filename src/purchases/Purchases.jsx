@@ -7,6 +7,7 @@ import {
   UserRound, Hash, Clock3, ListFilter
 } from "lucide-react";
 import { getProducts, saveProducts, createProductId } from "../productStore.js";
+import { loadProductsFromCloud } from "../lib/productCloud.js";
 import { saveProductsToCloud } from "../lib/productCloud.js";
 import { saveSuppliersToCloud } from "../lib/supplierCloud.js";
 import { savePurchaseInvoiceToCloud } from "../lib/purchaseCloud.js";
@@ -932,6 +933,33 @@ export default function Purchases({ currentUser = null, view = "dashboard" }) {
   const [products, setProducts] = useState(() => getProducts());
   const [invoices, setInvoices] = useState(() => getPurchaseInvoices());
   const [suppliers, setSuppliers] = useState(() => getPurchaseSuppliers());
+
+  useEffect(() => {
+    let active = true;
+
+    async function syncCloudProducts() {
+      try {
+        const cloudProducts = await loadProductsFromCloud(getProducts());
+        if (!active) return;
+
+        if (!saveProducts(cloudProducts)) {
+          throw new Error("Could not update the local product cache.");
+        }
+
+        setProducts(cloudProducts);
+      } catch (error) {
+        if (active) {
+          console.warn("Purchase inventory cloud load unavailable; keeping local products:", error);
+        }
+      }
+    }
+
+    syncCloudProducts();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showInvoice, setShowInvoice] = useState(false);
