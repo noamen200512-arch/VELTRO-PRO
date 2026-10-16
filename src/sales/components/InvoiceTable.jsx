@@ -378,9 +378,9 @@ export function InvoiceTable({
                         </strong>
 
                         <span>
-                          {item.sku ||
-                            item.id ||
-                            `Product #${index + 1}`}
+                          {item.sku || item.id || `Product #${index + 1}`}
+                          {(item.weighedSale || item.unitLabel === "kg") && ` · ${locale === "ar" ? "بالكيلوغرام" : locale === "fr" ? "au kg" : "per kg"}`}
+                          {item.weighedCategory ? ` · ${item.weighedCategory}` : ""}
                         </span>
 
                         {cartonSize > 1 && !(item.weighedSale || item.unitLabel === "kg") && (
