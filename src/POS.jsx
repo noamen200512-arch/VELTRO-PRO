@@ -1477,8 +1477,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 <ReceiptText size={21} />
               </div>
               <div className="pending-invoices-heading-copy">
-                <h2 id="pending-invoices-title">Pending Invoices</h2>
-                <p>Choose a saved invoice to continue working on it.</p>
+                <h2 id="pending-invoices-title">{locale === "ar" ? "البونات المعلّقة" : locale === "fr" ? "Factures en attente" : "Pending Invoices"}</h2>
+                <p>{locale === "ar" ? "اختر بونًا محفوظًا لمواصلة العمل عليه." : locale === "fr" ? "Choisissez une facture enregistrée pour continuer." : "Choose a saved invoice to continue working on it."}</p>
               </div>
               <span className="pending-invoices-count">{pendingInvoices.length}</span>
               <button
@@ -1494,14 +1494,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             {pendingInvoices.length === 0 ? (
               <div className="pending-invoices-empty">
                 <span className="pending-invoices-empty-icon"><ClipboardList size={25} /></span>
-                <strong>No pending invoices yet</strong>
-                <p>Invoices saved for later will appear here.</p>
+                <strong>{locale === "ar" ? "لا توجد بونات معلّقة" : locale === "fr" ? "Aucune facture en attente" : "No pending invoices yet"}</strong>
+                <p>{locale === "ar" ? "ستظهر هنا الفواتير المحفوظة لاحقًا." : locale === "fr" ? "Les factures enregistrées apparaîtront ici." : "Invoices saved for later will appear here."}</p>
               </div>
             ) : (
               <div className="pending-invoices-table-wrap">
                 <div className="pending-invoices-list-heading">
-                  <span>INVOICE DETAILS</span>
-                  <span>AMOUNT</span>
+                  <span>{locale === "ar" ? "تفاصيل البون" : locale === "fr" ? "DÉTAILS DE LA FACTURE" : "INVOICE DETAILS"}</span>
+                  <span>{locale === "ar" ? "المبلغ" : locale === "fr" ? "MONTANT" : "AMOUNT"}</span>
                 </div>
                 <div className="pending-invoices-list">
                   {pendingInvoices.map((pending) => {
@@ -1544,7 +1544,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </div>
             )}
             <footer className="pending-invoices-modal-footer">
-              <span>{pendingInvoices.length} saved invoice{pendingInvoices.length === 1 ? "" : "s"}</span>
+              <span>{locale === "ar" ? `${pendingInvoices.length} بون محفوظ` : locale === "fr" ? `${pendingInvoices.length} facture(s) enregistrée(s)` : `${pendingInvoices.length} saved invoice${pendingInvoices.length === 1 ? "" : "s"}`}</span>
               <button type="button" onClick={() => setShowPending(false)}>Close</button>
             </footer>
           </section>
@@ -1697,8 +1697,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <header className="customer-picker-header">
               <div className="customer-picker-heading-icon"><Users size={21} /></div>
               <div className="customer-picker-heading-copy">
-                <h2 id="customer-picker-title">Select customer</h2>
-                <p>Search by name, phone number, customer ID or reference.</p>
+                <h2 id="customer-picker-title">{locale === "ar" ? "اختيار زبون" : locale === "fr" ? "Choisir un client" : "Select customer"}</h2>
+                <p>{locale === "ar" ? "ابحث بالاسم أو رقم الهاتف أو معرف الزبون أو المرجع." : locale === "fr" ? "Rechercher par nom, téléphone, identifiant ou référence." : "Search by name, phone number, customer ID or reference."}</p>
               </div>
               <button type="button" className="customer-picker-close" onClick={() => setShowCustomerPicker(false)} aria-label="Close customer selection">
                 <X size={19} />
@@ -1711,8 +1711,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 autoFocus
                 value={customerSearch}
                 onChange={(event) => setCustomerSearch(event.target.value)}
-                placeholder="Name, phone, ID or reference..."
-                aria-label="Search customers"
+                placeholder={locale === "ar" ? "الاسم أو الهاتف أو المعرف أو المرجع..." : locale === "fr" ? "Nom, téléphone, identifiant ou référence..." : "Name, phone, ID or reference..."}
+                aria-label={locale === "ar" ? "البحث عن الزبائن" : locale === "fr" ? "Rechercher des clients" : "Search customers"}
               />
               {customerSearch && (
                 <button type="button" onClick={() => setCustomerSearch("")} aria-label="Clear search"><X size={15} /></button>
@@ -1723,14 +1723,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               <span className="customer-picker-avatar anonymous"><UserRound size={18} /></span>
               <span className="customer-picker-record-copy">
                 <strong>Anonyme</strong>
-                <small>Walk-in customer · No customer debt tracking</small>
+                <small>{locale === "ar" ? "زبون عابر · دون متابعة ديون" : locale === "fr" ? "Client de passage · sans suivi de dette" : "Walk-in customer · No customer debt tracking"}</small>
               </span>
               {String(customer).toLowerCase() === "anonyme" && <Check size={18} />}
             </button>
 
             <div className="customer-picker-list-heading">
-              <span>Customer list</span>
-              <span>{filteredCustomerRecords.length} {filteredCustomerRecords.length === 1 ? "customer" : "customers"}</span>
+              <span>{locale === "ar" ? "قائمة الزبائن" : locale === "fr" ? "Liste des clients" : "Customer list"}</span>
+              <span>{filteredCustomerRecords.length} {locale === "ar" ? "زبون" : locale === "fr" ? "client(s)" : filteredCustomerRecords.length === 1 ? "customer" : "customers"}</span>
             </div>
 
             <div className="customer-picker-list">
@@ -1754,14 +1754,14 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               }) : (
                 <div className="customer-picker-empty">
                   <span className="customer-picker-empty-icon"><UserRoundPlus size={23} /></span>
-                  <strong>{customerSearch ? "No matching customers" : "No saved customers yet"}</strong>
-                  <p>{customerSearch ? "Try another name, phone number, ID or reference." : "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale."}</p>
+                  <strong>{customerSearch ? (locale === "ar" ? "لا يوجد زبائن مطابقون" : locale === "fr" ? "Aucun client correspondant" : "No matching customers") : (locale === "ar" ? "لا يوجد زبائن محفوظون بعد" : locale === "fr" ? "Aucun client enregistré" : "No saved customers yet")}</strong>
+                  <p>{customerSearch ? (locale === "ar" ? "جرّب اسمًا أو هاتفًا أو معرفًا أو مرجعًا آخر." : locale === "fr" ? "Essayez un autre nom, numéro, identifiant ou référence." : "Try another name, phone number, ID or reference.") : (locale === "ar" ? "ستظهر هنا زبائن الفواتير السابقة. يمكنك استعمال Anonyme للبيع السريع." : locale === "fr" ? "Les clients des factures précédentes apparaîtront ici. Anonyme reste disponible pour une vente rapide." : "Customers from previous invoices will appear here. You can still use Anonyme for a quick sale.")}</p>
                 </div>
               )}
             </div>
 
             <footer className="customer-picker-footer">
-              <span><Users size={14} /> Choose a customer to link this invoice to their account.</span>
+              <span><Users size={14} /> {locale === "ar" ? "اختر زبونًا لربط الفاتورة بحسابه." : locale === "fr" ? "Choisissez un client pour associer la facture à son compte." : "Choose a customer to link this invoice to their account."}</span>
               <button type="button" onClick={() => setShowCustomerPicker(false)}>Cancel</button>
             </footer>
           </section>
