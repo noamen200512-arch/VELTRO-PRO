@@ -3607,3 +3607,190 @@
     gap: 8px;
   }
 }
+
+
+/* Stable full-screen checkout geometry:
+   keep the top row (product entry + invoice summary) fixed when the inventory
+   list is toggled, and let invoice items fill the remaining viewport below. */
+.pos-page:fullscreen .sales-layout,
+.pos-page.pos-fullscreen-active .sales-layout {
+  height: calc(100dvh - 104px) !important;
+  min-height: 520px !important;
+  max-height: calc(100dvh - 104px) !important;
+  grid-template-rows: minmax(245px, 34dvh) minmax(0, 1fr) minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  overflow: hidden;
+}
+
+.pos-page:fullscreen .product-entry,
+.pos-page.pos-fullscreen-active .product-entry {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  align-self: stretch !important;
+  overflow: hidden !important;
+}
+
+.pos-page:fullscreen .invoice-summary,
+.pos-page.pos-fullscreen-active .invoice-summary {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  align-self: stretch !important;
+  overflow-y: auto;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(1),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(1) {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  min-height: 0;
+  overflow: auto;
+}
+
+.pos-page:fullscreen .sales-sidebar > .sales-side-section:nth-child(2),
+.pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section:nth-child(2) {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+  min-height: 0;
+  overflow: auto;
+}
+
+.pos-page:fullscreen .invoice-table-section,
+.pos-page.pos-fullscreen-active .invoice-table-section {
+  grid-column: 2 !important;
+  grid-row: 2 / 4 !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  align-self: stretch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.pos-page:fullscreen .invoice-table-scroll,
+.pos-page.pos-fullscreen-active .invoice-table-scroll {
+  flex: 1 1 0 !important;
+  height: 0;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+/* Collapsing the product list must not resize any checkout card. */
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))),
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) {
+  height: calc(100dvh - 104px) !important;
+  min-height: 520px !important;
+  max-height: calc(100dvh - 104px) !important;
+  grid-template-rows: minmax(245px, 34dvh) minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .product-entry,
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .product-entry {
+  height: 100% !important;
+  max-height: 100% !important;
+  align-self: stretch !important;
+}
+
+.pos-page:fullscreen .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-section,
+.pos-page.pos-fullscreen-active .sales-layout:has(.product-entry:not(:has(.product-inventory-list))) .invoice-table-section {
+  grid-row: 2 / 4 !important;
+  height: 100% !important;
+}
+
+@media (max-width: 760px) {
+  .pos-page:fullscreen .sales-layout,
+  .pos-page.pos-fullscreen-active .sales-layout {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    grid-template-rows: auto !important;
+    overflow: visible;
+  }
+
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .invoice-summary,
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-table-section {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .pos-page:fullscreen .invoice-table-scroll,
+  .pos-page.pos-fullscreen-active .invoice-table-scroll {
+    height: auto;
+    min-height: 120px !important;
+    max-height: 42vh !important;
+  }
+}
+
+/* Desktop input arrangement: heading and barcode share one line; search
+   occupies the next line. Camera scanning is hidden only on desktop. */
+@media (min-width: 761px) {
+  .pos-page .product-entry-header {
+    display: grid !important;
+    grid-template-columns: minmax(145px, 0.65fr) minmax(0, 1.35fr) !important;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .pos-page .product-entry-heading-copy {
+    min-width: 0;
+  }
+
+  .pos-page .product-entry-header .product-camera-button {
+    display: none !important;
+  }
+
+  .pos-page .product-entry-inline-barcode {
+    display: flex;
+    min-width: 0;
+    width: 100%;
+    height: 40px;
+    min-height: 40px;
+    margin: 0;
+    padding: 0 8px;
+    gap: 7px;
+  }
+
+  .pos-page .product-entry-inline-barcode input {
+    min-width: 0;
+    min-height: 36px;
+    padding: 5px 0;
+    font-size: 12px;
+  }
+
+  .pos-page .product-entry-inline-barcode .product-add-button {
+    flex-shrink: 0;
+    min-height: 29px;
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .pos-page .product-entry-fields {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    margin-top: 0;
+  }
+
+  .pos-page .product-search-field {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .pos-page .product-search-field .product-input-wrapper,
+  .pos-page .product-search-field input {
+    min-width: 0;
+  }
+}
