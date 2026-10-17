@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Boxes,
   AlertTriangle,
+  RefreshCw,
 } from "lucide-react";
 
 import { getProducts, saveProducts } from "../../productStore.js";
@@ -62,6 +63,7 @@ export function ProductEntry({
   quickActions = null,
   selectedProductInfo = null,
   statusCards = null,
+  isFullscreen = false,
 }) {
   const [products, setProducts] = useState([]);
   const [barcode, setBarcode] = useState("");
@@ -715,6 +717,17 @@ export function ProductEntry({
         </div>
 
         <div className="product-entry-footer-actions">
+          {!isFullscreen && (
+            <button
+              type="button"
+              className="product-show-button"
+              onClick={() => loadProducts(true)}
+              title="Refresh inventory"
+            >
+              <RefreshCw size={15} />
+              <span>Refresh</span>
+            </button>
+          )}
           <button
             type="button"
             className="product-show-button product-toggle-button"
