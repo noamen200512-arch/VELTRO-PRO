@@ -6728,23 +6728,81 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   }
 }
 
-/* Keep invoice information visible in the side card without its own scrolling pane. */
+/* Stop the invoice/account side panel from creating a vertical scroll area.
+   Keep both sections inside the existing POS card. */
 @media screen and (min-width: 761px) {
   .pos-page .pos-product-info-card > .sales-sidebar,
   .pos-page:fullscreen .pos-product-info-card > .sales-sidebar,
-  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar {
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar,
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar {
     overflow: hidden !important;
+    overflow-x: hidden !important;
     overflow-y: hidden !important;
     overscroll-behavior: none !important;
     scrollbar-width: none !important;
+    min-height: 0 !important;
   }
 
   .pos-page .pos-product-info-card > .sales-sidebar::-webkit-scrollbar,
   .pos-page:fullscreen .pos-product-info-card > .sales-sidebar::-webkit-scrollbar,
-  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar::-webkit-scrollbar {
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar::-webkit-scrollbar,
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar::-webkit-scrollbar,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
   }
-}
 
+  .pos-page .pos-product-info-card .sales-sidebar {
+    gap: 6px !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-side-section {
+    padding: 8px !important;
+    flex: 0 0 auto !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-section-heading {
+    margin-bottom: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-info-card {
+    padding: 6px 7px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-invoice-navigation {
+    gap: 4px !important;
+    margin: 4px 0 6px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-invoice-nav-button {
+    min-height: 28px !important;
+    padding: 5px 4px !important;
+    font-size: 9px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-account-card {
+    padding: 6px !important;
+    margin: 4px 0 !important;
+    gap: 2px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-account-row {
+    padding: 4px 0 !important;
+    font-size: 10px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-account-row > strong {
+    font-size: 10px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-input {
+    min-height: 30px !important;
+    padding: 5px 7px !important;
+  }
+}
