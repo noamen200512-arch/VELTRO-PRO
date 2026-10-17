@@ -1616,6 +1616,19 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         navigateClosedInvoice(e.key === "ArrowLeft" ? "previous" : "next");
         return;
       }
+      // Left/right arrows navigate pending invoices when the user is not editing text.
+      if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && !(
+        target instanceof HTMLElement &&
+        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+      )) {
+        const destination = e.key === "ArrowLeft" ? previousInvoice : nextInvoice;
+        if (destination) {
+          stop();
+          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          openPendingInvoice(destination.id);
+          return;
+        }
+      }
       if(e.key==="F1"){stop();createNewInvoice();return;}
       if(e.key==="F2"){stop();if(isReviewingClosedInvoice && selectedClosedInvoice){setShowEditInvoiceConfirm(true);}else{notify(locale==="ar"?"اختر بونًا مغلقًا بالأسهم أولًا لتعديله.":locale==="fr"?"Sélectionnez d’abord une facture clôturée avec les flèches.":"Select a closed invoice with the arrows first to edit it.","info");}return;}
       if(e.key==="F3"){stop();openQuantityEditor();return;}
@@ -1653,6 +1666,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
+          onPreviousInvoice={previousInvoice ? () => openPendingInvoice(previousInvoice.id) : undefined}
+          onNextInvoice={nextInvoice ? () => openPendingInvoice(nextInvoice.id) : undefined}
+          previousInvoiceDisabled={!previousInvoice || busy}
+          nextInvoiceDisabled={!nextInvoice || busy}
           onPending={() => {
             if (closedInvoiceMode === "review") {
               // Leave read-only closed-invoice browsing before opening pending invoices.
