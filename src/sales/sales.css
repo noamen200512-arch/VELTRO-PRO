@@ -6095,3 +6095,198 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-template-rows: minmax(0, 1fr) !important;
   }
 }
+
+
+/* Unified POS control card: product controls on the left, user/server and
+   invoice details on the right. Keep the existing invoice and account logic. */
+@media screen and (min-width: 761px) {
+  .pos-page .sales-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    min-width: 0 !important;
+  }
+
+  .pos-page .pos-invoice-column {
+    display: grid !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: max-content minmax(280px, 1fr) !important;
+    gap: 9px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .pos-page .pos-entry-column {
+    display: grid !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .pos-page .pos-product-info-card {
+    display: grid !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(210px, .85fr) !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    border: 1px solid var(--sales-border, rgba(148, 163, 184, .18)) !important;
+    border-radius: 14px !important;
+    background: var(--sales-panel, #101725) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16) !important;
+  }
+
+  .pos-page .pos-product-info-card > .product-entry,
+  .pos-page .pos-product-info-card > .sales-sidebar {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    overflow: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .pos-page .pos-product-info-card > .sales-sidebar {
+    border-inline-start: 1px solid rgba(148, 163, 184, .18) !important;
+    gap: 10px !important;
+  }
+
+  .pos-page .pos-product-info-card .product-entry-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .pos-page .pos-product-info-card .product-entry-heading-copy {
+    display: none !important;
+  }
+
+  .pos-page .pos-product-info-card .product-entry-inline-barcode {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  .pos-page .pos-product-info-card .product-camera-button {
+    justify-self: start !important;
+  }
+
+  .pos-page .pos-product-info-card .pos-selected-product-preview {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-top: 8px !important;
+  }
+
+  .pos-page .pos-product-info-card .product-entry-quick-actions {
+    margin-top: 8px !important;
+  }
+
+  .pos-page .pos-unified-status-cards .pos-heading-status-cards {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    justify-content: stretch !important;
+    gap: 7px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .pos-page .pos-unified-status-cards .pos-user-status-card,
+  .pos-page .pos-unified-status-cards .pos-server-status-card {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    padding: 7px 9px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-side-section {
+    padding-bottom: 10px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-section-heading {
+    margin-bottom: 9px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-info-card {
+    padding: 8px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .pos-page .pos-product-info-card .sales-sidebar .sales-account-card {
+    gap: 8px !important;
+    padding: 9px !important;
+    margin: 9px 0 !important;
+  }
+}
+
+/* Fullscreen uses the same unified card and keeps the rest of the POS grid. */
+@media screen and (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    height: 0 !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-product-info-card,
+  .pos-page:fullscreen .pos-product-info-card {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column,
+  .pos-page:fullscreen .pos-entry-column {
+    grid-template-rows: minmax(0, 1fr) !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+/* On narrow screens, keep the unified card readable as a vertical stack. */
+@media screen and (max-width: 760px) {
+  .pos-page .pos-product-info-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    border: 1px solid var(--sales-border, rgba(148, 163, 184, .18)) !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    background: var(--sales-panel, #101725) !important;
+  }
+
+  .pos-page .pos-product-info-card > .product-entry,
+  .pos-page .pos-product-info-card > .sales-sidebar {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .pos-page .pos-product-info-card > .sales-sidebar {
+    border-top: 1px solid rgba(148, 163, 184, .18) !important;
+  }
+}
