@@ -1189,6 +1189,20 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setShowCustomerPicker(false);
   };
 
+  const invoiceNavigationList = [...pendingInvoices].sort((a, b) => {
+    const aTime = new Date(a.createdAt || a.updatedAt || 0).getTime();
+    const bTime = new Date(b.createdAt || b.updatedAt || 0).getTime();
+    return aTime - bTime;
+  });
+  const currentNavigationIndex = invoiceNavigationList.findIndex((row) => row.id === invoice.id);
+  const currentInvoiceTime = new Date(invoice.createdAt || 0).getTime();
+  const previousInvoice = currentNavigationIndex >= 0
+    ? invoiceNavigationList[currentNavigationIndex - 1] || null
+    : [...invoiceNavigationList].reverse().find((row) => new Date(row.createdAt || row.updatedAt || 0).getTime() < currentInvoiceTime) || null;
+  const nextInvoice = currentNavigationIndex >= 0
+    ? invoiceNavigationList[currentNavigationIndex + 1] || null
+    : invoiceNavigationList.find((row) => new Date(row.createdAt || row.updatedAt || 0).getTime() > currentInvoiceTime) || null;
+
   const filteredCustomerRecords = customerRecords.filter((record) => {
     const query = customerSearch.trim().toLocaleLowerCase();
     if (!query) return true;
@@ -2402,6 +2416,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </div>
             }
               invoiceNumber={invoice.invoiceNumber}
+              onPreviousInvoice={previousInvoice ? () => openPendingInvoice(previousInvoice.id) : null}
+              onNextInvoice={nextInvoice ? () => openPendingInvoice(nextInvoice.id) : null}
+              previousInvoiceNumber={previousInvoice?.invoiceNumber || ""}
+              nextInvoiceNumber={nextInvoice?.invoiceNumber || ""}
+              pendingInvoiceCount={pendingInvoices.length}
               customer={customer}
               customerReference={isAnonymousCustomer ? "" : String(invoice.customerId || "")}
               locale={locale}
