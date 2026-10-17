@@ -42,7 +42,7 @@ const idOf = (p) => String(p?.id ?? p?.productId ?? p?.sku ?? "");
 const priceOf = (p) => Number(p?.price ?? p?.retailPrice ?? p?.sellingPrice ?? 0) || 0;
 
 export default function PosQuickSaleDialogs({
-  dialog, locale = "en", products = [], favoriteIds = [], weighedIds = [], weighedLayout = [], categoriesByProduct = {},
+  dialog, locale = "en", products = [], favoriteIds = [], weighedIds = [], weighedLayout = [], weighedSlots = [], categoriesByProduct = {},
   categories = ["Nuts", "Grains", "Spices", "Other"], visibleWeighedCategories = categories, poundGrams = 500,
   onClose = () => {}, onAddProduct = () => {}, onToggleFavorite = () => {},
   onSaveSettings = () => {}
@@ -116,8 +116,6 @@ export default function PosQuickSaleDialogs({
   const measureLabel = ({ kg: "kg", g: "g", liter: "L", ml: "ml", meter: "m", cm: "cm" })[measureUnit] || measureUnit;
   const computedWeight = mode === "amount" ? (unitPrice > 0 ? (Number(String(amount).replace(",", ".")) || 0) / unitPrice : 0) : (Number(String(weight).replace(",", ".")) || 0);
   const computedAmount = selected ? unitPrice * computedWeight : 0;
-  if (!dialog) return null;
-
   const resetAndClose = () => { setSearch(""); setCategoryFilter("all"); setSelectedId(""); setShowWeighEntry(false); onClose(); };
   const keypad = (key, setter, current) => {
     if (key === "⌫") setter(replaceInput ? "" : String(current).slice(0, -1));
@@ -155,14 +153,36 @@ export default function PosQuickSaleDialogs({
   const keypadButtons = (setter, current) => <div className="pos-quick-keypad" aria-label={t.enter}>
     {["1","2","3","4","5","6","7","8","9","⌫","0",".","C"].map((key) => <button type="button" key={key} onClick={() => keypad(key, setter, current)}>{key}</button>)}
   </div>;
-  const productTiles = <div className="pos-quick-tiles">
-    {orderedProducts.map((p) => <button type="button" key={idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
-      <span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
+  const visibleTileProducts = dialog === "weigh"
+    ? Array.from({ length: 9 }, (_, index) => orderedProducts.find((product) => idOf(product) === String(weighedSlots[index] || "")) || null)
+    : orderedProducts;
+  useEffect(() => {
+    if (dialog !== "weigh" || showWeighEntry) return undefined;
+    const handler = (event) => {
+      if (!/^[1-9]$/.test(event.key) || event.ctrlKey || event.altKey || event.metaKey) return;
+      const target = event.target;
+      if (target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName))) return;
+      const product = visibleTileProducts[Number(event.key) - 1];
+      if (!product) return;
+      event.preventDefault();
+      setSelectedId(idOf(product));
+      setWeight("1");
+      setAmount("");
+      setMode("weight");
+      setShowWeighEntry(true);
+    };
+    document.addEventListener("keydown", handler, true);
+    return () => document.removeEventListener("keydown", handler, true);
+  }, [dialog, showWeighEntry, visibleTileProducts]);
+  const productTiles = <div className={"pos-quick-tiles" + (dialog === "weigh" ? " pos-weighed-grid-3" : "")}>
+    {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
+      {dialog === "weigh" && <span className="pos-quick-tile-number">{index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
-    </button>)}
-    {dialog === "weigh" && Array.from({ length: Math.max(0, 25 - orderedProducts.length) }, (_, index) => <div key={"empty-weighed-slot-" + index} className="pos-quick-empty-tile" aria-hidden="true"><span>{orderedProducts.length + index + 1}</span></div>)}
-    {!filtered.length && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
-  </div>;
+    </button> : <div key={"empty-weighed-slot-" + index} className="pos-quick-empty-tile"><span>{index + 1}</span></div>)}
+    {!visibleTileProducts.some(Boolean) && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
+  </div>;;
+
+  if (!dialog) return null;
 
   return <div className="pos-quick-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) resetAndClose(); }}>
     <section className="pos-quick-modal" role="dialog" aria-modal="true" dir={locale === "ar" ? "rtl" : "ltr"}>
