@@ -2226,6 +2226,11 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         <div className="pos-invoice-column">
           <InvoiceSummary
             currentUser={currentUserName || localStorage.getItem("veltro_current_user") || "User"}
+            invoiceNumber={invoice.invoiceNumber}
+            invoiceDate={invoice.createdAt}
+            customerReference={isAnonymousCustomer ? "" : String(invoice.customerId || "")}
+            items={items}
+            locale={locale}
             compactCustomerInfo={isFullscreen}
             onChooseCustomer={chooseCustomer}
             subtotal={subtotal}
@@ -2396,6 +2401,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             }
               invoiceNumber={invoice.invoiceNumber}
               customer={customer}
+              customerReference={isAnonymousCustomer ? "" : String(invoice.customerId || "")}
+              locale={locale}
               onCustomerChange={(value) => {
                 const selectedName = String(value ?? "").trim();
                 const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
