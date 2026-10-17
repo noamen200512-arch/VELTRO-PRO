@@ -5546,3 +5546,119 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   }
 }
 
+
+
+/* Keep the regular POS toolbar aligned like fullscreen, without changing
+   the invoice cards or the existing mobile stacked toolbar. */
+@media (min-width: 761px) {
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) max-content !important;
+    align-items: center !important;
+    gap: 8px 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading > .sales-toolbar {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: grid !important;
+    grid-template-columns: minmax(95px, auto) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 6px 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-brand {
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    font-size: 9px !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions > .sales-toolbar-button {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 5px 6px !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    text-align: center !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+    overflow: hidden !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon) {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions > .sales-toolbar-notice {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    order: -1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 28px !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading > .pos-fullscreen-button {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    width: max-content !important;
+    max-width: 132px !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading {
+    grid-template-columns: minmax(0, 1fr) max-content !important;
+    gap: 8px !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading > .sales-toolbar {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-brand {
+    display: none !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  .pos-page:not(.pos-fullscreen-active) > .pos-heading > .pos-fullscreen-button {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+  }
+}
