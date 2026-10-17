@@ -85,20 +85,25 @@ export function makeBarcodePattern(value) {
   return { bars, width: x + 4 };
 }
 
+function parseProfitNumber(value) {
+  if (value === "" || value === null || value === undefined) return 0;
+  const normalized = typeof value === "string" ? value.trim().replace(/\s/g, "").replace(",", ".") : value;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
+}
+
+// Profit percentage is markup on purchase cost, not margin on selling price.
+// Example: cost 100 DA, sale 110 DA => (110 - 100) / 100 * 100 = 10%.
 export function getProfitPercent(price, cost) {
-  const p = Number(price || 0);
-  const c = Number(cost || 0);
-
+  const p = parseProfitNumber(price);
+  const c = parseProfitNumber(cost);
   if (c <= 0) return "";
-
   return String(Number((((p - c) / c) * 100).toFixed(2)));
 }
 
 export function priceFromProfit(cost, profit) {
-  const c = Number(cost || 0);
-  const pct = Number(profit || 0);
-
-  if (profit === "" || !Number.isFinite(pct)) return "";
-
+  const c = parseProfitNumber(cost);
+  const pct = parseProfitNumber(profit);
+  if (profit === "" || c < 0 || !Number.isFinite(pct)) return "";
   return String(Number((c * (1 + pct / 100)).toFixed(2)));
 }
