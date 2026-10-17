@@ -1757,7 +1757,20 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
     pending.forEach((record) => addEntry(record, "pending"));
     completed.forEach((record) => addEntry(record, "completed"));
-    if (savedDraft && !seen.has(String(savedDraft.id))) addEntry(savedDraft, "draft");
+    if (savedDraft && !seen.has(String(savedDraft.id))) {
+      addEntry(savedDraft, "draft");
+    } else if (savedDraft) {
+      // If the current draft is also stored as pending, keep its latest unsaved
+      // edits in the navigation record instead of replacing them with stale data.
+      const existingIndex = entries.findIndex((entry) => String(entry.id) === String(savedDraft.id));
+      if (existingIndex >= 0) {
+        entries[existingIndex] = {
+          ...entries[existingIndex],
+          ...savedDraft,
+          __navigationType: entries[existingIndex].__navigationType,
+        };
+      }
+    }
 
     entries.sort((a, b) => {
       const aTime = new Date(a.createdAt || a.updatedAt || a.completedAt || 0).getTime();
