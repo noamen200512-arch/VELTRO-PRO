@@ -5306,3 +5306,13 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-row: auto;
   }
 }
+
+
+/* Full-screen width adjustment only: give the invoice summary/cart side more width.
+   Intentionally do not change heights, rows, spacing, or overflow. */
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  }
+}
