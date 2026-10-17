@@ -5224,3 +5224,14 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-status-card-copy small { font-size:8px; }
   .pos-status-card-copy strong { font-size:10px; }
 }
+
+
+/* Explicit column placement: workspace on the left, invoice information on the right. */
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout { direction: ltr; }
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace { grid-column: 1; }
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar { grid-column: 2; }
+}
