@@ -2230,6 +2230,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             invoiceDate={invoice.createdAt}
             customerReference={isAnonymousCustomer ? "" : String(invoice.customerId || "")}
             items={items}
+            paymentMethod={invoice.paymentMethod || "cash"}
+            onPaymentMethodChange={(value) => updateInvoice({ paymentMethod: value })}
             locale={locale}
             compactCustomerInfo={isFullscreen}
             onChooseCustomer={chooseCustomer}
