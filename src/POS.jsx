@@ -2264,47 +2264,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           </div>
         </div>
         <div className="pos-entry-column">
-          {!isFullscreen && (
-            <div className="pos-heading-status-cards">
-              <section className="pos-user-status-card" aria-label="Current user">
-                <span className="pos-status-card-icon"><UserRound size={17} /></span>
-                <span className="pos-status-card-copy">
-                  <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
-                  <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
-                </span>
-              </section>
-              <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
-                <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
-                <span className="pos-status-card-copy">
-                  <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
-                  <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
-                </span>
-                <span className="pos-server-status-dot" />
-              </section>
-            </div>
-          )}
           <div className="pos-product-info-card">
           <ProductEntry
             isFullscreen={isFullscreen}
-            statusCards={isFullscreen ? <>
-              <div className="pos-heading-status-cards">
-                <section className="pos-user-status-card" aria-label="Current user">
-                  <span className="pos-status-card-icon"><UserRound size={17} /></span>
-                  <span className="pos-status-card-copy">
-                    <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
-                    <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
-                  </span>
-                </section>
-                <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
-                  <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
-                  <span className="pos-status-card-copy">
-                    <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
-                    <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
-                  </span>
-                  <span className="pos-server-status-dot" />
-                </section>
-              </div>
-            </> : null}
             onAddProduct={addProduct}
             onAddCarton={addCarton}
             showProducts={showProducts}
@@ -2413,6 +2375,25 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           />
 
             <SalesSidebar
+            statusCards={
+              <div className="pos-heading-status-cards">
+                <section className="pos-user-status-card" aria-label="Current user">
+                  <span className="pos-status-card-icon"><UserRound size={17} /></span>
+                  <span className="pos-status-card-copy">
+                    <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
+                    <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
+                  </span>
+                </section>
+                <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
+                  <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
+                  <span className="pos-status-card-copy">
+                    <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
+                    <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
+                  </span>
+                  <span className="pos-server-status-dot" />
+                </section>
+              </div>
+            }
               invoiceNumber={invoice.invoiceNumber}
               customer={customer}
               onCustomerChange={(value) => {
