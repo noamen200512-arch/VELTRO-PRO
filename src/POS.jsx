@@ -2223,28 +2223,45 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       />
 
       <div className="sales-layout">
-        <SalesSidebar
-          invoiceNumber={invoice.invoiceNumber}
-          customer={customer}
-          onCustomerChange={(value) => {
-            const selectedName = String(value ?? "").trim();
-            const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
-            updateInvoice({
-              customerName: anonymous ? "Anonyme" : selectedName,
-              customerId: anonymous ? "" : selectedName,
-            });
-          }}
-          paid={paid}
-          onPaidChange={(value) =>
-            updateInvoice({ paid: money(value) })
-          }
-          remaining={remaining}
-          newAmount={total}
-          invoiceDate={invoice.createdAt}
-          previousDebt={previousDebt}
-        />
-
-        <main className="sales-workspace">
+        <div className="pos-invoice-column">
+          <InvoiceSummary
+            currentUser={currentUserName || localStorage.getItem("veltro_current_user") || "User"}
+            compactCustomerInfo={isFullscreen}
+            onChooseCustomer={chooseCustomer}
+            subtotal={subtotal}
+            discount={discount}
+            onDiscountChange={(value) =>
+              updateInvoice({ discount: money(value) })
+            }
+            total={total}
+            paid={paid}
+            remaining={remaining}
+            previousDebt={previousDebt}
+            customerName={customer}
+            onViewDebtDetails={() => {
+              notify(
+                `${customer || "Customer"} has ${previousDebt.toLocaleString()} DA in previous unpaid balances.`,
+                "info"
+              );
+            }}
+            onSavePending={() => saveCurrentAsPending(false)}
+            onPrint={printInvoice}
+            onCompleteSale={completeCurrentSale}
+            busy={busy}
+          />
+          <InvoiceTable
+            items={items}
+            selectedIndex={selectedCartIndex}
+            onSelectRow={setSelectedCartIndex}
+            onUpdate={updateItem}
+            onRemove={removeItem}
+            onUndoRemove={undoRemove}
+            onAddUnit={addUnit}
+            onAddCarton={addCarton}
+            locale={locale}
+          />
+        </div>
+        <div className="pos-entry-column">
           {!isFullscreen && (
             <div className="pos-heading-status-cards">
               <section className="pos-user-status-card" aria-label="Current user">
@@ -2391,46 +2408,27 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           </section>
             </>}
           />
-
-
-          <InvoiceTable
-            items={items}
-            selectedIndex={selectedCartIndex}
-            onSelectRow={setSelectedCartIndex}
-            onUpdate={updateItem}
-            onRemove={removeItem}
-            onUndoRemove={undoRemove}
-            onAddUnit={addUnit}
-            onAddCarton={addCarton}
-            locale={locale}
-          />
-
-          <InvoiceSummary
-            currentUser={currentUserName || localStorage.getItem("veltro_current_user") || "User"}
-            compactCustomerInfo={isFullscreen}
-            onChooseCustomer={chooseCustomer}
-            subtotal={subtotal}
-            discount={discount}
-            onDiscountChange={(value) =>
-              updateInvoice({ discount: money(value) })
-            }
-            total={total}
-            paid={paid}
-            remaining={remaining}
-            previousDebt={previousDebt}
-            customerName={customer}
-            onViewDebtDetails={() => {
-              notify(
-                `${customer || "Customer"} has ${previousDebt.toLocaleString()} DA in previous unpaid balances.`,
-                "info"
-              );
-            }}
-            onSavePending={() => saveCurrentAsPending(false)}
-            onPrint={printInvoice}
-            onCompleteSale={completeCurrentSale}
-            busy={busy}
-          />
-        </main>
+        <SalesSidebar
+          invoiceNumber={invoice.invoiceNumber}
+          customer={customer}
+          onCustomerChange={(value) => {
+            const selectedName = String(value ?? "").trim();
+            const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
+            updateInvoice({
+              customerName: anonymous ? "Anonyme" : selectedName,
+              customerId: anonymous ? "" : selectedName,
+            });
+          }}
+          paid={paid}
+          onPaidChange={(value) =>
+            updateInvoice({ paid: money(value) })
+          }
+          remaining={remaining}
+          newAmount={total}
+          invoiceDate={invoice.createdAt}
+          previousDebt={previousDebt}
+        />
+        </div>
       </div>
     </div>
   );
