@@ -169,8 +169,11 @@ export default function ProductForm({
               </select>
             </Field>
             <Field label="Product Category">
-              <input className="veltro-product-input" style={inputStyle} value={form.category} onChange={(e) => updateField("category", e.target.value)} placeholder="e.g. Drinks" list="veltro-product-categories" />
-              <datalist id="veltro-product-categories">{categories.filter((item) => item !== "All").map((item) => <option key={item} value={item} />)}</datalist>
+              <select className="veltro-product-input" style={inputStyle} value={form.category || ""} onChange={(e) => updateField("category", e.target.value)} required>
+                <option value="" disabled>Choose a category</option>
+                {[...new Set([...(categories || []), ...(form.category && !(categories || []).includes(form.category) ? [form.category] : [])])]
+                  .map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
             </Field>
             <div style={{ gridColumn: "1 / -1", border: `1px solid ${C.border}`, borderRadius: 10, padding: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><ImagePlus size={17} color={C.cyan} /><span style={{ fontSize: 12, fontWeight: 650 }}>Product Image</span></div>
