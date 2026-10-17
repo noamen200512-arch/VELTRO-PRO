@@ -129,6 +129,8 @@ export function InvoiceTable({
   onAddUnit,
   onAddCarton,
   locale = "en",
+  readOnly = false,
+  onBlockedAction,
 }) {
   const [removedItem, setRemovedItem] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -180,11 +182,15 @@ export function InvoiceTable({
       if (!item) return;
       event.preventDefault();
       event.stopPropagation();
+      if (readOnly) {
+        onBlockedAction?.("delete");
+        return;
+      }
       setPendingDelete(item);
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
-  }, [pendingDelete, selectedIndex, items]);
+  }, [pendingDelete, selectedIndex, items, readOnly, onBlockedAction]);
 
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -247,6 +253,10 @@ export function InvoiceTable({
   };
 
   const removeItem = (item) => {
+    if (readOnly) {
+      onBlockedAction?.("delete");
+      return;
+    }
     setRemovedItem({
       item,
       removedAt: Date.now(),
@@ -506,7 +516,13 @@ export function InvoiceTable({
                         className="invoice-remove-button"
                         aria-label={`Remove ${item.name}`}
                         title="Remove product"
-                        onClick={() => setPendingDelete(item)}
+                        onClick={() => {
+                          if (readOnly) {
+                            onBlockedAction?.("delete");
+                            return;
+                          }
+                          setPendingDelete(item);
+                        }}
                       >
                         <Trash2 size={17} />
                       </button>
