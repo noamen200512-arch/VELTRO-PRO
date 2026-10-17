@@ -437,7 +437,31 @@ export async function refreshOrganizationCache(organizationId) {
       const completedSales = saleRows.filter((row) => row.status === "posted").map((row) => saleFromRow(row, saleItems));
       const pendingSales = saleRows.filter((row) => row.status === "pending").map((row) => saleFromRow(row, saleItems));
       publishCache("veltro_completed_sales", salesResult, completedSales);
-      publishCache("veltro_pending_invoices", salesResult, pendingSales);
+
+      // A successful cloud read is authoritative for every invoice ID present
+      // in sales_invoices. A local pending copy must not survive when that
+      // same invoice is now posted or void. Preserve only local-only records
+      // (typically offline drafts) until the organization's bootstrap is done.
+      const knownCloudInvoiceIds = new Set(saleRows.map((row) => String(row.id)));
+      let localPending = [];
+      try {
+        const cached = JSON.parse(localStorage.getItem("veltro_pending_invoices") || "[]");
+        if (Array.isArray(cached)) localPending = cached;
+      } catch {}
+      const localOnlyPending = bootstrapReadyOrganizations.has(organizationId)
+        ? []
+        : localPending.filter((item) => {
+            const id = String(item.id || item.invoiceId || item.invoiceNumber || "");
+            return id && !knownCloudInvoiceIds.has(id);
+          });
+      const pendingById = new Map();
+      for (const item of localOnlyPending) {
+        pendingById.set(String(item.id || item.invoiceId || item.invoiceNumber), item);
+      }
+      for (const item of pendingSales) {
+        pendingById.set(String(item.id || item.invoiceId || item.invoiceNumber), item);
+      }
+      writeCache("veltro_pending_invoices", [...pendingById.values()]);
     }
 
     if (!purchasesResult.error && !purchaseItemsResult.error) {
