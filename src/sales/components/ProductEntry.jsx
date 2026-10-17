@@ -84,9 +84,12 @@ export function ProductEntry({
 
   const focusBarcodeInput = useCallback(() => {
     // Restore scanner focus after POS actions without selecting text that a
-    // hardware scanner is about to replace.
+    // hardware scanner is about to replace. Retry on the next frame in case
+    // the POS layout is still settling after a render.
     requestAnimationFrame(() => {
-      barcodeInputRef.current?.focus({ preventScroll: true });
+      const input = barcodeInputRef.current;
+      if (!input || input.disabled) return;
+      input.focus({ preventScroll: true });
     });
   }, []);
 
@@ -421,6 +424,7 @@ export function ProductEntry({
           <input
             id="product-barcode"
             ref={barcodeInputRef}
+            autoFocus
             type="text"
             autoComplete="off"
             placeholder="Scan or enter barcode..."
@@ -695,10 +699,19 @@ export function ProductEntry({
                         type="button"
                         className="product-carton-button"
                         disabled={cartonSize <= 1 || typeof onAddCarton !== "function"}
+                        onMouseDown={(event) => {
+                          // Keep the scanner input focused when clicking Carton.
+                          // This prevents the button from stealing keyboard-wedge input.
+                          event.preventDefault();
+                        }}
                         onClick={() => {
-                          // POS restores focus only after the carton is accepted;
-                          // stock-warning dialogs must keep their own focus.
                           onAddCarton(product);
+                          // Fallback for product entries where the parent action
+                          // returns early (the parent handles stock-warning focus).
+                          requestAnimationFrame(() => {
+                            const dialog = document.querySelector('[role="dialog"], .pos-keyboard-dialog, .pos-modal');
+                            if (!dialog) focusBarcodeInput();
+                          });
                         }}
                         title={cartonSize <= 1 ? "Configure pieces per carton for this product" : `Add one carton (${cartonSize} units)`}
                       >
