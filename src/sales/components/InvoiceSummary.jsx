@@ -70,7 +70,10 @@ export function InvoiceSummary({
   const invoiceDateLabel = validInvoiceDate ? validInvoiceDate.toLocaleDateString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB") : "—";
   const invoiceTimeLabel = validInvoiceDate ? validInvoiceDate.toLocaleTimeString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB", { hour: "2-digit", minute: "2-digit" }) : "—";
   const invoiceLineCount = items.length;
-  const invoiceUnitCount = items.reduce((sum, item) => sum + Math.max(0, Number(item.quantity ?? item.qty) || 0), 0);
+  const invoiceUnitCount = items.reduce((sum, item) => {
+    const qty = Math.max(0, Number(item.quantity ?? item.qty) || 0);
+    return sum + (item.isCartonLine ? qty * Math.max(1, Number(item.piecesPerCarton) || 1) : qty);
+  }, 0);
   const invoiceCartonCount = items.reduce((sum, item) => {
     const qty = Math.max(0, Number(item.quantity ?? item.qty) || 0);
     if (item.isCartonLine) return sum + qty;
