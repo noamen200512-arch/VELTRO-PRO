@@ -50,6 +50,7 @@ export default function PosQuickSaleDialogs({
   const t = COPY[locale] || COPY.en;
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [weighedPage, setWeighedPage] = useState(1);
   const [selectedId, setSelectedId] = useState("");
   const [showWeighEntry, setShowWeighEntry] = useState(false);
   const [mode, setMode] = useState("weight");
@@ -80,6 +81,7 @@ export default function PosQuickSaleDialogs({
     if (dialog === "favorites" || dialog === "weigh") {
       setSearch("");
       setCategoryFilter("all");
+      setWeighedPage(1);
       setSelectedId("");
       setShowWeighEntry(false);
       setWeight("1");
@@ -116,7 +118,7 @@ export default function PosQuickSaleDialogs({
   const measureLabel = ({ kg: "kg", g: "g", liter: "L", ml: "ml", meter: "m", cm: "cm" })[measureUnit] || measureUnit;
   const computedWeight = mode === "amount" ? (unitPrice > 0 ? (Number(String(amount).replace(",", ".")) || 0) / unitPrice : 0) : (Number(String(weight).replace(",", ".")) || 0);
   const computedAmount = selected ? unitPrice * computedWeight : 0;
-  const resetAndClose = () => { setSearch(""); setCategoryFilter("all"); setSelectedId(""); setShowWeighEntry(false); onClose(); };
+  const resetAndClose = () => { setSearch(""); setCategoryFilter("all"); setWeighedPage(1); setSelectedId(""); setShowWeighEntry(false); onClose(); };
   const keypad = (key, setter, current) => {
     if (key === "⌫") setter(replaceInput ? "" : String(current).slice(0, -1));
     else if (key === "C") setter("");
@@ -153,34 +155,52 @@ export default function PosQuickSaleDialogs({
   const keypadButtons = (setter, current) => <div className="pos-quick-keypad" aria-label={t.enter}>
     {["1","2","3","4","5","6","7","8","9","⌫","0",".","C"].map((key) => <button type="button" key={key} onClick={() => keypad(key, setter, current)}>{key}</button>)}
   </div>;
+  const slotOrder = [6, 7, 8, 3, 4, 5, 0, 1, 2];
+  const assignedTileProducts = dialog === "weigh"
+    ? slotOrder.map((slotIndex) => orderedProducts.find((product) => idOf(product) === String(weighedSlots[slotIndex] || "")) || null)
+    : orderedProducts;
+  const extraWeighedProducts = dialog === "weigh"
+    ? orderedProducts.filter((product) => !weighedSlots.some((id) => String(id || "") === idOf(product)))
+    : [];
+  const weighedPageCount = dialog === "weigh" ? Math.max(1, 1 + Math.ceil(extraWeighedProducts.length / 9)) : 1;
   const visibleTileProducts = dialog === "weigh"
-    ? Array.from({ length: 9 }, (_, index) => orderedProducts.find((product) => idOf(product) === String(weighedSlots[index] || "")) || null)
+    ? (weighedPage === 1 ? assignedTileProducts : Array.from({ length: 9 }, (_, index) => extraWeighedProducts[(weighedPage - 2) * 9 + index] || null))
     : orderedProducts;
   useEffect(() => {
     if (dialog !== "weigh" || showWeighEntry) return undefined;
     const handler = (event) => {
-      if (!/^[1-9]$/.test(event.key) || event.ctrlKey || event.altKey || event.metaKey) return;
+      if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
-      if (target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName))) return;
-      const product = visibleTileProducts[Number(event.key) - 1];
+      const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
+      if (/^F([1-9]|1[0-2])$/.test(event.key)) {
+        const categoryIndex = Number(event.key.slice(1)) - 1;
+        const category = visibleWeighedCategories.filter((item) => categories.includes(item))[categoryIndex];
+        if (category) { event.preventDefault(); event.stopPropagation(); setCategoryFilter(category); setWeighedPage(1); }
+        return;
+      }
+      if (!typing && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+        event.preventDefault(); event.stopPropagation();
+        setWeighedPage((current) => Math.min(weighedPageCount, Math.max(1, current + (event.key === "ArrowRight" ? 1 : -1))));
+        return;
+      }
+      if (typing || !/^[1-9]$/.test(event.key)) return;
+      const slotIndex = Number(event.key) - 1;
+      const visualIndex = slotOrder.indexOf(slotIndex);
+      const product = visibleTileProducts[visualIndex];
       if (!product) return;
-      event.preventDefault();
-      setSelectedId(idOf(product));
-      setWeight("1");
-      setAmount("");
-      setMode("weight");
-      setShowWeighEntry(true);
+      event.preventDefault(); event.stopPropagation();
+      setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
-  }, [dialog, showWeighEntry, visibleTileProducts]);
+  }, [dialog, showWeighEntry, visibleTileProducts, visibleWeighedCategories, categories, weighedPageCount]);
   const productTiles = <div className={"pos-quick-tiles" + (dialog === "weigh" ? " pos-weighed-grid-3" : "")}>
-    {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
-      {dialog === "weigh" && <span className="pos-quick-tile-number">{index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
+    {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
+      {dialog === "weigh" && <span className="pos-quick-tile-number">{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
-    </button> : <div key={"empty-weighed-slot-" + index} className="pos-quick-empty-tile"><span>{index + 1}</span></div>)}
+    </button> : <div key={"empty-weighed-page-" + weighedPage + "-slot-" + index} className="pos-quick-empty-tile"><span>{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span></div>)}
     {!visibleTileProducts.some(Boolean) && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
-  </div>;;
+  </div>;
 
   if (!dialog) return null;
 
@@ -223,7 +243,7 @@ export default function PosQuickSaleDialogs({
         })}</div>
         <footer className="pos-quick-footer"><button type="button" onClick={resetAndClose}>{t.cancel}</button><button type="button" className="primary" onClick={() => { onSaveSettings({ favoriteIds: draftFavorites, weighedIds: draftWeighed, categoriesByProduct: draftCategories, categories: draftCategoryList, visibleWeighedCategories: draftVisibleCategories.filter((category) => draftCategoryList.includes(category)), poundGrams: Math.max(1, Number(draftPound) || 500) }); resetAndClose(); }}><Check size={17}/>{t.save}</button></footer>
       </> : <>
-        {dialog === "weigh" && <div className="pos-quick-category-row"><span>{t.category}</span><button type="button" className={categoryFilter === "all" ? "active" : ""} onClick={() => setCategoryFilter("all")}>{t.all}</button>{visibleWeighedCategories.filter((c) => categories.includes(c)).map((c) => <button type="button" key={c} className={categoryFilter === c ? "active" : ""} onClick={() => setCategoryFilter(c)}>{categoryLabel(c)}</button>)}</div>}
+        {dialog === "weigh" && <><div className="pos-quick-category-row"><span>{t.category}</span><button type="button" className={categoryFilter === "all" ? "active" : ""} onClick={() => { setCategoryFilter("all"); setWeighedPage(1); }}>{t.all}</button>{visibleWeighedCategories.filter((c) => categories.includes(c)).map((c, index) => <button type="button" key={c} className={categoryFilter === c ? "active" : ""} onClick={() => { setCategoryFilter(c); setWeighedPage(1); }}><kbd>F{index + 1}</kbd> {categoryLabel(c)}</button>)}</div><div className="pos-weighed-pagination"><button type="button" disabled={weighedPage <= 1} onClick={() => setWeighedPage((page) => Math.max(1, page - 1))} aria-label="Previous page">‹</button><span>Page {weighedPage} / {weighedPageCount}</span><button type="button" disabled={weighedPage >= weighedPageCount} onClick={() => setWeighedPage((page) => Math.min(weighedPageCount, page + 1))} aria-label="Next page">›</button><small>F1–F12 categories · ← → pages</small></div></>}
         <label className="pos-quick-search"><Search size={18}/><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.search}/></label>
         {productTiles}
         {dialog === "weigh" && selected && showWeighEntry && <div className="pos-weigh-entry-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setShowWeighEntry(false); setSelectedId(""); } }}>
