@@ -4943,3 +4943,10 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 .settings-weighed-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 .settings-weighed-slot select{max-width:100%}
 @media(max-width:520px){.pos-quick-tiles.pos-weighed-grid-3{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(110px,auto)}.pos-quick-tiles.pos-weighed-grid-3>button,.pos-quick-empty-tile{min-height:110px;padding:6px}.pos-quick-tiles.pos-weighed-grid-3>button strong{font-size:11px}}
+
+/* Weighed-sale paging and category keyboard hints */
+.pos-weighed-pagination{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px 0;color:#94a3b8;font-size:12px;flex-wrap:wrap}
+.pos-weighed-pagination button{width:34px;height:30px;border:1px solid #ffffff20;border-radius:8px;background:#ffffff08;color:#e2e8f0;font-size:22px;line-height:1;cursor:pointer}
+.pos-weighed-pagination button:disabled{opacity:.3;cursor:not-allowed}
+.pos-weighed-pagination small{flex-basis:100%;text-align:center;color:#71839c}
+.pos-quick-category-row kbd{display:inline-block;margin-inline-end:3px;padding:1px 4px;border:1px solid #ffffff26;border-radius:4px;color:#8deee2;font-size:10px;font-family:inherit}
