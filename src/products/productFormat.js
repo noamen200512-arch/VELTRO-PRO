@@ -27,7 +27,8 @@ export function toNumber(value, fallback = 0) {
     return fallback;
   }
 
-  const number = Number(value);
+  const normalized = typeof value === "string" ? value.trim().replace(/\s/g, "").replace(",", ".") : value;
+  const number = Number(normalized);
 
   return Number.isFinite(number) ? number : fallback;
 }
