@@ -62,7 +62,6 @@ export function ProductEntry({
   onShowProducts,
   quickActions = null,
   selectedProductInfo = null,
-  statusCards = null,
   isFullscreen = false,
 }) {
   const [products, setProducts] = useState([]);
@@ -426,7 +425,7 @@ export function ProductEntry({
         </button>
       </div>
 
-      {statusCards && <div className="product-entry-status-cards">{statusCards}</div>}
+      {selectedProductInfo}
 
       {quickActions && <div className="product-entry-quick-actions">{quickActions}</div>}
 
@@ -466,8 +465,6 @@ export function ProductEntry({
           </div>
         </div>
       </div>
-
-      {selectedProductInfo}
 
       {/* The toggle controls the full inventory list only. */}
       {showProducts && (
