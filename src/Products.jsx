@@ -843,6 +843,34 @@ export default function Products() {
     );
 
     if (saved) {
+      try {
+        const productId = String(product.id);
+        const savedCategories = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || "[]");
+        const categoryList = Array.isArray(savedCategories) ? savedCategories : [];
+        const visibleSaved = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "[]");
+        const visibleList = Array.isArray(visibleSaved) ? visibleSaved : [];
+        const weighedIdsSaved = JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]");
+        const weighedIds = Array.isArray(weighedIdsSaved) ? weighedIdsSaved.map(String) : [];
+        const categoriesByIdSaved = JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}");
+        const categoriesById = categoriesByIdSaved && typeof categoriesByIdSaved === "object" ? { ...categoriesByIdSaved } : {};
+        const nextCategoryList = categoryList.includes(product.category) ? categoryList : [...categoryList, product.category];
+        const nextVisibleList = visibleList.includes(product.category) ? visibleList : [...visibleList, product.category];
+
+        if (product.weighedSale) {
+          if (!weighedIds.includes(productId)) weighedIds.push(productId);
+          categoriesById[productId] = product.category;
+        } else {
+          delete categoriesById[productId];
+        }
+
+        localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(nextCategoryList));
+        localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(nextVisibleList));
+        localStorage.setItem("veltro_pos_weighed_products", JSON.stringify(weighedIds));
+        localStorage.setItem("veltro_pos_weighed_categories", JSON.stringify(categoriesById));
+        window.dispatchEvent(new Event("veltro:weighed-settings-updated"));
+      } catch (error) {
+        console.warn("Could not sync product category with weighed-sale settings", error);
+      }
       setModalOpen(false);
     }
   }
