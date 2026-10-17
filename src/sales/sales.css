@@ -5662,3 +5662,75 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-row: 1 !important;
   }
 }
+
+
+/* Fullscreen final card placement:
+   left: invoice summary above a cart that fills the remaining height;
+   right: product entry above invoice information. */
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr) !important;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace {
+    display: contents !important;
+  }
+
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-summary {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+  }
+
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .product-entry {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-table-section {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    align-self: stretch !important;
+    overflow: auto !important;
+  }
+}
