@@ -13,7 +13,8 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Let the active build finish; rapid pushes should not cancel a running deployment.
+  cancel-in-progress: false
 
 jobs:
   build:
