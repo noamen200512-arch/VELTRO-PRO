@@ -26,7 +26,7 @@ import {
 
 import { getProducts } from "./productStore.js";
 import { saveProductsToCloud } from "./lib/productCloud.js";
-import { saveSaleToCloud } from "./lib/salesCloud.js";
+import { saveSaleToCloud, voidPendingSaleFromCloud } from "./lib/salesCloud.js";
 import { supabase } from "./lib/supabase.js";
 import { loadCustomersFromCloud } from "./lib/customerCloud.js";
 import { playSound, setSoundUser, unlockSoundAudio } from "./services/soundService.js";
@@ -1170,6 +1170,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
                 : "Could not remove the empty invoice from Pending Invoices.",
             "error"
           );
+        } else {
+          // Mark the cloud invoice as void rather than physically deleting it.
+          // Other connected devices can then distinguish a removed pending
+          // invoice from an offline-only invoice and won't resurrect it.
+          voidPendingSaleFromCloud(invoice.id).catch((cloudError) => {
+            console.error("VELTRO-PRO could not clear the empty pending invoice from cloud:", cloudError);
+            notify(
+              locale === "ar"
+                ? "حُذف البون محليًا لكن تعذرت مزامنته مع السحابة. تحقق من الاتصال."
+                : locale === "fr"
+                  ? "Facture retirée localement, mais la synchronisation cloud a échoué."
+                  : "Invoice removed locally, but cloud synchronization failed. Check the connection.",
+              "error"
+            );
+          });
         }
       } else {
         savePendingInvoice({
