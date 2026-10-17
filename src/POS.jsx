@@ -1845,20 +1845,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         );
         return;
       }
-      // When the barcode field is focused, left/right arrows browse closed invoices
-      // instead of moving the text caret. Keep the barcode field focused for scanners.
-      if (target?.id === "product-barcode" && (e.key === "ArrowLeft" || e.key === "ArrowRight") && closedInvoices.length > 0) {
-        stop();
-        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-        navigateClosedInvoice(e.key === "ArrowLeft" ? "previous" : "next");
-        return;
-      }
-      // Left/right arrows navigate pending invoices when the user is not editing text.
-      if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && !(
-        target instanceof HTMLElement &&
-        (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
-      )) {
-        const destination = e.key === "ArrowLeft" ? previousInvoice : nextInvoice;
+      // Left/right arrows are POS invoice-navigation shortcuts everywhere,
+      // including while a text field is focused. Do not let input caret movement
+      // or other keyboard handlers swallow them.
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        const direction = e.key === "ArrowLeft" ? "previous" : "next";
+        if (closedInvoices.length > 0) {
+          stop();
+          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          navigateClosedInvoice(direction);
+          return;
+        }
+
+        // If there are no completed invoices yet, arrows still browse pending
+        // invoices, even while the barcode/search/input field has focus.
+        const destination = direction === "previous" ? previousInvoice : nextInvoice;
         if (destination) {
           stop();
           if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
