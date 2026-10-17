@@ -34,6 +34,8 @@ export function InvoiceSummary({
   invoiceDate = null,
   customerReference = "",
   items = [],
+  paymentMethod = "cash",
+  onPaymentMethodChange,
   locale = "en",
 }) {
   const money = (value) =>
@@ -59,9 +61,9 @@ export function InvoiceSummary({
   const safePreviousDebt = Math.max(0, Number(previousDebt) || 0);
   const language = locale === "ar" ? "ar" : locale === "fr" ? "fr" : "en";
   const labels = {
-    en: { invoice: "INVOICE", date: "DATE", time: "TIME", lines: "PRODUCT LINES", units: "TOTAL UNITS", cartons: "CARTONS", status: "PAYMENT STATUS", paidStatus: "Paid", partialStatus: "Partially paid", unpaidStatus: "Unpaid", emptyStatus: "No items", customerRef: "Customer reference", dueNow: "Due now", totalDebt: "Total customer debt after sale" },
-    fr: { invoice: "FACTURE", date: "DATE", time: "HEURE", lines: "LIGNES PRODUIT", units: "UNITÉS TOTALES", cartons: "CARTONS", status: "ÉTAT DU PAIEMENT", paidStatus: "Payée", partialStatus: "Partiellement payée", unpaidStatus: "Impayée", emptyStatus: "Vide", customerRef: "Référence client", dueNow: "À encaisser", totalDebt: "Dette client après vente" },
-    ar: { invoice: "رقم الفاتورة", date: "التاريخ", time: "الوقت", lines: "عدد المنتجات", units: "إجمالي الوحدات", cartons: "الكراتين", status: "حالة الدفع", paidStatus: "مدفوعة", partialStatus: "مدفوعة جزئيًا", unpaidStatus: "غير مدفوعة", emptyStatus: "فارغة", customerRef: "مرجع الزبون", dueNow: "المطلوب قبضه الآن", totalDebt: "إجمالي دين الزبون بعد البيع" },
+    en: { invoice: "INVOICE", date: "DATE", time: "TIME", lines: "PRODUCT LINES", units: "TOTAL UNITS", cartons: "CARTONS", status: "PAYMENT STATUS", paidStatus: "Paid", partialStatus: "Partially paid", unpaidStatus: "Unpaid", emptyStatus: "No items", customerRef: "Customer reference", dueNow: "Due now", totalDebt: "Total customer debt after sale", method: "Payment method", cash: "Cash", card: "Bank card", transfer: "Bank transfer", credit: "On account" },
+    fr: { invoice: "FACTURE", date: "DATE", time: "HEURE", lines: "LIGNES PRODUIT", units: "UNITÉS TOTALES", cartons: "CARTONS", status: "ÉTAT DU PAIEMENT", paidStatus: "Payée", partialStatus: "Partiellement payée", unpaidStatus: "Impayée", emptyStatus: "Vide", customerRef: "Référence client", dueNow: "À encaisser", totalDebt: "Dette client après vente", method: "Mode de paiement", cash: "Espèces", card: "Carte bancaire", transfer: "Virement", credit: "À crédit" },
+    ar: { invoice: "رقم الفاتورة", date: "التاريخ", time: "الوقت", lines: "عدد المنتجات", units: "إجمالي الوحدات", cartons: "الكراتين", status: "حالة الدفع", paidStatus: "مدفوعة", partialStatus: "مدفوعة جزئيًا", unpaidStatus: "غير مدفوعة", emptyStatus: "فارغة", customerRef: "مرجع الزبون", dueNow: "المطلوب قبضه الآن", totalDebt: "إجمالي دين الزبون بعد البيع", method: "طريقة الدفع", cash: "نقدًا", card: "بطاقة بنكية", transfer: "تحويل بنكي", credit: "على الحساب" },
   }[language];
   const parsedInvoiceDate = invoiceDate ? new Date(invoiceDate) : null;
   const validInvoiceDate = parsedInvoiceDate && !Number.isNaN(parsedInvoiceDate.getTime()) ? parsedInvoiceDate : null;
@@ -207,6 +209,22 @@ export function InvoiceSummary({
             <strong className="invoice-summary-remaining">
               {money(safeRemaining)}
             </strong>
+          </div>
+
+          <div className="invoice-summary-row invoice-summary-method-row">
+            <label htmlFor="invoice-payment-method">{labels.method}</label>
+            <select
+              id="invoice-payment-method"
+              className="invoice-summary-payment-method"
+              value={paymentMethod || "cash"}
+              disabled={busy}
+              onChange={(event) => onPaymentMethodChange?.(event.target.value)}
+            >
+              <option value="cash">{labels.cash}</option>
+              <option value="card">{labels.card}</option>
+              <option value="transfer">{labels.transfer}</option>
+              <option value="credit">{labels.credit}</option>
+            </select>
           </div>
 
           <div className="invoice-summary-row invoice-summary-debt-row">
