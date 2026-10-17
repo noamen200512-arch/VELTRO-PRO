@@ -5086,3 +5086,141 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     display: none;
   }
 }
+
+
+/* Compact POS workstation: mirror the panels and keep the complete workspace inside the viewport. */
+.pos-page { min-height: 0; }
+.pos-page .pos-heading {
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.pos-heading-status-cards {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pos-user-status-card,
+.pos-server-status-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 150px;
+  max-width: 245px;
+  padding: 8px 12px;
+  border: 1px solid rgba(94,234,212,.22);
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(15,35,57,.96), rgba(13,25,43,.96));
+  color: #e5edf8;
+}
+.pos-server-status-card { position: relative; }
+.pos-status-card-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 9px;
+  color: #5eead4;
+  background: rgba(45,212,191,.12);
+}
+.pos-status-card-copy { display:flex; flex-direction:column; gap:3px; min-width:0; }
+.pos-status-card-copy small { color:#8fa5bf; font-size:9px; font-weight:800; letter-spacing:.06em; }
+.pos-status-card-copy strong { color:#edf6ff; font-size:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pos-server-status-card.is-disconnected { border-color:rgba(248,113,113,.35); }
+.pos-server-status-card.is-disconnected .pos-status-card-icon { color:#fca5a5; background:rgba(248,113,113,.12); }
+.pos-server-status-dot { width:7px; height:7px; flex:0 0 7px; margin-inline-start:auto; border-radius:50%; background:#34d399; box-shadow:0 0 9px #34d39988; }
+.pos-server-status-card.is-disconnected .pos-server-status-dot { background:#f87171; box-shadow:0 0 9px #f8717188; }
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active,
+  .pos-page:fullscreen {
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-sizing: border-box;
+  }
+  .pos-page.pos-fullscreen-active .pos-heading,
+  .pos-page:fullscreen .pos-heading { flex: 0 0 auto; }
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    direction: rtl;
+    grid-template-columns: minmax(0, 1.9fr) minmax(245px, .85fr);
+    align-items: stretch;
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+    gap: 9px;
+  }
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar {
+    direction: ltr;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    gap: 7px;
+    padding: 8px !important;
+  }
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace {
+    direction: ltr;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+    align-content: stretch;
+    gap: 8px !important;
+  }
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .product-entry {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-summary {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-table-section {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-height: 0;
+    overflow: auto;
+  }
+  .pos-page.pos-fullscreen-active .invoice-summary-header,
+  .pos-page:fullscreen .invoice-summary-header { margin-bottom: 7px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-content,
+  .pos-page:fullscreen .invoice-summary-content { grid-template-columns: minmax(0,1fr) minmax(0,.9fr); gap:8px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-details,
+  .pos-page:fullscreen .invoice-summary-details { gap:6px; padding:8px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-row,
+  .pos-page:fullscreen .invoice-summary-row { gap:6px; font-size:10px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-total,
+  .pos-page:fullscreen .invoice-summary-total { gap:8px; padding:10px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-actions,
+  .pos-page:fullscreen .invoice-summary-actions { gap:6px; margin-top:8px; }
+  .pos-page.pos-fullscreen-active .invoice-summary-note,
+  .pos-page:fullscreen .invoice-summary-note { margin-top:6px; font-size:9px; }
+  .pos-page.pos-fullscreen-active .sales-side-section,
+  .pos-page:fullscreen .sales-side-section { padding-bottom:7px; }
+}
+@media (max-width: 760px) {
+  .pos-heading-status-cards { justify-content:stretch; gap:6px; }
+  .pos-user-status-card, .pos-server-status-card { flex:1 1 0; min-width:0; padding:7px; }
+  .pos-status-card-copy small { font-size:8px; }
+  .pos-status-card-copy strong { font-size:10px; }
+}
