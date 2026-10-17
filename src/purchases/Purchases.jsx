@@ -394,10 +394,19 @@ function ProductModal({
     );
   };
 
+  const parsePriceNumber = value => {
+    if (value === "" || value === null || value === undefined) return 0;
+    const normalized = typeof value === "string" ? value.trim().replace(/\s/g, "").replace(",", ".") : value;
+    const number = Number(normalized);
+    return Number.isFinite(number) ? number : 0;
+  };
+
+  // Profit percentage is calculated on purchase cost: (sale - cost) / cost × 100.
+  // Example: buy at 100 DA and sell at 110 DA => 10%.
   const profit = (sale, cost) => {
-    const s = Number(sale);
-    const c = Number(cost);
-    return c > 0 ? ((s - c) / c) * 100 : 0;
+    const s = parsePriceNumber(sale);
+    const c = parsePriceNumber(cost);
+    return c > 0 ? Number((((s - c) / c) * 100).toFixed(2)) : 0;
   };
 
   const handleImage = event => {
@@ -567,9 +576,9 @@ function ProductModal({
 
   const updateUnitMargin = value => {
     setUnitMargin(value);
-    const cost = Number(buyUnit);
+    const cost = parsePriceNumber(buyUnit);
     if (value !== "" && cost >= 0) {
-      update("price", String(Number((cost * (1 + Number(value) / 100)).toFixed(2))));
+      update("price", String(Number((cost * (1 + parsePriceNumber(value) / 100)).toFixed(2))));
     }
   };
 
@@ -580,7 +589,7 @@ function ProductModal({
 
   const updateCartonMargin = value => {
     setCartonMargin(value);
-    const cost = Number(buyCarton);
+    const cost = parsePriceNumber(buyCarton);
     if (value !== "" && cost >= 0) {
       update("cartonPrice", String(Number((cost * (1 + Number(value) / 100)).toFixed(2))));
     }
