@@ -197,6 +197,14 @@ export function InvoiceTable({
   const getCartonSize = (item) =>
     Math.max(1, Number(item.piecesPerCarton) || 1);
 
+  const totalEnteredQuantity = items.reduce((sum, item) => sum + Math.max(0, Number(item.quantity ?? item.qty) || 0), 0);
+  const totalCartons = items.reduce((sum, item) => {
+    const quantity = Math.max(0, Number(item.quantity ?? item.qty) || 0);
+    if (item.isCartonLine) return sum + quantity;
+    if (item.weighedSale || item.unitLabel === "kg") return sum;
+    return sum + Math.floor(quantity / getCartonSize(item));
+  }, 0);
+
   const updateQuantity = (item, nextQuantity) => {
     const isWeighed = item.weighedSale || item.unitLabel === "kg";
     const numeric = Number(nextQuantity);
@@ -270,6 +278,11 @@ export function InvoiceTable({
         <div className="invoice-table-count">
           {items.length} ITEMS
         </div>
+      </div>
+      <div className="invoice-table-information-strip" dir={locale === "ar" ? "rtl" : "ltr"}>
+        <span><strong>{items.length}</strong> {locale === "ar" ? "منتج مختلف" : locale === "fr" ? "références" : "product lines"}</span>
+        <span><strong>{Number(totalEnteredQuantity.toFixed(3)).toLocaleString(locale === "ar" ? "ar-DZ" : "fr-FR")}</strong> {locale === "ar" ? "إجمالي الكمية المدخلة" : locale === "fr" ? "quantité saisie" : "entered quantity"}</span>
+        <span><strong>{Number(totalCartons.toFixed(3)).toLocaleString(locale === "ar" ? "ar-DZ" : "fr-FR")}</strong> {locale === "ar" ? "كراتين" : locale === "fr" ? "cartons" : "cartons"}</span>
       </div>
 
 
