@@ -929,7 +929,7 @@ export default function App({ onLogout, currentUser }) {
           ) : activePage === "Dashboard" ? (
             <Dashboard onNavigate={navigateToPage} locale={locale} />
           ) : activePage === "Point of Sale" ? (
-            <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} locale={locale} />
+            <POS currentUserName={workspaceAccess.profile?.full_name || currentUser?.email || "User"} currentUserId={currentUser?.id || workspaceAccess.profile?.user_id || ""} organizationId={workspaceAccess.profile?.organization_id || ""} locale={locale} />
           ) : activePage === "Products" ? (
             <Products />
           ) : activePage === "Sales History" ? (
