@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from "react";
+import { playSound } from "../../services/soundService.js";
 import { createPortal } from "react-dom";
 import {
   Package,
@@ -526,7 +527,7 @@ export function InvoiceTable({
             <div className="invoice-delete-confirm-product"><strong>{pendingDelete.name}</strong><span>{Number(pendingDelete.quantity ?? pendingDelete.qty) || 0} {locale === "ar" ? "وحدة" : locale === "fr" ? "unité(s)" : "unit(s)"}</span></div>
             <div className="invoice-delete-confirm-actions">
               <button type="button" className="invoice-delete-cancel" onClick={() => setPendingDelete(null)}>{deleteText.cancel} <kbd>Esc</kbd></button>
-              <button type="button" className="invoice-delete-accept" onClick={() => { const item = pendingDelete; setPendingDelete(null); removeItem(item); }}>{deleteText.confirm} <kbd>Enter</kbd></button>
+              <button type="button" className="invoice-delete-accept" onClick={() => { const item = pendingDelete; setPendingDelete(null); playSound("confirm"); removeItem(item); }}>{deleteText.confirm} <kbd>Enter</kbd></button>
             </div>
             <small>{deleteText.hint}</small>
           </section>
