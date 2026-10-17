@@ -464,6 +464,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [section, setSection] = useState("business");
   const [productSettingsProducts, setProductSettingsProducts] = useState(() => getProducts());
   const [productWeighedLayout, setProductWeighedLayout] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.isArray(value) ? value.map(String) : []; } catch { return []; } });
+  const [productWeighedSlots, setProductWeighedSlots] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) return Array.from({ length: 9 }, (_, i) => String(saved[i] || "")); const legacy = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.from({ length: 9 }, (_, i) => String(legacy[i] || "")); } catch { return Array(9).fill(""); } });
   const [productFavoriteIds, setProductFavoriteIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_favorite_products") || "[]").map(String); } catch { return []; } });
   const [productWeighedIds, setProductWeighedIds] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]").map(String); } catch { return []; } });
   const [productCategoriesById, setProductCategoriesById] = useState(() => { try { return JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); } catch { return {}; } });
@@ -634,6 +635,10 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       const nextLayout = [...new Set([...productWeighedLayout, ...eligibleIds])].filter((id) => eligibleIds.includes(id));
       localStorage.setItem("veltro_pos_weighed_layout", JSON.stringify(nextLayout));
       setProductWeighedLayout(nextLayout);
+      const eligibleSlotIds = new Set(eligibleIds);
+      const nextSlots = Array.from({ length: 9 }, (_, index) => eligibleSlotIds.has(String(productWeighedSlots[index] || "")) ? String(productWeighedSlots[index]) : "");
+      localStorage.setItem("veltro_pos_weighed_slots", JSON.stringify(nextSlots));
+      setProductWeighedSlots(nextSlots);
       setProductSettingsMessage(t.productSettingsSaved);
     } catch (error) { console.warn("Could not save product settings", error); setProductSettingsMessage(""); }
   };
@@ -984,29 +989,24 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   <div className="settings-card">
                     <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.layoutTitle}</h4><p>{t.layoutText}</p></div><span className="settings-count">{weighedSettingsProducts.length}</span></div>
                     <p style={{ color: "var(--settings-muted, #94a3b8)", fontSize: 12, margin: "0 0 14px" }}>{t.dragHint}</p>
-                    {weighedSettingsProducts.length ? (
-                      <div className="settings-weighed-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10 }}>
-                        {weighedSettingsProducts.map((product, index) => {
-                          const id = String(product.id ?? product.productId ?? product.sku ?? "");
-                          return <div
-                            key={id}
-                            draggable
-                            onDragStart={(event) => { event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", id); }}
-                            onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; }}
-                            onDrop={(event) => { event.preventDefault(); moveWeighedProduct(event.dataTransfer.getData("text/plain"), id); }}
-                            title={t.dragHint}
-                            style={{ aspectRatio: "1 / 1", minHeight: 125, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 12, boxSizing: "border-box", textAlign: "center", border: "1px solid rgba(53,214,208,.35)", borderRadius: 14, background: "linear-gradient(145deg, rgba(53,214,208,.11), rgba(124,58,237,.10))", cursor: "grab", userSelect: "none" }}
-                          >
-                            <span style={{ display: "grid", placeItems: "center", width: 34, height: 34, borderRadius: 10, background: "rgba(53,214,208,.12)", color: "#35D6D0" }}><Package size={18} /></span>
-                            <strong style={{ fontSize: 13, lineHeight: 1.35, overflowWrap: "anywhere" }}>{product.name || id}</strong>
-                            <small style={{ color: "#94a3b8", fontSize: 11 }}>{product.sku || product.reference || id}</small>
-                            <span style={{ fontSize: 10, color: "#5eead4", border: "1px solid rgba(45,212,191,.25)", borderRadius: 999, padding: "3px 8px" }}>{locale === "ar" ? `المربع ${index + 1}` : locale === "fr" ? `Case ${index + 1}` : `Tile ${index + 1}`}</span>
-                            <select aria-label={t.category} value={productCategoriesById[id] || (productCategoryList.includes(product.category) ? product.category : "")} onClick={(event) => event.stopPropagation()} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))} style={{ width: "100%", maxWidth: "100%", padding: "5px 4px", borderRadius: 7, border: "1px solid rgba(148,163,184,.25)", background: "#0b1423", color: "#cbd5e1", fontSize: 10 }}><option value="">{locale === "ar" ? "اختر الفئة" : locale === "fr" ? "Choisir catégorie" : "Choose category"}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select>
+                    <div className="settings-weighed-grid settings-weighed-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+                        {Array.from({ length: 9 }, (_, index) => {
+                          const selectedId = String(productWeighedSlots[index] || "");
+                          const product = weighedSettingsProducts.find((item) => String(item.id ?? item.productId ?? item.sku ?? "") === selectedId);
+                          const id = product ? String(product.id ?? product.productId ?? product.sku ?? "") : "";
+                          return <div key={"weighed-slot-" + index} className="settings-weighed-slot" style={{ minWidth: 0, minHeight: 155, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 9, padding: 12, boxSizing: "border-box", border: selectedId ? "1px solid rgba(53,214,208,.45)" : "1px dashed rgba(148,163,184,.3)", borderRadius: 14, background: selectedId ? "linear-gradient(145deg, rgba(53,214,208,.11), rgba(124,58,237,.10))" : "rgba(2,6,23,.18)" }}>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                              <span style={{ display: "grid", placeItems: "center", width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: "rgba(53,214,208,.14)", color: "#5eead4", fontSize: 16, fontWeight: 800 }}>{index + 1}</span>
+                              <strong style={{ fontSize: 12, color: "#cbd5e1" }}>{locale === "ar" ? "زر رقم " + (index + 1) : locale === "fr" ? "Bouton " + (index + 1) : "Button " + (index + 1)}</strong>
+                            </div>
+                            <select aria-label={locale === "ar" ? "المنتج في الخانة " + (index + 1) : locale === "fr" ? "Produit dans la case " + (index + 1) : "Product in tile " + (index + 1)} value={selectedId} onChange={(event) => setProductWeighedSlots((previous) => previous.map((value, slotIndex) => slotIndex === index ? event.target.value : value))} style={{ width: "100%", minWidth: 0, minHeight: 40, padding: "7px 8px", borderRadius: 8, border: "1px solid rgba(148,163,184,.28)", background: "#0b1423", color: "#e2e8f0", fontSize: 12 }}>
+                              <option value="">{locale === "ar" ? "— اختر منتجًا —" : locale === "fr" ? "— Choisir un produit —" : "— Choose product —"}</option>
+                              {weighedSettingsProducts.map((item) => { const itemId = String(item.id ?? item.productId ?? item.sku ?? ""); return <option key={itemId} value={itemId}>{item.name || itemId} · {item.sku || item.reference || itemId}</option>; })}
+                            </select>
+                            {product ? <><small style={{ color: "#94a3b8", fontSize: 11, overflowWrap: "anywhere" }}>{product.sku || product.reference || id}</small><select aria-label={t.category} value={productCategoriesById[id] || (productCategoryList.includes(product.category) ? product.category : "")} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))} style={{ width: "100%", minWidth: 0, padding: "6px 5px", borderRadius: 7, border: "1px solid rgba(148,163,184,.25)", background: "#0b1423", color: "#cbd5e1", fontSize: 11 }}><option value="">{locale === "ar" ? "اختر الفئة" : locale === "fr" ? "Choisir catégorie" : "Choose category"}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select></> : <small style={{ color: "#64748b", fontSize: 11 }}>{locale === "ar" ? "خانة فارغة — اختر منتجًا" : locale === "fr" ? "Case vide — choisissez un produit" : "Empty tile — choose a product"}</small>}
                           </div>;
                         })}
-                        {Array.from({ length: Math.max(0, 25 - weighedSettingsProducts.length) }, (_, index) => <div key={"empty-weighed-setting-" + index} aria-hidden="true" style={{ aspectRatio: "1 / 1", minHeight: 125, display: "grid", placeItems: "center", border: "1px dashed rgba(148,163,184,.22)", borderRadius: 14, background: "rgba(2,6,23,.18)", color: "#64748b", fontSize: 12 }}>{locale === "ar" ? "المربع " + (weighedSettingsProducts.length + index + 1) : locale === "fr" ? "Case " + (weighedSettingsProducts.length + index + 1) : "Tile " + (weighedSettingsProducts.length + index + 1)}</div>)}
                       </div>
-                    ) : <p className="settings-empty">{t.noWeighedProducts}</p>}
                     <div className="settings-profile-actions">
                       <button type="button" className="settings-save-button" onClick={saveProductSettings}><Save size={15} />{t.saveProductSettings}</button>
                       {productSettingsMessage && <span className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{productSettingsMessage}</span>}
