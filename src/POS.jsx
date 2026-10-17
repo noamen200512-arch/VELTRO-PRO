@@ -775,8 +775,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     ]
   );
 
-  // A new invoice can only be created after the current invoice has products.
-  // Non-empty invoices are saved as pending before the next invoice is created.
+  // F1 reuses the current empty draft instead of creating duplicate empty invoices.
+  // A new invoice is created only after a non-empty invoice has been saved as pending.
   const createNewInvoice = () => {
     if (busy) return;
     if (closedInvoiceMode) {
@@ -784,20 +784,12 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
 
-    // F1 should always take the cashier back to a clean, empty invoice.
-    // If the current invoice is already empty, simply reset the workspace instead
-    // of showing an error. Non-empty invoices are still saved as pending below.
+    // If this is already an empty draft, it is the current workspace: keep it.
+    // In particular, do not generate a fresh invoice number on every F1 press.
     if (items.length === 0) {
       setShowPending(false);
       setShowEmptyWarning(false);
-      setInvoice(createInvoice());
       setRemovedItem(null);
-      notify(
-        locale === "ar" ? "تم فتح بون فارغ جديد." :
-        locale === "fr" ? "Une nouvelle facture vide est prête." :
-        "A new empty invoice is ready.",
-        "success"
-      );
       return;
     }
 
