@@ -670,7 +670,11 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     } catch (error) { console.warn("Could not save product settings", error); setProductSettingsMessage(""); }
   };
   const weighedSettingsProducts = productSettingsProducts
-    .filter((product) => product.weighedSale === true || product.weighedSale === "true")
+    .filter((product) => {
+      const id = String(product.id ?? product.productId ?? product.sku ?? "");
+      // Support both the product-form flag and the quick-sale settings assignment.
+      return product.weighedSale === true || product.weighedSale === "true" || productWeighedIds.includes(id);
+    })
     .sort((a, b) => {
       const aId = String(a.id ?? a.productId ?? a.sku ?? "");
       const bId = String(b.id ?? b.productId ?? b.sku ?? "");
@@ -683,7 +687,10 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     if (!draggedId || !targetId || draggedId === targetId) return;
     setProductWeighedLayout((previous) => {
       const eligibleIds = productSettingsProducts
-        .filter((product) => product.weighedSale === true || product.weighedSale === "true")
+        .filter((product) => {
+          const id = String(product.id ?? product.productId ?? product.sku ?? "");
+          return product.weighedSale === true || product.weighedSale === "true" || productWeighedIds.includes(id);
+        })
         .map((product) => String(product.id ?? product.productId ?? product.sku ?? ""));
       const order = [...new Set([...previous.map(String), ...eligibleIds])].filter((id) => eligibleIds.includes(id));
       const from = order.indexOf(String(draggedId));
