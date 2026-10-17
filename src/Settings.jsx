@@ -685,11 +685,15 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     setProductCategoryList((previous) => previous.map((category) => category === oldName ? newName : category));
     setProductCategoriesById((previous) => Object.fromEntries(Object.entries(previous).map(([id, category]) => [id, category === oldName ? newName : category])));
     setProductVisibleCategories((previous) => previous.map((category) => category === oldName ? newName : category));
+    setProductShortcutCategories((previous) => previous.map((category) => category === oldName ? newName : category));
+    setSelectedShortcutCategory((previous) => previous === oldName ? newName : previous);
     setProductCategoryNames((previous) => { const next = { ...previous }; delete next[oldName]; next[newName] = newName; return next; });
   };
   const removeProductCategory = (category) => {
     setProductCategoryList((previous) => previous.filter((item) => item !== category));
     setProductVisibleCategories((previous) => previous.filter((item) => item !== category));
+    setProductShortcutCategories((previous) => previous.map((item) => item === category ? "" : item));
+    setSelectedShortcutCategory((previous) => previous === category ? "" : previous);
     setProductCategoriesById((previous) => Object.fromEntries(Object.entries(previous).filter(([, value]) => value !== category)));
     setProductCategoryNames((previous) => { const next = { ...previous }; delete next[category]; return next; });
   };
@@ -1012,7 +1016,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     {showShortcutCategoryModal && <div className="settings-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowShortcutCategoryModal(false); }}><section className="settings-modal-card settings-shortcut-modal" role="dialog" aria-modal="true" aria-labelledby="weighed-shortcut-modal-title">
                       <header className="settings-modal-header"><div><h3 id="weighed-shortcut-modal-title">{locale === "ar" ? "اختصارات الفئات F1–F12" : locale === "fr" ? "Raccourcis catégories F1–F12" : "F1–F12 category shortcuts"}</h3><p>{locale === "ar" ? "اختر الفئة التي يفتحها كل مفتاح أثناء البيع بالميزان." : locale === "fr" ? "Choisissez la catégorie ouverte par chaque touche en vente au poids." : "Choose which category each key opens in the weighed-sale screen."}</p></div><button type="button" className="settings-icon-button" aria-label={t.cancel} onClick={() => setShowShortcutCategoryModal(false)}><X size={19}/></button></header>
                       <div className="settings-shortcut-category-grid">{productShortcutCategories.map((category,index)=><label className="settings-form-field" key={"shortcut-category-"+index}><span>F{index+1}</span><select value={category} onChange={(event)=>setProductShortcutCategories((previous)=>previous.map((value,slot)=>slot===index?event.target.value:value))}><option value="">{locale==="ar"?"— غير مرتبط —":locale==="fr"?"— Non attribué —":"— Unassigned —"}</option>{productCategoryList.map((option)=><option key={option} value={option}>{productCategoryNames[option]||option}</option>)}</select></label>)}</div>
-                      <footer className="settings-modal-footer"><button type="button" className="settings-cancel-button" onClick={()=>setShowShortcutCategoryModal(false)}>{t.cancel}</button><button type="button" className="settings-save-button" onClick={()=>{try{localStorage.setItem("veltro_pos_shortcut_categories",JSON.stringify(productShortcutCategories));localStorage.setItem("veltro_pos_visible_weighed_categories",JSON.stringify([...new Set(productShortcutCategories.filter(Boolean))]));setProductVisibleCategories([...new Set(productShortcutCategories.filter(Boolean))]);}catch{}setShowShortcutCategoryModal(false);}}>{locale==="ar"?"حفظ الاختصارات":locale==="fr"?"Enregistrer les raccourcis":"Save shortcuts"}</button></footer>
+                      <footer className="settings-modal-footer"><button type="button" className="settings-cancel-button" onClick={()=>setShowShortcutCategoryModal(false)}>{t.cancel}</button><button type="button" className="settings-save-button" onClick={()=>{try{localStorage.setItem("veltro_pos_shortcut_categories",JSON.stringify(productShortcutCategories));}catch{}setShowShortcutCategoryModal(false);}}>{locale==="ar"?"حفظ الاختصارات":locale==="fr"?"Enregistrer les raccourcis":"Save shortcuts"}</button></footer>
                     </section></div>}
                     <div className="settings-weighed-grid settings-weighed-grid-3" dir="rtl" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
                         {[8, 7, 6, 5, 4, 3, 2, 1, 0].map((index) => {
