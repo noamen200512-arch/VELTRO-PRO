@@ -5351,3 +5351,71 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     font-size: 10px !important;
   }
 }
+
+/* Fullscreen POS layout repair: place the four main cards in a single
+   two-column grid. Keep this scoped to desktop fullscreen so regular/mobile
+   layouts and card sizing outside fullscreen remain unchanged. */
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr) !important;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    direction: ltr !important;
+    flex: 1 1 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    gap: 9px !important;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace {
+    display: contents !important;
+  }
+
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-summary {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .product-entry {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-table-section {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+}
+
