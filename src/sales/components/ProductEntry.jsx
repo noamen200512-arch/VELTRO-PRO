@@ -434,7 +434,7 @@ export function ProductEntry({
                 );
                 if (!isEditingField) focusBarcodeInput();
               });
-            }
+            }}
           />
 
           {barcode && (
