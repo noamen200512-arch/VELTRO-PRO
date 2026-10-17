@@ -50,9 +50,16 @@ export default function ProductForm({
   const qty = Math.max(1, Number(form.piecesPerCarton) || 1);
   const cartons = Math.max(0, Number(form.cartonsReceived) || 0);
   const totalUnits = cartons * qty;
-  const profit = (price, cost) => Number(cost || 0) > 0
-    ? (((Number(price || 0) - Number(cost || 0)) / Number(cost || 0)) * 100).toFixed(2)
-    : "—";
+  const profit = (price, cost) => {
+    const parse = (value) => {
+      const normalized = typeof value === "string" ? value.trim().replace(/\s/g, "").replace(",", ".") : value;
+      const number = Number(normalized || 0);
+      return Number.isFinite(number) ? number : 0;
+    };
+    const selling = parse(price);
+    const purchase = parse(cost);
+    return purchase > 0 ? (((selling - purchase) / purchase) * 100).toFixed(2) : "—";
+  };
 
   return <div
     onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
