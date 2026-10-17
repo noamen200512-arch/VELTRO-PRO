@@ -1666,10 +1666,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
-          onPreviousInvoice={previousInvoice ? () => openPendingInvoice(previousInvoice.id) : undefined}
-          onNextInvoice={nextInvoice ? () => openPendingInvoice(nextInvoice.id) : undefined}
-          previousInvoiceDisabled={!previousInvoice || busy}
-          nextInvoiceDisabled={!nextInvoice || busy}
           onPending={() => {
             if (closedInvoiceMode === "review") {
               // Leave read-only closed-invoice browsing before opening pending invoices.
