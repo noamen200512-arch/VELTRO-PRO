@@ -6899,6 +6899,11 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
+.pos-page.pos-fullscreen-active .invoice-summary-current-user,
+.pos-page:fullscreen .invoice-summary-current-user {
+  display: none !important;
+}
+
 /* Fullscreen toolbar layout only: group the existing buttons together on one side.
    Keep the original button dimensions, typography, padding and icon sizes unchanged. */
 @media screen and (min-width: 761px) {
