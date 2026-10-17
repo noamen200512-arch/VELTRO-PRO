@@ -1103,8 +1103,7 @@ export default function Products() {
         editingId={editingId}
         form={form}
         products={products}
-        categories={[...new Set([...settingsCategories, ...categories.filter((item) => item !== "All")])]}
-        settingsCategories={settingsCategories}
+        categories={settingsCategories.length ? settingsCategories : categories.filter((item) => item !== "All")}
         buttonStyle={buttonStyle}
         fileInputRef={fileInputRef}
         cameraInputRef={cameraInputRef}
