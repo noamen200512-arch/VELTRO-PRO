@@ -448,12 +448,10 @@ export async function refreshOrganizationCache(organizationId) {
         const cached = JSON.parse(localStorage.getItem("veltro_pending_invoices") || "[]");
         if (Array.isArray(cached)) localPending = cached;
       } catch {}
-      const localOnlyPending = bootstrapReadyOrganizations.has(organizationId)
-        ? []
-        : localPending.filter((item) => {
-            const id = String(item.id || item.invoiceId || item.invoiceNumber || "");
-            return id && !knownCloudInvoiceIds.has(id);
-          });
+      const localOnlyPending = localPending.filter((item) => {
+        const id = String(item.id || item.invoiceId || item.invoiceNumber || "");
+        return id && !knownCloudInvoiceIds.has(id);
+      });
       const pendingById = new Map();
       for (const item of localOnlyPending) {
         pendingById.set(String(item.id || item.invoiceId || item.invoiceNumber), item);
