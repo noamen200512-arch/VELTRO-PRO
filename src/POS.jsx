@@ -875,7 +875,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if (quantity > available && !options.allowOversell) {
         setWarningPayload({ type: "quantity", itemId: id, value: quantity, requested: quantity, available });
         playSound("alerts");
-      setKeyboardDialog("stockWarning");
+        setKeyboardDialog("stockWarning");
         return;
       }
 
