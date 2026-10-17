@@ -1648,6 +1648,20 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if(showSaleReview){if(e.key==="Escape"){stop();setShowSaleReview(false);return;}if(e.key==="Enter"||e.key==="F12"){stop();setShowSaleReview(false);setShowSaleConfirm(true);return;}return;}
       if(showBelowCostWarning){if(e.key==="Escape"){stop();setShowBelowCostWarning(false);return;}if(e.key==="Enter"){stop();openSaleConfirmation();return;}return;}
       if(showCustomerPicker&&e.key==="Escape"){stop();setShowCustomerPicker(false);return;}
+      // Keep cart keyboard navigation active while the cashier's cursor is in
+      // either product lookup field. Prevent the browser from moving the caret.
+      const isProductLookupField =
+        target?.id === "product-barcode" || target?.id === "product-search";
+      if (isProductLookupField && items.length && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+        stop();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        setSelectedCartIndex((index) =>
+          e.key === "ArrowDown"
+            ? Math.min(items.length - 1, index + 1)
+            : Math.max(0, index - 1)
+        );
+        return;
+      }
       // When the barcode field is focused, left/right arrows browse closed invoices
       // instead of moving the text caret. Keep the barcode field focused for scanners.
       if (target?.id === "product-barcode" && (e.key === "ArrowLeft" || e.key === "ArrowRight") && closedInvoices.length > 0) {
