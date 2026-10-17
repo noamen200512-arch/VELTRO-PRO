@@ -1534,6 +1534,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         setShowShortcutsHelp((current) => !current);
         return;
       }
+      // The weighed-sale dialog owns F1-F12 category shortcuts and left/right page navigation.
+      if (quickSaleDialog === "weigh") return;
       // F9 toggles the POS app's fullscreen layout.
       if (e.key === "F9") {
         stop();
