@@ -2246,7 +2246,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
         <main className="sales-workspace">
           <ProductEntry
-            statusCards={<>\n              <div className="pos-heading-status-cards">
+            statusCards={<>
+              <div className="pos-heading-status-cards">
               <section className="pos-user-status-card" aria-label="Current user">
               <span className="pos-status-card-icon"><UserRound size={17} /></span>
               <span className="pos-status-card-copy">
@@ -2262,7 +2263,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </span>
               <span className="pos-server-status-dot" />
               </section>
-              </div>\n            </>}\n            onAddProduct={addProduct}
+              </div>
+            </>}\n            onAddProduct={addProduct}
             onAddCarton={addCarton}
             showProducts={showProducts}
             onShowProducts={setShowProducts}
