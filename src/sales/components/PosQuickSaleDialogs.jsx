@@ -95,7 +95,8 @@ export default function PosQuickSaleDialogs({
   const filtered = useMemo(() => products.filter((p) => {
     const id = idOf(p);
     if (dialog === "favorites" && !favoriteSet.has(id)) return false;
-    if (dialog === "weigh" && !(p.weighedSale === true || p.weighedSale === "true")) return false;
+    // Include products enabled in Quick-sale settings as well as products marked in the product form.
+    if (dialog === "weigh" && !(weighedSet.has(id) || p.weighedSale === true || p.weighedSale === "true")) return false;
     const q = normalize(search);
     if (q && ![p.name, p.id, p.productId, p.sku, p.reference, p.barcode].some((v) => normalize(v).includes(q))) return false;
     if (dialog === "weigh" && categoryFilter !== "all" && (categoriesByProduct[id] || p.category || "") !== categoryFilter) return false;
