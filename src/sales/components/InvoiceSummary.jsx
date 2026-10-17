@@ -214,11 +214,11 @@ export function InvoiceSummary({
             <strong>{money(safePreviousDebt)}</strong>
           </div>
 
-          {safePreviousDebt > 0 && (
+          {customerName && !["anonyme", "anonymous", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase()) && totalCustomerDebt > 0 && (
             <div className="invoice-summary-row">
-              <span>Total Debt After Sale</span>
+              <span>{labels.totalDebt}</span>
               <strong className="invoice-summary-remaining">
-                {money(safePreviousDebt + safeRemaining)}
+                {money(totalCustomerDebt)}
               </strong>
             </div>
           )}
