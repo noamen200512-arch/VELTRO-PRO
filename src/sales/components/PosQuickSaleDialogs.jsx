@@ -3,7 +3,7 @@ import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter, Tr
 
 const COPY = {
   en: {
-    favorites:"Favorite products", weigh:"Sell by weight", settings:"Quick-sale settings", search:"Search by product name or reference…", priceMode:"F1 · Sell at regular price", weightMode:"F2 · Sell by weight", chooseMode:"Select a product, then choose the sale mode.",
+    favorites:"Favorite products", weigh:"Sell by weight", settings:"Quick-sale settings", search:"Search by product name or reference…", priceMode:"F1 · Sell at regular price", weightMode:"F2 · Sell by weight", chooseMode:"Press 1–9 to select a product, then F1 for regular price or F2 to sell by weight.",
     noFavorites:"No favorite products configured.", noWeighed:"No products configured for weighing.", close:"Close", add:"Add to invoice",
     choose:"Choose a product", category:"Category", all:"All categories", nuts:"Nuts", grains:"Grains", spices:"Spices", other:"Other",
     weight:"Weight", amount:"Amount to pay", kg:"kg", priceKg:"Price per kg", total:"Total", onePound:"1 pound", halfPound:"½ pound",
@@ -14,7 +14,7 @@ const COPY = {
     remove:"Remove", enter:"Enter", clear:"Clear", poundSize:"Pound size (grams)", noCategory:"Uncategorized", manageCategoryContents:"Manage category names", categoryName:"Category name", deleteCategory:"Delete category", categoryRenameHint:"Edit a name, then leave the field to apply it."
   },
   fr: {
-    favorites:"Produits favoris", weigh:"Vente au poids", settings:"Réglages de vente rapide", search:"Rechercher par nom ou référence…", priceMode:"F1 · Prix normal", weightMode:"F2 · Vente au poids", chooseMode:"Choisissez un produit, puis le mode de vente.",
+    favorites:"Produits favoris", weigh:"Vente au poids", settings:"Réglages de vente rapide", search:"Rechercher par nom ou référence…", priceMode:"F1 · Prix normal", weightMode:"F2 · Vente au poids", chooseMode:"Appuyez sur 1–9 pour choisir un produit, puis F1 pour le prix normal ou F2 pour la vente au poids.",
     noFavorites:"Aucun produit favori configuré.", noWeighed:"Aucun produit configuré pour la pesée.", close:"Fermer", add:"Ajouter à la facture",
     choose:"Choisir un produit", category:"Catégorie", all:"Toutes les catégories", nuts:"Fruits à coque", grains:"Céréales", spices:"Épices", other:"Autre",
     weight:"Poids", amount:"Montant à payer", kg:"kg", priceKg:"Prix au kg", total:"Total", onePound:"1 livre", halfPound:"½ livre",
@@ -25,7 +25,7 @@ const COPY = {
     remove:"Supprimer", enter:"Entrée", clear:"Effacer", poundSize:"Valeur de la livre (grammes)", noCategory:"Sans catégorie", manageCategoryContents:"Gérer les noms des catégories", categoryName:"Nom de la catégorie", deleteCategory:"Supprimer la catégorie", categoryRenameHint:"Modifiez un nom puis quittez le champ pour appliquer."
   },
   ar: {
-    favorites:"المنتجات المفضلة", weigh:"البيع بالميزان", settings:"إعدادات البيع السريع", search:"ابحث باسم المنتج أو مرجعه…", priceMode:"F1 · البيع بالسعر العادي", weightMode:"F2 · البيع بالميزان", chooseMode:"اختر المنتج ثم حدّد طريقة البيع.",
+    favorites:"المنتجات المفضلة", weigh:"البيع بالميزان", settings:"إعدادات البيع السريع", search:"ابحث باسم المنتج أو مرجعه…", priceMode:"F1 · البيع بالسعر العادي", weightMode:"F2 · البيع بالميزان", chooseMode:"اضغط رقم المنتج من 1 إلى 9، ثم F1 للسعر العادي أو F2 للبيع بالميزان.",
     noFavorites:"لم تُحدَّد منتجات مفضلة بعد.", noWeighed:"لم تُحدَّد منتجات للبيع بالميزان.", close:"إغلاق", add:"إضافة إلى الفاتورة",
     choose:"اختر منتجًا", category:"الفئة", all:"كل الفئات", nuts:"مكسرات", grains:"حبوب", spices:"توابل", other:"أخرى",
     weight:"الوزن", amount:"المبلغ المراد دفعه", kg:"كغ", priceKg:"السعر لكل كغ", total:"الإجمالي", onePound:"رطل واحد", halfPound:"نصف رطل",
