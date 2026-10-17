@@ -422,17 +422,17 @@ export function ProductEntry({
             aria-label="Scan or enter barcode"
             value={barcode}
             onChange={(event) => setBarcode(event.target.value)}
-            onBlur={(event) => {
+            onBlur={() => {
               if (!isFullscreen) return;
-              // Keep scanner focus after clicking buttons, but do not steal
-              // focus from another input used by an open dialog.
+              // Keep scanner focus after POS actions without stealing focus
+              // from an input in an open dialog.
               requestAnimationFrame(() => {
                 const active = document.activeElement;
-                const isEditingField = active instanceof HTMLElement && (
-                  active.isContentEditable ||
-                  ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)
-                );
-                if (!isEditingField) focusBarcodeInput();
+                const editingField =
+                  active instanceof HTMLElement &&
+                  (active.isContentEditable ||
+                    ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName));
+                if (!editingField) focusBarcodeInput();
               });
             }}
           />
