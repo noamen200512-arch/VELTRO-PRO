@@ -6290,3 +6290,110 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     border-top: 1px solid rgba(148, 163, 184, .18) !important;
   }
 }
+
+
+/* POS account information additions: compact, readable, and responsive. */
+.pos-page .invoice-summary-meta-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  padding: 9px 12px;
+  margin: 0 12px 10px;
+  border: 1px solid rgba(148, 163, 184, .14);
+  border-radius: 10px;
+  background: rgba(148, 163, 184, .045);
+}
+.pos-page .invoice-summary-meta-strip > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.pos-page .invoice-summary-meta-strip span {
+  color: var(--sales-muted, #8d9bb0);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .045em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.pos-page .invoice-summary-meta-strip strong {
+  color: var(--sales-text, #edf4ff);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.pos-page .invoice-summary-meta-strip .is-paid,
+.pos-page .sales-invoice-status-card .is-paid { color: #34d399; }
+.pos-page .invoice-summary-meta-strip .is-partial,
+.pos-page .sales-invoice-status-card .is-partial { color: #fbbf24; }
+.pos-page .invoice-summary-meta-strip .is-unpaid,
+.pos-page .sales-invoice-status-card .is-unpaid { color: #fb7185; }
+.pos-page .invoice-summary-customer-reference {
+  display: block;
+  margin-top: 4px;
+  color: var(--sales-muted, #8d9bb0);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.pos-page .sales-invoice-status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-direction: row;
+}
+.pos-page .sales-invoice-status-card strong {
+  font-size: 12px;
+  font-weight: 800;
+}
+.pos-page .sales-customer-reference {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 7px;
+}
+.pos-page .sales-customer-reference strong {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.pos-page .sales-account-card-heading {
+  padding-bottom: 6px;
+  color: var(--sales-muted, #8d9bb0);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.pos-page .invoice-table-information-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 16px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--sales-border, rgba(148, 163, 184, .16));
+  background: rgba(148, 163, 184, .035);
+  color: var(--sales-muted, #8d9bb0);
+  font-size: 10px;
+}
+.pos-page .invoice-table-information-strip span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.pos-page .invoice-table-information-strip strong {
+  color: var(--sales-text, #edf4ff);
+  font-size: 11px;
+  font-weight: 800;
+}
+@media (max-width: 760px) {
+  .pos-page .invoice-summary-meta-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 8px 8px;
+    padding: 8px;
+  }
+  .pos-page .invoice-summary-meta-strip span { font-size: 8px; }
+  .pos-page .invoice-summary-meta-strip strong { font-size: 11px; }
+  .pos-page .invoice-table-information-strip { gap: 6px 10px; }
+}
