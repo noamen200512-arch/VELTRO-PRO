@@ -201,7 +201,7 @@ export default function PosQuickSaleDialogs({
         }
         return;
       }
-      if (selectedId && !showWeighEntry && (event.key === "F1" || event.key === "F2")) {
+      if (!typing && selectedId && !showWeighEntry && (event.key === "F1" || event.key === "F2")) {
         event.preventDefault(); event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         const selectedProduct = orderedProducts.find((product) => idOf(product) === selectedId);
