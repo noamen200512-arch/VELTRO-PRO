@@ -172,6 +172,28 @@ export default function PosQuickSaleDialogs({
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
       const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        if (showWeighEntry) {
+          setShowWeighEntry(false);
+          setSelectedId("");
+        } else {
+          resetAndClose();
+        }
+        return;
+      }
+      if (event.key === "Enter" && showWeighEntry) {
+        const confirmButton = document.querySelector(".pos-weigh-entry-modal button.primary:not(:disabled)");
+        if (confirmButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+          confirmButton.click();
+        }
+        return;
+      }
       if (/^F([1-9]|1[0-2])$/.test(event.key)) {
         const categoryIndex = Number(event.key.slice(1)) - 1;
         const category = shortcutCategories.some(Boolean) ? shortcutCategories[categoryIndex] : visibleWeighedCategories.filter((item) => categories.includes(item))[categoryIndex];
