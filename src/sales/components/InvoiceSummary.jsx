@@ -103,6 +103,18 @@ export function InvoiceSummary({
           </div>
         </div>
 
+        <div className="invoice-summary-current-user" title="Current User">
+          <div className="invoice-summary-current-user-avatar">
+            {String(currentUser || "User").trim().charAt(0).toUpperCase() || "U"}
+          </div>
+          <div className="invoice-summary-current-user-details">
+            <span>Current User</span>
+            <strong>{currentUser || "User"}</strong>
+            <small>Sales Operator</small>
+          </div>
+          <span className="invoice-summary-current-user-status" />
+        </div>
+
       </div>
 
       <div className="invoice-summary-content">
