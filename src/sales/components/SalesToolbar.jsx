@@ -2,8 +2,6 @@
 import React from "react";
 import {
   Keyboard,
-  ChevronLeft,
-  ChevronRight,
   FilePlus2,
   FilePenLine,
   Printer,
@@ -51,10 +49,6 @@ export function SalesToolbar({
   onPrint,
   onCustomer,
   onPending,
-  onPreviousInvoice,
-  onNextInvoice,
-  previousInvoiceDisabled = true,
-  nextInvoiceDisabled = true,
   pendingCount = 0,
   showPending = false,
   newDisabled = false,
@@ -105,19 +99,6 @@ export function SalesToolbar({
             </button>
           </div>
         )}
-
-        <div className="sales-toolbar-invoice-navigation" aria-label="Invoice navigation">
-          <button type="button" className="sales-toolbar-invoice-nav" onClick={onPreviousInvoice} disabled={disabled || previousInvoiceDisabled || typeof onPreviousInvoice !== "function"} title={locale === "ar" ? "البون السابق (←)" : locale === "fr" ? "Bon précédent (←)" : "Previous invoice (←)"}>
-            <ChevronLeft size={16} />
-            <span>{locale === "ar" ? "السابق" : locale === "fr" ? "Précédent" : "Previous"}</span>
-            <kbd>←</kbd>
-          </button>
-          <button type="button" className="sales-toolbar-invoice-nav" onClick={onNextInvoice} disabled={disabled || nextInvoiceDisabled || typeof onNextInvoice !== "function"} title={locale === "ar" ? "البون التالي (→)" : locale === "fr" ? "Bon suivant (→)" : "Next invoice (→)"}>
-            <span>{locale === "ar" ? "التالي" : locale === "fr" ? "Suivant" : "Next"}</span>
-            <kbd>→</kbd>
-            <ChevronRight size={16} />
-          </button>
-        </div>
 
         {toolbarButtons.map((button) => {
           const Icon = button.icon;
