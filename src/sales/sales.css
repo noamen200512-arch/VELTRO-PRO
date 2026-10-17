@@ -2565,7 +2565,7 @@
 
 /* Professional Pending Invoices modal */
 .pos-page .pending-invoices-backdrop {
-  position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center;
+  position: fixed; inset: 0; z-index: 2147483000; display: flex; align-items: center; justify-content: center;
   padding: 22px; background: rgba(2, 6, 14, .78); backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px);
 }
 .pos-page .pending-invoices-modal {
