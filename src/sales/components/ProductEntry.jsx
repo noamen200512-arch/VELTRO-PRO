@@ -83,12 +83,22 @@ export function ProductEntry({
   const streamRef = useRef(null);
 
   const focusBarcodeInput = useCallback(() => {
-    // Let the carton action finish updating the invoice before restoring focus.
+    // Restore scanner focus after POS actions without selecting text that a
+    // hardware scanner is about to replace.
     requestAnimationFrame(() => {
       barcodeInputRef.current?.focus({ preventScroll: true });
-      barcodeInputRef.current?.select();
     });
   }, []);
+
+  useEffect(() => {
+    if (!isFullscreen) return undefined;
+
+    focusBarcodeInput();
+    const handleWindowFocus = () => focusBarcodeInput();
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => window.removeEventListener("focus", handleWindowFocus);
+  }, [isFullscreen, focusBarcodeInput]);
   const detectorRef = useRef(null);
   const scanningRef = useRef(false);
   const busyRef = useRef(false);
@@ -213,9 +223,10 @@ export function ProductEntry({
       setBarcode("");
       setSearch("");
       setCurrentPage(1);
+      if (isFullscreen) focusBarcodeInput();
       return added !== false;
     },
-    [onAddProduct]
+    [onAddProduct, isFullscreen, focusBarcodeInput]
   );
 
   const submitBarcode = useCallback(
@@ -411,6 +422,19 @@ export function ProductEntry({
             aria-label="Scan or enter barcode"
             value={barcode}
             onChange={(event) => setBarcode(event.target.value)}
+            onBlur={(event) => {
+              if (!isFullscreen) return;
+              // Keep scanner focus after clicking buttons, but do not steal
+              // focus from another input used by an open dialog.
+              requestAnimationFrame(() => {
+                const active = document.activeElement;
+                const isEditingField = active instanceof HTMLElement && (
+                  active.isContentEditable ||
+                  ["INPUT", "TEXTAREA", "SELECT"].includes(active.tagName)
+                );
+                if (!isEditingField) focusBarcodeInput();
+              });
+            }
           />
 
           {barcode && (
