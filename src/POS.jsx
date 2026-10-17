@@ -354,6 +354,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [weighedProductSlots, setWeighedProductSlots] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) return Array.from({ length: 9 }, (_, i) => String(saved[i] || "")); const legacy = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.from({ length: 9 }, (_, i) => String(legacy[i] || "")); } catch { return Array(9).fill(""); } });
   const [weighedCategoryList, setWeighedCategoryList] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]'); return Array.isArray(v) && v.length ? v : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
   const [visibleWeighedCategories, setVisibleWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null"); return Array.isArray(v) ? v : ["Nuts", "Grains", "Spices", "Other"]; } catch { return ["Nuts", "Grains", "Spices", "Other"]; } });
+  const [weighedShortcutCategories, setWeighedShortcutCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_shortcut_categories") || "null"); return Array.isArray(v) ? Array.from({ length: 12 }, (_, i) => String(v[i] || "")) : []; } catch { return []; } });
   const [poundGrams, setPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
   const [showPending, setShowPending] = useState(false);
   const [closedInvoiceMode, setClosedInvoiceMode] = useState(null);
@@ -2170,6 +2171,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         categoriesByProduct={weighedCategories}
         categories={weighedCategoryList}
         visibleWeighedCategories={visibleWeighedCategories}
+        shortcutCategories={weighedShortcutCategories}
         poundGrams={poundGrams}
         onClose={() => setQuickSaleDialog(null)}
         onAddProduct={(product) => { setQuickSaleDialog(null); addProduct(product); }}
@@ -2185,6 +2187,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           }
           setWeighedCategoryList(settings.categories);
           setVisibleWeighedCategories(settings.visibleWeighedCategories);
+          if (Array.isArray(settings.shortcutCategories)) { setWeighedShortcutCategories(settings.shortcutCategories); try { localStorage.setItem("veltro_pos_shortcut_categories", JSON.stringify(settings.shortcutCategories)); } catch {} }
           setPoundGrams(settings.poundGrams);
           try {
             localStorage.setItem("veltro_pos_favorite_products", JSON.stringify(settings.favoriteIds));
