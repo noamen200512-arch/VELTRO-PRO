@@ -2261,26 +2261,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             onAddCarton={addCarton}
             locale={locale}
           />
-            <SalesSidebar
-              invoiceNumber={invoice.invoiceNumber}
-              customer={customer}
-              onCustomerChange={(value) => {
-                const selectedName = String(value ?? "").trim();
-                const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
-                updateInvoice({
-                  customerName: anonymous ? "Anonyme" : selectedName,
-                  customerId: anonymous ? "" : selectedName,
-                });
-              }}
-              paid={paid}
-              onPaidChange={(value) =>
-                updateInvoice({ paid: money(value) })
-              }
-              remaining={remaining}
-              newAmount={total}
-              invoiceDate={invoice.createdAt}
-              previousDebt={previousDebt}
-            />
           </div>
         </div>
         <div className="pos-entry-column">
@@ -2303,6 +2283,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </section>
             </div>
           )}
+          <div className="pos-product-info-card">
           <ProductEntry
             isFullscreen={isFullscreen}
             statusCards={isFullscreen ? <>
@@ -2430,6 +2411,28 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           </section>
             </>}
           />
+
+            <SalesSidebar
+              invoiceNumber={invoice.invoiceNumber}
+              customer={customer}
+              onCustomerChange={(value) => {
+                const selectedName = String(value ?? "").trim();
+                const anonymous = !selectedName || selectedName.toLowerCase() === "anonyme";
+                updateInvoice({
+                  customerName: anonymous ? "Anonyme" : selectedName,
+                  customerId: anonymous ? "" : selectedName,
+                });
+              }}
+              paid={paid}
+              onPaidChange={(value) =>
+                updateInvoice({ paid: money(value) })
+              }
+              remaining={remaining}
+              newAmount={total}
+              invoiceDate={invoice.createdAt}
+              previousDebt={previousDebt}
+            />
+          </div>
 
         </div>
       </div>
