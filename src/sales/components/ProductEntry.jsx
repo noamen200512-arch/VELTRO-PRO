@@ -78,8 +78,17 @@ export function ProductEntry({
   const [cameraSupported, setCameraSupported] = useState(true);
   const [notice, setNotice] = useState("");
 
+  const barcodeInputRef = useRef(null);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+
+  const focusBarcodeInput = useCallback(() => {
+    // Let the carton action finish updating the invoice before restoring focus.
+    requestAnimationFrame(() => {
+      barcodeInputRef.current?.focus({ preventScroll: true });
+      barcodeInputRef.current?.select();
+    });
+  }, []);
   const detectorRef = useRef(null);
   const scanningRef = useRef(false);
   const busyRef = useRef(false);
@@ -395,6 +404,7 @@ export function ProductEntry({
 
           <input
             id="product-barcode"
+            ref={barcodeInputRef}
             type="text"
             autoComplete="off"
             placeholder="Scan or enter barcode..."
@@ -656,7 +666,10 @@ export function ProductEntry({
                         type="button"
                         className="product-carton-button"
                         disabled={cartonSize <= 1 || typeof onAddCarton !== "function"}
-                        onClick={() => onAddCarton(product)}
+                        onClick={() => {
+                          onAddCarton(product);
+                          focusBarcodeInput();
+                        }}
                         title={cartonSize <= 1 ? "Configure pieces per carton for this product" : `Add one carton (${cartonSize} units)`}
                       >
                         <Boxes size={15} />
