@@ -985,7 +985,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.layoutTitle}</h4><p>{t.layoutText}</p></div><span className="settings-count">{weighedSettingsProducts.length}</span></div>
                     <p style={{ color: "var(--settings-muted, #94a3b8)", fontSize: 12, margin: "0 0 14px" }}>{t.dragHint}</p>
                     {weighedSettingsProducts.length ? (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(135px, 1fr))", gap: 12 }}>
+                      <div className="settings-weighed-grid" style={{ display: "grid", gridTemplateColumns: "repeat(5, minmax(0, 1fr))", gap: 10 }}>
                         {weighedSettingsProducts.map((product, index) => {
                           const id = String(product.id ?? product.productId ?? product.sku ?? "");
                           return <div
@@ -1001,6 +1001,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                             <strong style={{ fontSize: 13, lineHeight: 1.35, overflowWrap: "anywhere" }}>{product.name || id}</strong>
                             <small style={{ color: "#94a3b8", fontSize: 11 }}>{product.sku || product.reference || id}</small>
                             <span style={{ fontSize: 10, color: "#5eead4", border: "1px solid rgba(45,212,191,.25)", borderRadius: 999, padding: "3px 8px" }}>{locale === "ar" ? `المربع ${index + 1}` : locale === "fr" ? `Case ${index + 1}` : `Tile ${index + 1}`}</span>
+                            <select aria-label={t.category} value={productCategoriesById[id] || (productCategoryList.includes(product.category) ? product.category : "")} onClick={(event) => event.stopPropagation()} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))} style={{ width: "100%", maxWidth: "100%", padding: "5px 4px", borderRadius: 7, border: "1px solid rgba(148,163,184,.25)", background: "#0b1423", color: "#cbd5e1", fontSize: 10 }}><option value="">{locale === "ar" ? "اختر الفئة" : locale === "fr" ? "Choisir catégorie" : "Choose category"}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select>
                           </div>;
                         })}
                       </div>
