@@ -6899,173 +6899,45 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
-/* Tighter, aligned toolbar controls after removing the extra invoice navigation pair. */
-.pos-page .sales-toolbar {
-  gap: 6px !important;
-  padding: 7px 10px !important;
-  min-height: 0 !important;
-}
-
-.pos-page .sales-toolbar-brand {
-  gap: 6px !important;
-  font-size: 10px !important;
-  letter-spacing: .07em !important;
-  white-space: nowrap;
-}
-
-.pos-page .sales-toolbar-actions {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 5px !important;
-  flex-wrap: wrap !important;
-  min-width: 0;
-}
-
-.pos-page .sales-toolbar-button {
-  min-height: 30px !important;
-  padding: 5px 8px !important;
-  gap: 5px !important;
-  border-radius: 8px !important;
-  font-size: 10px !important;
-  line-height: 1.1 !important;
-  white-space: nowrap !important;
-}
-
-.pos-page .sales-toolbar-button-icon {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.pos-page .sales-toolbar-button-icon svg {
-  width: 15px !important;
-  height: 15px !important;
-}
-
-.pos-page .sales-toolbar-shortcut-hint {
-  font-size: 9px !important;
-  padding: 1px 4px !important;
-}
-
-.pos-page .sales-toolbar-notice {
-  gap: 5px !important;
-  padding: 4px 7px !important;
-  font-size: 10px !important;
-  min-height: 28px !important;
-}
-
-@media screen and (max-width: 760px) {
-  .pos-page .sales-toolbar {
-    align-items: center !important;
-    padding: 6px !important;
-  }
-
-  .pos-page .sales-toolbar-brand {
-    font-size: 9px !important;
-  }
-
-  .pos-page .sales-toolbar-actions {
-    gap: 4px !important;
-  }
-
-  .pos-page .sales-toolbar-button {
-    min-height: 28px !important;
-    padding: 4px 6px !important;
-    font-size: 9px !important;
-  }
-
-  .pos-page .sales-toolbar-button-icon svg {
-    width: 14px !important;
-    height: 14px !important;
-  }
-}
-
-
-/* In fullscreen, keep toolbar buttons compact horizontally without
-   changing their height or icon/text size. Center compact buttons in the grid. */
-.pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
-.pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
-  justify-self: center !important;
-  width: fit-content !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  padding-left: 5px !important;
-  padding-right: 5px !important;
-  gap: 4px !important;
-  white-space: nowrap !important;
-}
-.pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon),
-.pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon) {
-  overflow-wrap: normal !important;
-  word-break: normal !important;
-}
-.pos-page.pos-fullscreen-active .invoice-summary-current-user,
-.pos-page:fullscreen .invoice-summary-current-user {
-  display: none !important;
-}
-@media screen and (max-width: 760px) {
-  .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
-  .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
-    gap: 3px !important;
-  }
-}
-
-
-/* Fullscreen POS toolbar: keep every top action in one aligned horizontal row. */
+/* Fullscreen toolbar layout only: group the existing buttons together on one side.
+   Keep the original button dimensions, typography, padding and icon sizes unchanged. */
 @media screen and (min-width: 761px) {
   .pos-page.pos-fullscreen-active .sales-toolbar,
   .pos-page:fullscreen .sales-toolbar {
-    display: grid !important;
-    grid-template-columns: max-content minmax(0, 1fr) !important;
+    display: flex !important;
     align-items: center !important;
-    column-gap: 12px !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    gap: 18px !important;
     width: 100% !important;
-    box-sizing: border-box !important;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-toolbar-brand,
+  .pos-page:fullscreen .sales-toolbar-brand {
+    flex: 0 0 auto !important;
   }
 
   .pos-page.pos-fullscreen-active .sales-toolbar-actions,
   .pos-page:fullscreen .sales-toolbar-actions {
-    display: grid !important;
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-    align-items: stretch !important;
-    justify-content: stretch !important;
-    gap: 6px !important;
-    width: 100% !important;
-    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 1 auto !important;
     flex-wrap: nowrap !important;
+    gap: 9px !important;
+    min-width: 0 !important;
+    width: auto !important;
+    margin-left: auto !important;
+    overflow-x: auto !important;
   }
 
   .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
   .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    width: 100% !important;
-    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
     max-width: none !important;
-    min-height: 34px !important;
-    padding: 5px 7px !important;
-    box-sizing: border-box !important;
     white-space: nowrap !important;
-  }
-
-  .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon),
-  .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon) {
-    min-width: 0 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    font-size: clamp(9px, .72vw, 11px) !important;
-  }
-
-  .pos-page.pos-fullscreen-active .sales-toolbar-actions .sales-toolbar-notice,
-  .pos-page:fullscreen .sales-toolbar-actions .sales-toolbar-notice {
-    grid-column: 1 / -1 !important;
-    min-width: 0 !important;
   }
 }
 
