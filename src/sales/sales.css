@@ -6806,3 +6806,94 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     padding: 5px 7px !important;
   }
 }
+
+
+/* Compact the right-side information panel and place invoice navigation in the top toolbar. */
+@media screen and (min-width: 761px) {
+  .pos-page .sales-layout {
+    grid-template-columns: minmax(0, 1.22fr) minmax(250px, .78fr) !important;
+  }
+
+  .pos-page .pos-product-info-card {
+    grid-template-columns: minmax(0, 1.3fr) minmax(190px, .7fr) !important;
+  }
+
+  .pos-page .pos-product-info-card > .sales-sidebar {
+    padding: 7px !important;
+  }
+
+  .pos-page .sales-toolbar-invoice-navigation {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 0 0 auto;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 34px;
+    padding: 5px 8px;
+    border: 1px solid rgba(53, 214, 194, .28);
+    border-radius: 9px;
+    background: rgba(53, 214, 194, .08);
+    color: var(--sales-text, #edf4ff);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    padding: 1px 3px;
+    border: 1px solid rgba(148, 163, 184, .22);
+    border-radius: 4px;
+    color: #9eafc5;
+    font-size: 10px;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav:disabled {
+    opacity: .38;
+    cursor: not-allowed;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav:not(:disabled):hover {
+    border-color: rgba(53, 214, 194, .6);
+    background: rgba(53, 214, 194, .16);
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .pos-page .sales-toolbar-invoice-navigation {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    order: -1;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 5px 7px;
+    border: 1px solid rgba(53, 214, 194, .28);
+    border-radius: 8px;
+    background: rgba(53, 214, 194, .08);
+    color: var(--sales-text, #edf4ff);
+    font: inherit;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .pos-page .sales-toolbar-invoice-nav kbd {
+    display: none;
+  }
+}
