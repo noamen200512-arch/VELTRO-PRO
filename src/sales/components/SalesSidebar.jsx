@@ -2,6 +2,8 @@
 import React from "react";
 import {
   FileText,
+  ChevronLeft,
+  ChevronRight,
   UserRound,
   CalendarDays,
   Clock3,
@@ -22,6 +24,11 @@ export function SalesSidebar({
   previousDebt = 0,
   statusCards = null,
   customerReference = "",
+  onPreviousInvoice,
+  onNextInvoice,
+  previousInvoiceNumber = "",
+  nextInvoiceNumber = "",
+  pendingInvoiceCount = 0,
   locale = "en",
 }) {
   const parsedDate = invoiceDate
@@ -39,9 +46,9 @@ export function SalesSidebar({
     minute: "2-digit",
   });
   const labels = {
-    en: { reference: "Customer Reference", status: "Invoice Status", paid: "Paid", partial: "Partially paid", unpaid: "Unpaid", noItems: "No items", accountSummary: "Account Overview" },
-    fr: { reference: "Référence client", status: "État de la facture", paid: "Payée", partial: "Partiellement payée", unpaid: "Impayée", noItems: "Vide", accountSummary: "Résumé du compte" },
-    ar: { reference: "مرجع الزبون", status: "حالة الفاتورة", paid: "مدفوعة", partial: "مدفوعة جزئيًا", unpaid: "غير مدفوعة", noItems: "فارغة", accountSummary: "ملخص الحساب" },
+    en: { reference: "Customer Reference", status: "Invoice Status", paid: "Paid", partial: "Partially paid", unpaid: "Unpaid", noItems: "No items", accountSummary: "Account Overview", previousInvoice: "Previous bon", nextInvoice: "Next bon", pendingCount: "pending" },
+    fr: { reference: "Référence client", status: "État de la facture", paid: "Payée", partial: "Partiellement payée", unpaid: "Impayée", noItems: "Vide", accountSummary: "Résumé du compte", previousInvoice: "Bon précédent", nextInvoice: "Bon suivant", pendingCount: "en attente" },
+    ar: { reference: "مرجع الزبون", status: "حالة الفاتورة", paid: "مدفوعة", partial: "مدفوعة جزئيًا", unpaid: "غير مدفوعة", noItems: "فارغة", accountSummary: "ملخص الحساب", previousInvoice: "البون السابق", nextInvoice: "البون التالي", pendingCount: "بونات معلّقة" },
   }[language];
   const invoiceStatus = Number(newAmount) <= 0 ? labels.noItems : Number(remaining) <= 0 ? labels.paid : Number(paid) > 0 ? labels.partial : labels.unpaid;
 
@@ -73,6 +80,18 @@ export function SalesSidebar({
           </span>
 
           <strong>{formattedInvoiceNumber}</strong>
+        </div>
+
+        <div className="sales-invoice-navigation" aria-label={language === "ar" ? "التنقل بين البونات" : language === "fr" ? "Navigation entre les bons" : "Invoice navigation"} dir={language === "ar" ? "rtl" : "ltr"}>
+          <button type="button" className="sales-invoice-nav-button" onClick={onPreviousInvoice || undefined} disabled={!onPreviousInvoice} title={previousInvoiceNumber || labels.previousInvoice}>
+            <ChevronLeft size={15} />
+            <span>{labels.previousInvoice}</span>
+          </button>
+          <button type="button" className="sales-invoice-nav-button" onClick={onNextInvoice || undefined} disabled={!onNextInvoice} title={nextInvoiceNumber || labels.nextInvoice}>
+            <span>{labels.nextInvoice}</span>
+            <ChevronRight size={15} />
+          </button>
+          <small>{pendingInvoiceCount} {labels.pendingCount}</small>
         </div>
 
         <div className="sales-info-grid">
