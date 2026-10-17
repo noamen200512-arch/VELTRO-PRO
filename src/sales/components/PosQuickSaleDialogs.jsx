@@ -269,7 +269,16 @@ export default function PosQuickSaleDialogs({
         setWeighedPage((current) => Math.min(weighedPageCount, Math.max(1, current + (event.key === "ArrowRight" ? 1 : -1))));
         return;
       }
-      if (typing || !/^[1-9]$/.test(event.key)) return;
+      if (!/^[1-9]$/.test(event.key)) return;
+      // This listener runs on window capture, before document-level POS handlers.
+      // If the cashier is typing a number into the weigh-entry input, keep the
+      // browser's normal text insertion but prevent the key from reaching any
+      // background shortcut listener.
+      if (typing) {
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        return;
+      }
       // Capture the number even when its tile is empty, otherwise the same
       // number can trigger a shortcut in the background POS screen.
       event.preventDefault(); event.stopPropagation();
@@ -280,8 +289,9 @@ export default function PosQuickSaleDialogs({
       if (!product) return;
       setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
     };
-    document.addEventListener("keydown", handler, true);
-    return () => document.removeEventListener("keydown", handler, true);
+    // Capture at window, before any document-level POS shortcut handlers.
+    window.addEventListener("keydown", handler, true);
+    return () => window.removeEventListener("keydown", handler, true);
   }, [dialog, showWeighEntry, selectedId, orderedProducts, onAddProduct, visibleTileProducts, visibleWeighedCategories, categories, weighedPageCount]);
   const productTiles = <div className={"pos-quick-tiles" + (dialog === "weigh" ? " pos-weighed-grid-3" : "")}>
     {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true); }}>
