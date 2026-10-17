@@ -6397,3 +6397,22 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-page .invoice-summary-meta-strip strong { font-size: 11px; }
   .pos-page .invoice-table-information-strip { gap: 6px 10px; }
 }
+
+
+.pos-page .invoice-summary-payment-method {
+  width: min(100%, 170px);
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--sales-border, rgba(148, 163, 184, .2));
+  border-radius: 8px;
+  background: var(--sales-panel-soft, #131d2d);
+  color: var(--sales-text, #edf4ff);
+  font: inherit;
+  font-size: 11px;
+}
+.pos-page .invoice-summary-method-row {
+  align-items: center;
+}
+@media (max-width: 760px) {
+  .pos-page .invoice-summary-payment-method { width: 100%; max-width: 150px; }
+}
