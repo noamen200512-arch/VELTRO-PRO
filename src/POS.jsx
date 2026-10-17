@@ -1859,6 +1859,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   useEffect(() => {
     const handler = (e) => {
+      // The weigh-sale dialog has exclusive ownership of keyboard shortcuts.
+      // Return before every POS shortcut (including Ctrl+I and dialog actions),
+      // but let the dialog's own handler receive the same event.
+      if (quickSaleDialog === "weigh") return;
       const target = e.target;
       const stop = () => { e.preventDefault(); e.stopPropagation(); };
       if (e.ctrlKey && !e.altKey && !e.metaKey && (e.code === "KeyI" || String(e.key || "").toLowerCase() === "i")) {
