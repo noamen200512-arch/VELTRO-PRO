@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter, Trash2 } from "lucide-react";
 
 const COPY = {
@@ -66,6 +66,32 @@ export default function PosQuickSaleDialogs({
   const [showCategoryVisibility, setShowCategoryVisibility] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [draftPound, setDraftPound] = useState(String(poundGrams || 500));
+
+  // Keep keyboard shortcuts scoped to the active quick-sale screen and return
+  // the scanner cursor when the cashier leaves it.
+  const previousDialogRef = useRef(null);
+  useEffect(() => {
+    const previousDialog = previousDialogRef.current;
+    previousDialogRef.current = dialog || null;
+
+    if (dialog === "weigh") {
+      requestAnimationFrame(() => {
+        const modal = document.querySelector(".pos-quick-modal");
+        if (modal) modal.focus({ preventScroll: true });
+      });
+      return undefined;
+    }
+
+    if (previousDialog && !dialog) {
+      requestAnimationFrame(() => {
+        const barcodeInput = document.getElementById("product-barcode");
+        if (barcodeInput && !barcodeInput.disabled) {
+          barcodeInput.focus({ preventScroll: true });
+        }
+      });
+    }
+    return undefined;
+  }, [dialog]);
 
   useEffect(() => {
     if (dialog === "settings") {
@@ -320,7 +346,7 @@ export default function PosQuickSaleDialogs({
   if (!dialog) return null;
 
   return <div className="pos-quick-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) resetAndClose(); }}>
-    <section className="pos-quick-modal" role="dialog" aria-modal="true" dir={locale === "ar" ? "rtl" : "ltr"}>
+    <section className="pos-quick-modal" role="dialog" aria-modal="true" tabIndex={-1} dir={locale === "ar" ? "rtl" : "ltr"}>
       <header className="pos-quick-header">
         <div className="pos-quick-title-icon">{dialog === "weigh" ? <Scale size={22}/> : dialog === "settings" ? <Settings2 size={22}/> : <Star size={22}/>}</div>
         <div><h2>{dialog === "favorites" ? t.favorites : dialog === "weigh" ? t.weigh : t.settings}</h2><p>{dialog === "settings" ? t.setupHint : ""}</p></div>
