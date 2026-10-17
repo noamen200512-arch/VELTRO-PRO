@@ -2220,18 +2220,19 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         />
 
         <main className="sales-workspace">
-          <div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
-            <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
-            <button type="button" className="pos-quick-launch-weigh" onClick={() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {} setQuickSaleDialog("weigh"); }}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
-          </div>
           <ProductEntry
             onAddProduct={addProduct}
             onAddCarton={addCarton}
             showProducts={showProducts}
             onShowProducts={setShowProducts}
-          />
-
-          <section
+            quickActions={<>
+<div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
+            <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
+            <button type="button" className="pos-quick-launch-weigh" onClick={() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {} setQuickSaleDialog("weigh"); }}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
+          </div>
+            </>}
+            selectedProductInfo={<>
+<section
             className={`pos-selected-product-preview${items.length ? "" : " is-empty"}`}
             aria-live="polite"
             aria-label={locale === "ar" ? "معاينة المنتج المحدد" : locale === "fr" ? "Aperçu du produit sélectionné" : "Selected product preview"}
@@ -2324,6 +2325,9 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </div>
             )}
           </section>
+            </>}
+          />
+
 
           <InvoiceTable
             items={items}
