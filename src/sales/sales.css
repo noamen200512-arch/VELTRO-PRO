@@ -6018,3 +6018,17 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-template-rows: minmax(0, 1fr) !important;
   }
 }
+
+
+/* Outside fullscreen, let the combined wrapper stay layout-transparent so
+   the existing regular and mobile POS layouts remain unchanged. */
+.pos-page .pos-cart-info-card {
+  display: contents;
+}
+
+@media screen and (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .pos-cart-info-card > .invoice-table-section,
+  .pos-page:fullscreen .pos-cart-info-card > .invoice-table-section {
+    background: transparent !important;
+  }
+}
