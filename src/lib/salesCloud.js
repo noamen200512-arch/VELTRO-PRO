@@ -141,7 +141,7 @@ export async function voidPendingSaleFromCloud(invoiceId) {
   if (!invoiceId) throw new Error("The invoice has no ID.");
   const { organizationId } = await getAccount();
 
-  const { error: invoiceError } = await supabase
+  const { data: voidedInvoice, error: invoiceError } = await supabase
     .from("sales_invoices")
     .update({
       status: "void",
@@ -150,8 +150,13 @@ export async function voidPendingSaleFromCloud(invoiceId) {
     })
     .eq("organization_id", organizationId)
     .eq("id", String(invoiceId))
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
   if (invoiceError) throw invoiceError;
+
+  // If another session has already posted this invoice, leave its items alone.
+  if (!voidedInvoice) return true;
 
   const { error: itemsError } = await supabase
     .from("sales_invoice_items")
