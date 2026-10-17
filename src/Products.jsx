@@ -42,7 +42,7 @@ const EMPTY_FORM = {
   barcode: "",
   barcodeAliases: [],
   newBarcode: "",
-  category: "General",
+  category: "",
   purchasePrice: "",
   price: "",
   cartonPrice: "",
@@ -424,7 +424,7 @@ export default function Products() {
   }, [scanOpen, scanTarget]);
 
   const categories = useMemo(
-    () => ["All", ...new Set(products.map((p) => p.category || "General"))],
+    () => ["All", ...new Set(products.map((p) => String(p.category || "").trim()).filter(Boolean))],
     [products]
   );
 
@@ -466,7 +466,7 @@ export default function Products() {
 
         const matchesCategory =
           category === "All" ||
-          (p.category || "General") === category;
+          String(p.category || "").trim() === category;
 
         const quantity = Number(p.stock || 0);
         const minimum = Number(p.minStock || 0);
@@ -809,7 +809,7 @@ export default function Products() {
       sku,
       barcode: primaryBarcode,
       barcodeAliases,
-      category: form.category.trim() || "General",
+      category: form.category.trim(),
       purchasePrice: numberValue(form.purchasePrice),
       price: numberValue(form.price),
       cartonPrice: numberValue(form.cartonPrice),
