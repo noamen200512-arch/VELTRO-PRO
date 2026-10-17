@@ -169,7 +169,9 @@ export function InvoiceTable({
       // scanning a barcode or searching products. Other editable fields retain
       // normal text-editing behavior.
       const isProductSearchField =
-        target?.id === "product-search" || target?.id === "product-barcode";
+        target?.id === "product-search" ||
+        target?.id === "product-barcode" ||
+        Boolean(target?.closest?.("#product-search, #product-barcode"));
       if (
         ((tagName === "input" || tagName === "textarea" || tagName === "select" || target?.isContentEditable) &&
           !isProductSearchField)
