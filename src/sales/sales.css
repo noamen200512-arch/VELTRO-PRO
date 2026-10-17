@@ -6416,3 +6416,45 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 @media (max-width: 760px) {
   .pos-page .invoice-summary-payment-method { width: 100%; max-width: 150px; }
 }
+
+
+/* Keep customer account controls in the right POS workspace during fullscreen. */
+@media screen and (min-width: 761px) {
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar .sales-account-section,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar .sales-account-section {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-height: 0 !important;
+    padding-top: 10px !important;
+    margin-top: 2px !important;
+    border-top: 1px solid rgba(148, 163, 184, .18) !important;
+  }
+
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar .sales-account-card,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar .sales-account-card {
+    margin: 5px 0 !important;
+    padding: 9px !important;
+    gap: 7px !important;
+  }
+
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar .sales-account-row,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar .sales-account-row {
+    gap: 8px !important;
+    font-size: 11px !important;
+  }
+
+  .pos-page:fullscreen .pos-product-info-card .sales-sidebar .sales-account-section .sales-input,
+  .pos-page.pos-fullscreen-active .pos-product-info-card .sales-sidebar .sales-account-section .sales-input {
+    min-height: 34px !important;
+  }
+}
