@@ -155,7 +155,7 @@ export default function PosQuickSaleDialogs({
   const keypadButtons = (setter, current) => <div className="pos-quick-keypad" aria-label={t.enter}>
     {["1","2","3","4","5","6","7","8","9","⌫","0",".","C"].map((key) => <button type="button" key={key} onClick={() => keypad(key, setter, current)}>{key}</button>)}
   </div>;
-  const slotOrder = [6, 7, 8, 3, 4, 5, 0, 1, 2];
+  const slotOrder = [8, 7, 6, 5, 4, 3, 2, 1, 0];
   const assignedTileProducts = dialog === "weigh"
     ? slotOrder.map((slotIndex) => orderedProducts.find((product) => idOf(product) === String(weighedSlots[slotIndex] || "")) || null)
     : orderedProducts;
@@ -185,7 +185,7 @@ export default function PosQuickSaleDialogs({
       }
       if (typing || !/^[1-9]$/.test(event.key)) return;
       const slotIndex = Number(event.key) - 1;
-      const visualIndex = weighedPage === 1 ? slotOrder.indexOf(slotIndex) : slotIndex;
+      const visualIndex = weighedPage === 1 ? 8 - slotIndex : slotIndex;
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
       event.preventDefault(); event.stopPropagation();
@@ -196,7 +196,7 @@ export default function PosQuickSaleDialogs({
   }, [dialog, showWeighEntry, visibleTileProducts, visibleWeighedCategories, categories, weighedPageCount]);
   const productTiles = <div className={"pos-quick-tiles" + (dialog === "weigh" ? " pos-weighed-grid-3" : "")}>
     {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
-      {dialog === "weigh" && <span className="pos-quick-tile-number">{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
+      {dialog === "weigh" && <span className="pos-quick-tile-number">{weighedPage === 1 ? [9,8,7,6,5,4,3,2,1][index] : index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
     </button> : <div key={"empty-weighed-page-" + weighedPage + "-slot-" + index} className="pos-quick-empty-tile"><span>{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span></div>)}
     {!visibleTileProducts.some(Boolean) && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
