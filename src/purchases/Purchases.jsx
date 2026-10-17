@@ -252,7 +252,7 @@ function ProductModal({
 
   const [categoryOptions, setCategoryOptions] = useState(() => {
     const saved = safeRead(CATEGORIES_KEY, []);
-    const defaults = new Set(["Beverages", "Drinks", "Food", "Snacks", "Cleaning", "Tobacco", "Other"]);
+    const defaults = new Set(["Beverages", "Drinks", "Food", "Snacks", "Cleaning", "Tobacco", "Other", "General"]);
     return (Array.isArray(saved) ? saved : []).filter(item => !defaults.has(String(item).trim()));
   });
 
