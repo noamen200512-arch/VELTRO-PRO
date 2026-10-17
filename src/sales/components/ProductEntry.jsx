@@ -431,6 +431,19 @@ export function ProductEntry({
             aria-label="Scan or enter barcode"
             value={barcode}
             onChange={(event) => setBarcode(event.target.value)}
+            onKeyDown={(event) => {
+              // Barcode scanners commonly send Enter immediately after the
+              // scanned value. Handle it on the input itself instead of
+              // relying only on the browser's form-submit behavior, which can
+              // be interrupted by the POS global keyboard shortcuts.
+              if (event.key !== "Enter" || event.nativeEvent?.isComposing) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (typeof event.nativeEvent?.stopImmediatePropagation === "function") {
+                event.nativeEvent.stopImmediatePropagation();
+              }
+              submitBarcode(event.currentTarget.value);
+            }}
             onBlur={() => {
               if (!isFullscreen) return;
               // Keep scanner focus after POS actions without stealing focus
