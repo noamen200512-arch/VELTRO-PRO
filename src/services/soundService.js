@@ -1,10 +1,11 @@
 const DEFAULT_SOUND_SETTINGS = Object.freeze({
   enabled: true,
-  volume: 100,
+  volume: 55,
   barcode: true,
   sale: true,
   errors: true,
   alerts: true,
+  soundProfileVersion: 2,
 });
 
 let activeUserId = "device";
@@ -20,17 +21,26 @@ export function setSoundUser(userId) {
 
 export function getSoundSettings(userId = activeUserId) {
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey(userId)) || "null");
-    return {
+    const key = storageKey(userId);
+    const saved = JSON.parse(localStorage.getItem(key) || "null");
+    const legacyDefaultVolume = saved && saved.soundProfileVersion !== 2 && Number(saved.volume ?? 100) === 100;
+    const settings = {
       ...DEFAULT_SOUND_SETTINGS,
       ...(saved && typeof saved === "object" ? saved : {}),
       enabled: saved?.enabled !== false,
-      volume: Math.min(100, Math.max(0, Number(saved?.volume ?? DEFAULT_SOUND_SETTINGS.volume) || 0)),
+      // Move the old 100% default to the requested medium level once, without
+      // changing the user's enable/disable or per-event preferences.
+      volume: Math.min(100, Math.max(0, Number(legacyDefaultVolume ? 55 : (saved?.volume ?? DEFAULT_SOUND_SETTINGS.volume)) || 0)),
       barcode: saved?.barcode !== false,
       sale: saved?.sale !== false,
       errors: saved?.errors !== false,
       alerts: saved?.alerts !== false,
+      soundProfileVersion: 2,
     };
+    if (saved && saved.soundProfileVersion !== 2) {
+      localStorage.setItem(key, JSON.stringify(settings));
+    }
+    return settings;
   } catch {
     return { ...DEFAULT_SOUND_SETTINGS };
   }
@@ -41,11 +51,12 @@ export function saveSoundSettings(settings, userId = activeUserId) {
     ...DEFAULT_SOUND_SETTINGS,
     ...(settings && typeof settings === "object" ? settings : {}),
     enabled: settings?.enabled !== false,
-    volume: Math.min(100, Math.max(0, Number(settings?.volume ?? 100) || 0)),
+    volume: Math.min(100, Math.max(0, Number(settings?.volume ?? DEFAULT_SOUND_SETTINGS.volume) || 0)),
     barcode: settings?.barcode !== false,
     sale: settings?.sale !== false,
     errors: settings?.errors !== false,
     alerts: settings?.alerts !== false,
+    soundProfileVersion: 2,
   };
 
   try {
@@ -67,64 +78,86 @@ function getAudioContext() {
   return audioContext;
 }
 
+// Soft, rounded tones with gentle pitch movement and short fades make each
+// event feel like feedback from a polished payment terminal rather than a beep.
+const SOUND_PATTERNS = {
+  barcode: [
+    { frequency: 880, endFrequency: 1046.5, duration: 0.075, delay: 0, level: 0.24 },
+  ],
+  sale: [
+    { frequency: 523.25, duration: 0.105, delay: 0, level: 0.24 },
+    { frequency: 659.25, duration: 0.105, delay: 0.085, level: 0.26 },
+    { frequency: 783.99, duration: 0.17, delay: 0.17, level: 0.28 },
+  ],
+  errors: [
+    { frequency: 392, endFrequency: 349.23, duration: 0.11, delay: 0, level: 0.22 },
+    { frequency: 311.13, duration: 0.14, delay: 0.105, level: 0.22 },
+  ],
+  alerts: [
+    { frequency: 659.25, duration: 0.09, delay: 0, level: 0.22 },
+    { frequency: 783.99, duration: 0.11, delay: 0.12, level: 0.24 },
+  ],
+};
+
 export function playSound(eventType) {
   const settings = getSoundSettings();
   if (!settings.enabled || settings.volume <= 0 || settings[eventType] !== true) return false;
 
+  const pattern = SOUND_PATTERNS[eventType];
+  if (!pattern) return false;
+
   const context = getAudioContext();
   if (!context) return false;
-
-  const patterns = {
-    barcode: [{ frequency: 1120, duration: 0.065, delay: 0, wave: "sine" }],
-    sale: [
-      { frequency: 740, duration: 0.09, delay: 0, wave: "sine" },
-      { frequency: 990, duration: 0.14, delay: 0.09, wave: "sine" },
-    ],
-    errors: [
-      { frequency: 260, duration: 0.12, delay: 0, wave: "triangle" },
-      { frequency: 190, duration: 0.16, delay: 0.13, wave: "triangle" },
-    ],
-    alerts: [
-      { frequency: 660, duration: 0.09, delay: 0, wave: "sine" },
-      { frequency: 660, duration: 0.09, delay: 0.14, wave: "sine" },
-    ],
-  };
-  const pattern = patterns[eventType];
-  if (!pattern) return false;
 
   const play = () => {
     const now = context.currentTime;
     const master = context.createGain();
-    master.gain.setValueAtTime(Math.max(0.0001, settings.volume / 100) * 0.22, now);
+    // Keep 55% as a comfortable, medium default. The slider still scales it
+    // proportionally from silent to full output.
+    master.gain.setValueAtTime(Math.max(0.0001, settings.volume / 100) * 0.16, now);
     master.connect(context.destination);
 
     pattern.forEach((tone) => {
       const oscillator = context.createOscillator();
-      const gain = context.createGain();
+      const envelope = context.createGain();
       const start = now + tone.delay;
       const end = start + tone.duration;
-      oscillator.type = tone.wave;
+      const attackEnd = start + Math.min(0.018, tone.duration * 0.28);
+      const releaseStart = Math.max(attackEnd, end - Math.min(0.045, tone.duration * 0.3));
+
+      oscillator.type = "sine";
       oscillator.frequency.setValueAtTime(tone.frequency, start);
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.7, start + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.0001, end);
-      oscillator.connect(gain);
-      gain.connect(master);
+      if (tone.endFrequency) {
+        oscillator.frequency.exponentialRampToValueAtTime(tone.endFrequency, end);
+      }
+
+      envelope.gain.setValueAtTime(0.0001, start);
+      envelope.gain.exponentialRampToValueAtTime(tone.level, attackEnd);
+      envelope.gain.setValueAtTime(tone.level, releaseStart);
+      envelope.gain.exponentialRampToValueAtTime(0.0001, end);
+
+      oscillator.connect(envelope);
+      envelope.connect(master);
       oscillator.start(start);
-      oscillator.stop(end + 0.02);
+      oscillator.stop(end + 0.015);
       oscillator.onended = () => {
         oscillator.disconnect();
-        gain.disconnect();
+        envelope.disconnect();
       };
     });
+
     const lastTone = pattern[pattern.length - 1];
-    window.setTimeout(() => master.disconnect(), Math.ceil((lastTone.delay + lastTone.duration + 0.1) * 1000));
+    window.setTimeout(() => master.disconnect(), Math.ceil((lastTone.delay + lastTone.duration + 0.12) * 1000));
   };
 
   if (context.state === "suspended") {
     context.resume().then(play).catch(() => {});
   } else {
-    try { play(); } catch { return false; }
+    try {
+      play();
+    } catch {
+      return false;
+    }
   }
   return true;
 }
