@@ -1547,7 +1547,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     if (closedInvoiceMode === null) {
       invoiceBeforeClosedBrowseRef.current = { ...invoice, items: (invoice.items || []).map(item => ({ ...item })) };
       saveAutoSavedDraft({ ...invoice, status: "Draft", subtotal, total, paid, remaining });
-      const firstIndex = 0;
+      // Start on the newest closed invoice for Next, or the next older one for Previous.
+      const firstIndex = direction === "previous" ? Math.min(1, sales.length - 1) : 0;
       setClosedInvoiceIndex(firstIndex);
       setInvoice({ ...sales[firstIndex], status: "Completed", items: (sales[firstIndex].items || []).map(item => ({ ...item })) });
       setClosedInvoiceMode("review");
@@ -2462,10 +2463,26 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </div>
             }
               invoiceNumber={invoice.invoiceNumber}
-              onPreviousInvoice={previousInvoice ? () => openPendingInvoice(previousInvoice.id) : null}
-              onNextInvoice={nextInvoice ? () => openPendingInvoice(nextInvoice.id) : null}
-              previousInvoiceNumber={previousInvoice?.invoiceNumber || ""}
-              nextInvoiceNumber={nextInvoice?.invoiceNumber || ""}
+              onPreviousInvoice={
+                closedInvoices.length > 0 && (closedInvoiceMode === null || closedInvoiceIndex < closedInvoices.length - 1)
+                  ? () => navigateClosedInvoice("previous")
+                  : null
+              }
+              onNextInvoice={
+                closedInvoices.length > 0 && (closedInvoiceMode === null || closedInvoiceIndex > 0)
+                  ? () => navigateClosedInvoice("next")
+                  : null
+              }
+              previousInvoiceNumber={
+                closedInvoiceMode === null
+                  ? closedInvoices[Math.min(1, closedInvoices.length - 1)]?.invoiceNumber || ""
+                  : closedInvoices[closedInvoiceIndex + 1]?.invoiceNumber || ""
+              }
+              nextInvoiceNumber={
+                closedInvoiceMode === null
+                  ? closedInvoices[0]?.invoiceNumber || ""
+                  : closedInvoices[closedInvoiceIndex - 1]?.invoiceNumber || ""
+              }
               pendingInvoiceCount={pendingInvoices.length}
               customer={customer}
               customerReference={isAnonymousCustomer ? "" : String(invoice.customerId || "")}
