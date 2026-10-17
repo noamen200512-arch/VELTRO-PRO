@@ -6982,28 +6982,29 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
-/* Reduce top action button WIDTH only in fullscreen POS mode.
-   Keep the original button height, text size, and icon size unchanged. */
-.pos-page.pos-fullscreen-active .sales-toolbar-button,
-.pos-page:fullscreen .sales-toolbar-button,
+/* In fullscreen, keep toolbar buttons compact horizontally without
+   changing their height or icon/text size. Center compact buttons in the grid. */
 .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
 .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
-  width: auto !important;
+  justify-self: center !important;
+  width: fit-content !important;
   min-width: 0 !important;
   max-width: 100% !important;
-  flex: 0 1 auto !important;
-  padding-left: 6px !important;
-  padding-right: 6px !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
   gap: 4px !important;
-  white-space: nowrap;
+  white-space: nowrap !important;
+}
+.pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon),
+.pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button > span:not(.sales-toolbar-button-icon) {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
 }
 .pos-page.pos-fullscreen-active .invoice-summary-current-user,
 .pos-page:fullscreen .invoice-summary-current-user {
   display: none !important;
 }
 @media screen and (max-width: 760px) {
-  .pos-page.pos-fullscreen-active .sales-toolbar-button,
-  .pos-page:fullscreen .sales-toolbar-button,
   .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
   .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
     padding-left: 4px !important;
