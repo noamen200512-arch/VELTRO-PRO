@@ -1838,14 +1838,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               return;
             }
             if (closedInvoiceMode === "editing") {
-              notify(
+              const discardEdit = window.confirm(
                 locale === "ar"
-                  ? "ألغِ تعديل البون المغلق أو أكمله قبل فتح البونات المعلّقة."
+                  ? "هناك تعديلات غير مكتملة على بون مغلق. هل تريد إلغاء هذه التعديلات والعودة إلى البون الحالي ثم فتح البونات المعلّقة؟"
                   : locale === "fr"
-                    ? "Annulez ou terminez la modification de la facture avant d’ouvrir les factures en attente."
-                    : "Cancel or complete the closed-invoice edit before opening pending invoices.",
-                "info"
+                    ? "La modification de la facture clôturée n’est pas terminée. Voulez-vous l’annuler et ouvrir les factures en attente ?"
+                    : "The closed-invoice edit is unfinished. Discard those changes and open Pending Invoices?"
               );
+              if (!discardEdit) return;
+              const previousInvoice = invoiceBeforeClosedBrowseRef.current;
+              if (previousInvoice) setInvoice(previousInvoice);
+              setClosedInvoiceMode(null);
+              setClosedInvoiceIndex(-1);
+              invoiceBeforeClosedBrowseRef.current = null;
+              refreshPending();
+              setShowPending(true);
               return;
             }
             // Always open the list from the toolbar. Closing is handled by the
