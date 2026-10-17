@@ -30,6 +30,11 @@ export function InvoiceSummary({
   onPrint,
   onCompleteSale,
   busy = false,
+  invoiceNumber = "",
+  invoiceDate = null,
+  customerReference = "",
+  items = [],
+  locale = "en",
 }) {
   const money = (value) =>
     `${(Number(value) || 0).toLocaleString("fr-FR", {
@@ -52,6 +57,34 @@ export function InvoiceSummary({
   }, [discount]);
   const safeRemaining = Math.max(0, Number(remaining) || 0);
   const safePreviousDebt = Math.max(0, Number(previousDebt) || 0);
+  const language = locale === "ar" ? "ar" : locale === "fr" ? "fr" : "en";
+  const labels = {
+    en: { invoice: "INVOICE", date: "DATE", time: "TIME", lines: "PRODUCT LINES", units: "TOTAL UNITS", cartons: "CARTONS", status: "PAYMENT STATUS", paidStatus: "Paid", partialStatus: "Partially paid", unpaidStatus: "Unpaid", emptyStatus: "No items", customerRef: "Customer reference", dueNow: "Due now", totalDebt: "Total customer debt after sale" },
+    fr: { invoice: "FACTURE", date: "DATE", time: "HEURE", lines: "LIGNES PRODUIT", units: "UNITÉS TOTALES", cartons: "CARTONS", status: "ÉTAT DU PAIEMENT", paidStatus: "Payée", partialStatus: "Partiellement payée", unpaidStatus: "Impayée", emptyStatus: "Vide", customerRef: "Référence client", dueNow: "À encaisser", totalDebt: "Dette client après vente" },
+    ar: { invoice: "رقم الفاتورة", date: "التاريخ", time: "الوقت", lines: "عدد المنتجات", units: "إجمالي الوحدات", cartons: "الكراتين", status: "حالة الدفع", paidStatus: "مدفوعة", partialStatus: "مدفوعة جزئيًا", unpaidStatus: "غير مدفوعة", emptyStatus: "فارغة", customerRef: "مرجع الزبون", dueNow: "المطلوب قبضه الآن", totalDebt: "إجمالي دين الزبون بعد البيع" },
+  }[language];
+  const parsedInvoiceDate = invoiceDate ? new Date(invoiceDate) : null;
+  const validInvoiceDate = parsedInvoiceDate && !Number.isNaN(parsedInvoiceDate.getTime()) ? parsedInvoiceDate : null;
+  const invoiceDateLabel = validInvoiceDate ? validInvoiceDate.toLocaleDateString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB") : "—";
+  const invoiceTimeLabel = validInvoiceDate ? validInvoiceDate.toLocaleTimeString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB", { hour: "2-digit", minute: "2-digit" }) : "—";
+  const invoiceLineCount = items.length;
+  const invoiceUnitCount = items.reduce((sum, item) => sum + Math.max(0, Number(item.quantity ?? item.qty) || 0), 0);
+  const invoiceCartonCount = items.reduce((sum, item) => {
+    const qty = Math.max(0, Number(item.quantity ?? item.qty) || 0);
+    if (item.isCartonLine) return sum + qty;
+    if (item.weighedSale || item.unitLabel === "kg") return sum;
+    return sum + Math.floor(qty / Math.max(1, Number(item.piecesPerCarton) || 1));
+  }, 0);
+  const paymentStatus = safeTotal <= 0 && invoiceLineCount === 0
+    ? labels.emptyStatus
+    : safeRemaining <= 0
+      ? labels.paidStatus
+      : safePaid > 0
+        ? labels.partialStatus
+        : labels.unpaidStatus;
+  const totalCustomerDebt = ["anonyme", "anonymous", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase())
+    ? 0
+    : safePreviousDebt + safeRemaining;
 
   return (
     <section className="invoice-summary">
@@ -76,6 +109,16 @@ export function InvoiceSummary({
           </div>
           <span className="invoice-summary-current-user-status" />
         </div>
+      </div>
+
+      <div className="invoice-summary-meta-strip" dir={language === "ar" ? "rtl" : "ltr"}>
+        <div><span>{labels.invoice}</span><strong>{String(invoiceNumber || "—").startsWith("INV-") || !invoiceNumber ? (invoiceNumber || "—") : `INV-${invoiceNumber}`}</strong></div>
+        <div><span>{labels.date}</span><strong>{invoiceDateLabel}</strong></div>
+        <div><span>{labels.time}</span><strong>{invoiceTimeLabel}</strong></div>
+        <div><span>{labels.lines}</span><strong>{invoiceLineCount}</strong></div>
+        <div><span>{labels.units}</span><strong>{Number(invoiceUnitCount.toFixed(3)).toLocaleString(language === "ar" ? "ar-DZ" : "fr-FR")}</strong></div>
+        <div><span>{labels.cartons}</span><strong>{Number(invoiceCartonCount.toFixed(3)).toLocaleString(language === "ar" ? "ar-DZ" : "fr-FR")}</strong></div>
+        <div className="invoice-summary-payment-status"><span>{labels.status}</span><strong className={safeRemaining <= 0 ? "is-paid" : safePaid > 0 ? "is-partial" : "is-unpaid"}>{paymentStatus}</strong></div>
       </div>
 
       <div className="invoice-summary-content">
@@ -158,7 +201,7 @@ export function InvoiceSummary({
           <div className="invoice-summary-row">
             <span>
               <Wallet size={15} />
-              Remaining on Invoice
+              {labels.dueNow}
             </span>
 
             <strong className="invoice-summary-remaining">
@@ -184,6 +227,9 @@ export function InvoiceSummary({
             <div className="invoice-summary-customer">
               <span>الزبون</span>
               <strong>{customerName}</strong>
+              {customerReference && !["anonyme", "anonymous", "زبون مجهول", "زبون مجهول الهوية"].includes(String(customerName || "").trim().toLowerCase()) && (
+                <small className="invoice-summary-customer-reference">{labels.customerRef}: {customerReference}</small>
+              )}
 
               {safePreviousDebt > 0 && (
                 <button
