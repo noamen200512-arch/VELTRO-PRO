@@ -715,6 +715,16 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     setProductShortcutCategories((previous) => previous.map((category) => category === oldName ? newName : category));
     setSelectedShortcutCategory((previous) => previous === oldName ? newName : previous);
     setProductCategoryNames((previous) => { const next = { ...previous }; delete next[oldName]; next[newName] = newName; return next; });
+    try {
+      const nextCategories = productCategoryList.map((category) => category === oldName ? newName : category);
+      const nextVisible = productVisibleCategories.map((category) => category === oldName ? newName : category);
+      const nextShortcuts = productShortcutCategories.map((category) => category === oldName ? newName : category);
+      localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(nextCategories));
+      localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(nextVisible));
+      localStorage.setItem("veltro_pos_weighed_categories", JSON.stringify(Object.fromEntries(Object.entries(productCategoriesById).map(([id, category]) => [id, category === oldName ? newName : category]))));
+      localStorage.setItem("veltro_pos_shortcut_categories", JSON.stringify(nextShortcuts));
+      window.dispatchEvent(new Event("veltro:weighed-settings-updated"));
+    } catch (error) { console.warn("Could not persist renamed weighed category", error); }
   };
   const removeProductCategory = (category) => {
     setProductCategoryList((previous) => previous.filter((item) => item !== category));
@@ -723,6 +733,17 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
     setSelectedShortcutCategory((previous) => previous === category ? "" : previous);
     setProductCategoriesById((previous) => Object.fromEntries(Object.entries(previous).filter(([, value]) => value !== category)));
     setProductCategoryNames((previous) => { const next = { ...previous }; delete next[category]; return next; });
+    try {
+      const nextCategories = productCategoryList.filter((item) => item !== category);
+      const nextVisible = productVisibleCategories.filter((item) => item !== category);
+      const nextMap = Object.fromEntries(Object.entries(productCategoriesById).filter(([, value]) => value !== category));
+      const nextShortcuts = productShortcutCategories.map((item) => item === category ? "" : item);
+      localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(nextCategories));
+      localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(nextVisible));
+      localStorage.setItem("veltro_pos_weighed_categories", JSON.stringify(nextMap));
+      localStorage.setItem("veltro_pos_shortcut_categories", JSON.stringify(nextShortcuts));
+      window.dispatchEvent(new Event("veltro:weighed-settings-updated"));
+    } catch (error) { console.warn("Could not persist removed weighed category", error); }
   };
   const isOwner = data.profile?.is_owner === true;
   const selectedRole = data.roles.find((role) => role.id === selectedRoleId) || null;
@@ -1017,7 +1038,25 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   {showCategoryManager && <div className="settings-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowCategoryManager(false); }}>
                     <section className="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="weighed-category-manager-title">
                       <header className="settings-modal-header"><div><h3 id="weighed-category-manager-title">{t.categories}</h3><p>{t.productSettingsText}</p></div><button type="button" className="settings-icon-button" aria-label={t.cancel} onClick={() => setShowCategoryManager(false)}><X size={19}/></button></header>
-                                          <form className="settings-profile-form" onSubmit={(event) => { event.preventDefault(); const name = newProductCategory.trim(); if (name && !productCategoryList.some((category) => category.toLocaleLowerCase() === name.toLocaleLowerCase())) { setProductCategoryList((previous) => [...previous, name]); setProductCategoryNames((previous) => ({ ...previous, [name]: name })); } setNewProductCategory(""); }}>
+                                          <form className="settings-profile-form" onSubmit={(event) => {
+                        event.preventDefault();
+                        const name = newProductCategory.trim();
+                        if (!name || productCategoryList.some((category) => category.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+                          setNewProductCategory("");
+                          return;
+                        }
+                        const nextCategories = [...productCategoryList, name];
+                        const nextVisible = [...new Set([...productVisibleCategories, name])];
+                        setProductCategoryList(nextCategories);
+                        setProductVisibleCategories(nextVisible);
+                        setProductCategoryNames((previous) => ({ ...previous, [name]: name }));
+                        try {
+                          localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(nextCategories));
+                          localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(nextVisible));
+                          window.dispatchEvent(new Event("veltro:weighed-settings-updated"));
+                        } catch (error) { console.warn("Could not persist weighed category", error); }
+                        setNewProductCategory("");
+                      }}>
                       <div className="settings-detail-grid"><label className="settings-form-field"><span>{t.newCategory}</span><input value={newProductCategory} onChange={(event) => setNewProductCategory(event.target.value)} /></label></div>
                       <div className="settings-profile-actions"><button type="submit" className="settings-save-button"><Plus size={15} />{t.addCategory}</button></div>
                     </form>
