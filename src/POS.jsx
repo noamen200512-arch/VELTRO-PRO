@@ -1668,7 +1668,56 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if(showSaleConfirm){if(e.key==="Escape"){stop();setShowSaleConfirm(false);return;}if(e.key==="Enter"){stop();void confirmSaleCompletion(false);return;}if(e.key==="F12"){stop();void confirmSaleCompletion(true);return;}return;}
       if(showSaleReview){if(e.key==="Escape"){stop();setShowSaleReview(false);return;}if(e.key==="Enter"||e.key==="F12"){stop();setShowSaleReview(false);setShowSaleConfirm(true);return;}return;}
       if(showBelowCostWarning){if(e.key==="Escape"){stop();setShowBelowCostWarning(false);return;}if(e.key==="Enter"){stop();openSaleConfirmation();return;}return;}
-      if(showCustomerPicker&&e.key==="Escape"){stop();setShowCustomerPicker(false);return;}
+      if (showEditInvoiceConfirm) {
+        if (e.key === "Escape") { stop(); setShowEditInvoiceConfirm(false); return; }
+        if (e.key === "Enter") {
+          stop();
+          if (selectedClosedInvoice && isReviewingClosedInvoice && !busy) {
+            setShowEditInvoiceConfirm(false);
+            reopenSelectedClosedInvoice();
+          }
+          return;
+        }
+        return;
+      }
+      if (showCustomerPicker) {
+        if (e.key === "Escape") { stop(); setShowCustomerPicker(false); return; }
+        if (e.key === "Enter") {
+          stop();
+          const query = customerSearch.trim();
+          const activeCustomer = filteredCustomerRecords.find((record) =>
+            String(record.customerId ?? record.id ?? record.code ?? record.name ?? "") === String(invoice.customerId || "")
+          );
+          const chosen = activeCustomer || filteredCustomerRecords[0];
+          if (chosen) selectCustomer(chosen);
+          else if (!query) selectCustomer({ name: "Anonyme" });
+          return;
+        }
+      }
+      // In remaining POS dialogs, Enter activates the primary confirmation action.
+      // Escape closes the topmost dialog without triggering its confirmation.
+      if (e.key === "Escape" && target instanceof Element && target.closest('[role="dialog"]')) {
+        const dialog = target.closest('[role="dialog"]');
+        if (dialog && !keyboardDialog && !showPending && !showSaleReview && !showSaleConfirm && !showBelowCostWarning) {
+          stop();
+          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+          if (quickSaleDialog) setQuickSaleDialog(null);
+          else if (showShortcutsHelp) setShowShortcutsHelp(false);
+          return;
+        }
+      }
+      if (e.key === "Enter" && target instanceof Element && target.closest('[role="dialog"]')) {
+        const dialog = target.closest('[role="dialog"]');
+        if (dialog && !keyboardDialog && !showPending && !showSaleReview && !showSaleConfirm && !showBelowCostWarning && !showCustomerPicker && !showEditInvoiceConfirm && quickSaleDialog !== "weigh") {
+          const primary = dialog.querySelector('button.primary:not(:disabled), button[type="submit"]:not(:disabled), .sale-confirm-primary:not(:disabled)');
+          if (primary) {
+            stop();
+            if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+            primary.click();
+            return;
+          }
+        }
+      }
       // Keep cart keyboard navigation active while the cashier's cursor is in
       // either product lookup field. Prevent the browser from moving the caret.
       const isProductLookupField =
