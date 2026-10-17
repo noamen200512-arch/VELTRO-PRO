@@ -5245,7 +5245,7 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-page.pos-fullscreen-active .sales-layout,
   .pos-page:fullscreen .sales-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: minmax(0, auto) minmax(0, 1fr);
     align-items: stretch;
     align-content: stretch;
