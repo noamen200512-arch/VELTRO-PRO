@@ -6980,3 +6980,45 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     height: 14px !important;
   }
 }
+
+
+/* Compact top action buttons across standard and fullscreen POS layouts */
+.pos-page .sales-toolbar-button {
+  min-height: 27px !important;
+  height: 27px !important;
+  padding: 3px 6px !important;
+  gap: 4px !important;
+  border-radius: 7px !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+.pos-page .sales-toolbar-button-icon svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+.pos-page .sales-toolbar-shortcut-hint {
+  font-size: 8px !important;
+  padding: 1px 3px !important;
+}
+.pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
+.pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button,
+.pos-page:not(.pos-fullscreen-active) .sales-toolbar-actions > .sales-toolbar-button {
+  min-height: 27px !important;
+  height: 27px !important;
+  padding: 3px 5px !important;
+  gap: 4px !important;
+  font-size: 9px !important;
+}
+@media screen and (max-width: 760px) {
+  .pos-page .sales-toolbar-button {
+    min-height: 25px !important;
+    height: 25px !important;
+    padding: 3px 4px !important;
+    font-size: 8px !important;
+    gap: 3px !important;
+  }
+  .pos-page .sales-toolbar-button-icon svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}
