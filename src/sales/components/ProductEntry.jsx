@@ -7,7 +7,6 @@ import {
   Package,
   ScanLine,
   X,
-  RefreshCw,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
@@ -62,6 +61,7 @@ export function ProductEntry({
   onShowProducts,
   quickActions = null,
   selectedProductInfo = null,
+  statusCards = null,
 }) {
   const [products, setProducts] = useState([]);
   const [barcode, setBarcode] = useState("");
@@ -75,14 +75,12 @@ export function ProductEntry({
   const [cameraError, setCameraError] = useState("");
   const [cameraSupported, setCameraSupported] = useState(true);
   const [notice, setNotice] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const detectorRef = useRef(null);
   const scanningRef = useRef(false);
   const busyRef = useRef(false);
-  const refreshTimerRef = useRef(null);
 
   const loadProducts = useCallback((showMessage = false) => {
     try {
@@ -106,31 +104,6 @@ export function ProductEntry({
       return [];
     }
   }, []);
-
-  const refreshProducts = useCallback(async () => {
-    if (refreshTimerRef.current) {
-      window.clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
-
-    setRefreshing(true);
-
-    try {
-      const cloudProducts = await loadProductsFromCloud(getProducts());
-      if (!saveProducts(cloudProducts)) {
-        throw new Error("Could not update the local product cache.");
-      }
-
-      setProducts(cloudProducts);
-      setNotice(`Inventory refreshed from cloud. ${cloudProducts.length} product(s) loaded.`);
-    } catch (error) {
-      console.warn("Cloud inventory refresh unavailable:", error);
-      loadProducts();
-      setNotice("Cloud refresh failed. Showing products saved on this device.");
-    } finally {
-      setRefreshing(false);
-    }
-  }, [loadProducts]);
 
   useEffect(() => {
     let active = true;
@@ -178,9 +151,6 @@ export function ProductEntry({
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("storage", handleStorage);
 
-      if (refreshTimerRef.current) {
-        window.clearTimeout(refreshTimerRef.current);
-      }
     };
   }, [loadProducts]);
 
@@ -453,6 +423,8 @@ export function ProductEntry({
           <span>Scan with Camera</span>
         </button>
       </div>
+
+      {statusCards && <div className="product-entry-status-cards">{statusCards}</div>}
 
       {quickActions && <div className="product-entry-quick-actions">{quickActions}</div>}
 
@@ -754,20 +726,6 @@ export function ProductEntry({
             <span>{showProducts ? "Hide Products" : "Show Products"}</span>
           </button>
 
-          <button
-            type="button"
-            className="product-refresh-button"
-            onClick={refreshProducts}
-            disabled={refreshing}
-            title="Reload inventory"
-            aria-label={refreshing ? "Refreshing inventory" : "Refresh inventory"}
-          >
-            <RefreshCw
-              size={16}
-              className={refreshing ? "product-refresh-spinning" : ""}
-            />
-            <span>{refreshing ? "Refreshing..." : "Refresh"}</span>
-          </button>
         </div>
       </div>
 
