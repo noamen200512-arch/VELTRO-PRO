@@ -6034,7 +6034,7 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
-/* One right-side card with Product Entry and Invoice Information side by side. */
+/* One right-side card: Product Entry on top, Invoice Information beneath it. */
 .pos-page .pos-product-info-card {
   display: contents;
 }
@@ -6045,8 +6045,7 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-column: 1 !important;
     grid-row: 1 !important;
     display: flex !important;
-    flex-direction: row !important;
-    align-items: stretch !important;
+    flex-direction: column !important;
     min-width: 0 !important;
     min-height: 0 !important;
     height: 100% !important;
@@ -6060,36 +6059,33 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 
   .pos-page.pos-fullscreen-active .pos-product-info-card > .product-entry,
   .pos-page:fullscreen .pos-product-info-card > .product-entry {
-    flex: 1 1 62% !important;
-    width: 62% !important;
+    flex: 0 1 58% !important;
+    width: 100% !important;
     min-width: 0 !important;
     min-height: 0 !important;
-    max-width: 62% !important;
-    max-height: none !important;
-    height: 100% !important;
+    max-height: 65% !important;
+    height: auto !important;
     margin: 0 !important;
     overflow: auto !important;
     border: 0 !important;
-    border-radius: 14px 0 0 14px !important;
+    border-radius: 14px 14px 0 0 !important;
     box-shadow: none !important;
     background: transparent !important;
   }
 
   .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar,
   .pos-page:fullscreen .pos-product-info-card > .sales-sidebar {
-    flex: 0 0 38% !important;
-    width: 38% !important;
-    max-width: 38% !important;
+    flex: 1 1 42% !important;
+    width: 100% !important;
     min-width: 0 !important;
     min-height: 0 !important;
     max-height: none !important;
-    height: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     overflow: auto !important;
     border: 0 !important;
-    border-inline-start: 1px solid rgba(148, 163, 184, .18) !important;
-    border-top: 0 !important;
-    border-radius: 0 14px 14px 0 !important;
+    border-top: 1px solid rgba(148, 163, 184, .18) !important;
+    border-radius: 0 0 14px 14px !important;
     box-shadow: none !important;
     background: transparent !important;
   }
