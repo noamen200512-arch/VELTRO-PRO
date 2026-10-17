@@ -408,6 +408,27 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [visibleWeighedCategories, setVisibleWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null"); return Array.isArray(v) ? v : ["Nuts", "Grains", "Spices", "Other"]; } catch { return ["Nuts", "Grains", "Spices", "Other"]; } });
   const [weighedShortcutCategories, setWeighedShortcutCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_shortcut_categories") || "null"); return Array.isArray(v) ? Array.from({ length: 12 }, (_, i) => String(v[i] || "")) : []; } catch { return []; } });
   const [poundGrams, setPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
+
+  useEffect(() => {
+    const refreshWeighedSettings = () => {
+      try {
+        const categoryList = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || "null");
+        if (Array.isArray(categoryList)) setWeighedCategoryList(categoryList);
+        const visibleList = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null");
+        if (Array.isArray(visibleList)) setVisibleWeighedCategories(visibleList);
+        const ids = JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]");
+        if (Array.isArray(ids)) setWeighedProductIds(ids.map(String));
+        const categoryMap = JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}");
+        if (categoryMap && typeof categoryMap === "object") setWeighedCategories(categoryMap);
+      } catch (error) { console.warn("Could not refresh weighed-sale settings", error); }
+    };
+    window.addEventListener("veltro:weighed-settings-updated", refreshWeighedSettings);
+    window.addEventListener("storage", refreshWeighedSettings);
+    return () => {
+      window.removeEventListener("veltro:weighed-settings-updated", refreshWeighedSettings);
+      window.removeEventListener("storage", refreshWeighedSettings);
+    };
+  }, []);
   const [showPending, setShowPending] = useState(false);
   const [closedInvoiceMode, setClosedInvoiceMode] = useState(null);
   const [closedInvoiceIndex, setClosedInvoiceIndex] = useState(-1);
