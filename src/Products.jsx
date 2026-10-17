@@ -424,7 +424,7 @@ export default function Products() {
   }, [scanOpen, scanTarget]);
 
   const categories = useMemo(
-    () => ["All", ...new Set(products.map((p) => String(p.category || "").trim()).filter(Boolean))],
+    () => ["All", ...new Set(products.map((p) => String(p.category || "").trim()).filter((category) => category && category !== "General"))],
     [products]
   );
 
