@@ -250,17 +250,11 @@ function ProductModal({
   const [showAliasScanner, setShowAliasScanner] = useState(false);
   const [warning, setWarning] = useState("");
 
-  const [categoryOptions, setCategoryOptions] = useState(() =>
-    safeRead(CATEGORIES_KEY, [
-      "Beverages",
-      "Drinks",
-      "Food",
-      "Snacks",
-      "Cleaning",
-      "Tobacco",
-      "Other"
-    ])
-  );
+  const [categoryOptions, setCategoryOptions] = useState(() => {
+    const saved = safeRead(CATEGORIES_KEY, []);
+    const defaults = new Set(["Beverages", "Drinks", "Food", "Snacks", "Cleaning", "Tobacco", "Other"]);
+    return (Array.isArray(saved) ? saved : []).filter(item => !defaults.has(String(item).trim()));
+  });
 
   const [unitOptions, setUnitOptions] = useState(() =>
     safeRead(UNITS_KEY, [
@@ -485,7 +479,7 @@ function ProductModal({
               .filter(Boolean)
           )
         ],
-        category: form.category || "Other",
+        category: form.category || "",
         unit: form.unit || "piece",
         weighedSale: Boolean(form.weighedSale),
         piecesPerCarton: Math.max(1, Number(form.piecesPerCarton) || 1),
@@ -722,7 +716,7 @@ function ProductModal({
             <Field label="Product Category">
               <div className="purchase-input-actions">
                 <select value={form.category} onChange={e => update("category", e.target.value)}>
-                  <option value="">General</option>
+                  <option value="">Choose category</option>
                   {categoryOptions.map(item => <option key={item} value={item}>{item}</option>)}
                 </select>
                 <Button onClick={() => addOption("category")} title="Add category"><Plus size={15} /></Button>
