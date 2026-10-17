@@ -20,6 +20,7 @@ import {
 
 import { getProducts, saveProducts } from "../../productStore.js";
 import { loadProductsFromCloud } from "../../lib/productCloud.js";
+import { playSound } from "../../services/soundService.js";
 
 function normalize(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -192,7 +193,7 @@ export function ProductEntry({
         return;
       }
 
-      onAddProduct({
+      const added = onAddProduct({
         ...product,
         quantity,
         price: Math.max(0, Number(product.price) || 0),
@@ -203,6 +204,7 @@ export function ProductEntry({
       setBarcode("");
       setSearch("");
       setCurrentPage(1);
+      return added !== false;
     },
     [onAddProduct]
   );
@@ -220,8 +222,9 @@ export function ProductEntry({
         const product = findByBarcode(latestProducts, code);
 
         if (product) {
-          addFromInventory(product, 1);
+          if (addFromInventory(product, 1)) playSound("barcode");
         } else {
+          playSound("errors");
           setNotice(`No product found for barcode: ${code}`);
           setBarcode(code);
         }
