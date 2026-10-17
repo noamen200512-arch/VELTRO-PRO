@@ -170,13 +170,6 @@ export default function PosQuickSaleDialogs({
   useEffect(() => {
     if (!dialog) return undefined;
     const handler = (event) => {
-      // While the weigh-sale modal is open, this modal owns the keyboard.
-      // Stop every key event at capture phase, not only recognized shortcuts,
-      // so the underlying POS screen can never react to the same key press.
-      if (dialog === "weigh") {
-        event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-      }
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
       const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
@@ -215,6 +208,13 @@ export default function PosQuickSaleDialogs({
         event.preventDefault(); event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
+        return;
+      }
+      // Swallow Enter even when no product is selected; it must not activate
+      // a confirmation button on the POS screen behind this modal.
+      if (event.key === "Enter" && !showWeighEntry) {
+        event.preventDefault(); event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         return;
       }
       // F1 and F2 belong exclusively to the weigh-sale workflow, even when
@@ -270,13 +270,14 @@ export default function PosQuickSaleDialogs({
         return;
       }
       if (typing || !/^[1-9]$/.test(event.key)) return;
-      event.preventDefault();
+      // Capture the number even when its tile is empty, otherwise the same
+      // number can trigger a shortcut in the background POS screen.
+      event.preventDefault(); event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
       const slotIndex = Number(event.key) - 1;
       const visualIndex = weighedPage === 1 ? 8 - slotIndex : slotIndex;
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
-      event.preventDefault(); event.stopPropagation();
-      if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
       setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
     };
     document.addEventListener("keydown", handler, true);
