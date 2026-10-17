@@ -474,6 +474,10 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
   const [newProductCategory, setNewProductCategory] = useState("");
   const [productCategoryNames, setProductCategoryNames] = useState({});
   const [productSettingsMessage, setProductSettingsMessage] = useState("");
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [showShortcutCategoryModal, setShowShortcutCategoryModal] = useState(false);
+  const [selectedShortcutCategory, setSelectedShortcutCategory] = useState("");
+  const [productShortcutCategories, setProductShortcutCategories] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_shortcut_categories") || "null"); return Array.isArray(value) ? Array.from({ length: 12 }, (_, i) => String(value[i] || "")) : Array(12).fill(""); } catch { return Array(12).fill(""); } });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -621,6 +625,9 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       const visible = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null");
       setProductVisibleCategories(Array.isArray(visible) ? visible : (Array.isArray(categories) ? categories : ["Nuts","Grains","Spices","Other"]));
       setProductPoundGrams(Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500));
+      const shortcutCategories = JSON.parse(localStorage.getItem("veltro_pos_shortcut_categories") || "null");
+      setProductShortcutCategories(Array.isArray(shortcutCategories) ? Array.from({ length: 12 }, (_, i) => String(shortcutCategories[i] || "")) : Array(12).fill(""));
+      setSelectedShortcutCategory((current) => current || (Array.isArray(categories) && categories[0]) || "");
     } catch (error) { console.warn("Could not load product settings", error); }
   }, [section]);
   const saveProductSettings = () => {
@@ -631,6 +638,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       localStorage.setItem("veltro_pos_weighed_category_list", JSON.stringify(productCategoryList));
       localStorage.setItem("veltro_pos_visible_weighed_categories", JSON.stringify(productVisibleCategories.filter((category) => productCategoryList.includes(category))));
       localStorage.setItem("veltro_pos_pound_grams", String(Math.max(1, Number(productPoundGrams) || 500)));
+      localStorage.setItem("veltro_pos_shortcut_categories", JSON.stringify(productShortcutCategories));
       const eligibleIds = weighedSettingsProducts.map((product) => String(product.id ?? product.productId ?? product.sku ?? ""));
       const nextLayout = [...new Set([...productWeighedLayout, ...eligibleIds])].filter((id) => eligibleIds.includes(id));
       localStorage.setItem("veltro_pos_weighed_layout", JSON.stringify(nextLayout));
@@ -973,7 +981,12 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                   <div className="settings-card">
                     <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.categories}</h4><p>{t.productSettingsText}</p></div></div>
                     <label className="settings-form-field" style={{ maxWidth: 280, marginBottom: 18 }}><span>{t.poundGrams}</span><input type="number" min="1" value={productPoundGrams} onChange={(event) => setProductPoundGrams(event.target.value)} /></label>
-                    <form className="settings-profile-form" onSubmit={(event) => { event.preventDefault(); const name = newProductCategory.trim(); if (name && !productCategoryList.some((category) => category.toLocaleLowerCase() === name.toLocaleLowerCase())) { setProductCategoryList((previous) => [...previous, name]); setProductCategoryNames((previous) => ({ ...previous, [name]: name })); } setNewProductCategory(""); }}>
+                    <div className="settings-inline-actions"><button type="button" className="settings-save-button" onClick={() => setShowCategoryManager(true)}><Package size={15}/>{locale === "ar" ? "إدارة فئات البيع بالميزان" : locale === "fr" ? "Gérer les catégories de pesée" : "Manage weighed-sale categories"}</button><span className="settings-count">{productCategoryList.length}</span></div>
+                  </div>
+                  {showCategoryManager && <div className="settings-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowCategoryManager(false); }}>
+                    <section className="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="weighed-category-manager-title">
+                      <header className="settings-modal-header"><div><h3 id="weighed-category-manager-title">{t.categories}</h3><p>{t.productSettingsText}</p></div><button type="button" className="settings-icon-button" aria-label={t.cancel} onClick={() => setShowCategoryManager(false)}><X size={19}/></button></header>
+                                          <form className="settings-profile-form" onSubmit={(event) => { event.preventDefault(); const name = newProductCategory.trim(); if (name && !productCategoryList.some((category) => category.toLocaleLowerCase() === name.toLocaleLowerCase())) { setProductCategoryList((previous) => [...previous, name]); setProductCategoryNames((previous) => ({ ...previous, [name]: name })); } setNewProductCategory(""); }}>
                       <div className="settings-detail-grid"><label className="settings-form-field"><span>{t.newCategory}</span><input value={newProductCategory} onChange={(event) => setNewProductCategory(event.target.value)} /></label></div>
                       <div className="settings-profile-actions"><button type="submit" className="settings-save-button"><Plus size={15} />{t.addCategory}</button></div>
                     </form>
@@ -985,10 +998,22 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                         <button type="button" className="settings-cancel-button" title={t.deleteCategory} onClick={() => removeProductCategory(category)}><Trash2 size={15} />{t.deleteCategory}</button>
                       </div>)}
                     </div>
-                  </div>
+
+                      <footer className="settings-modal-footer"><button type="button" className="settings-cancel-button" onClick={() => setShowCategoryManager(false)}>{t.cancel}</button><button type="button" className="settings-save-button" onClick={() => setShowCategoryManager(false)}>{locale === "ar" ? "تم" : locale === "fr" ? "Terminé" : "Done"}</button></footer>
+                    </section>
+                  </div>}
                   <div className="settings-card">
                     <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.layoutTitle}</h4><p>{t.layoutText}</p></div><span className="settings-count">{weighedSettingsProducts.length}</span></div>
                     <p style={{ color: "var(--settings-muted, #94a3b8)", fontSize: 12, margin: "0 0 14px" }}>{t.dragHint}</p>
+                    <div className="settings-shortcut-tools">
+                      <label className="settings-form-field"><span>{locale === "ar" ? "الفئة التي تريد تخصيصها" : locale === "fr" ? "Catégorie à personnaliser" : "Category to customize"}</span><select value={selectedShortcutCategory} onChange={(event) => setSelectedShortcutCategory(event.target.value)}><option value="">{locale === "ar" ? "كل الفئات" : locale === "fr" ? "Toutes les catégories" : "All categories"}</option>{productCategoryList.map((category) => <option key={category} value={category}>{productCategoryNames[category] || category}</option>)}</select></label>
+                      <button type="button" className="settings-save-button" onClick={() => setShowShortcutCategoryModal(true)}><SlidersHorizontal size={15}/>{locale === "ar" ? "تخصيص الفئات المرتبطة بـ F1–F12" : locale === "fr" ? "Associer les catégories à F1–F12" : "Customize categories linked to F1–F12"}</button>
+                    </div>
+                    {showShortcutCategoryModal && <div className="settings-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowShortcutCategoryModal(false); }}><section className="settings-modal-card settings-shortcut-modal" role="dialog" aria-modal="true" aria-labelledby="weighed-shortcut-modal-title">
+                      <header className="settings-modal-header"><div><h3 id="weighed-shortcut-modal-title">{locale === "ar" ? "اختصارات الفئات F1–F12" : locale === "fr" ? "Raccourcis catégories F1–F12" : "F1–F12 category shortcuts"}</h3><p>{locale === "ar" ? "اختر الفئة التي يفتحها كل مفتاح أثناء البيع بالميزان." : locale === "fr" ? "Choisissez la catégorie ouverte par chaque touche en vente au poids." : "Choose which category each key opens in the weighed-sale screen."}</p></div><button type="button" className="settings-icon-button" aria-label={t.cancel} onClick={() => setShowShortcutCategoryModal(false)}><X size={19}/></button></header>
+                      <div className="settings-shortcut-category-grid">{productShortcutCategories.map((category,index)=><label className="settings-form-field" key={"shortcut-category-"+index}><span>F{index+1}</span><select value={category} onChange={(event)=>setProductShortcutCategories((previous)=>previous.map((value,slot)=>slot===index?event.target.value:value))}><option value="">{locale==="ar"?"— غير مرتبط —":locale==="fr"?"— Non attribué —":"— Unassigned —"}</option>{productCategoryList.map((option)=><option key={option} value={option}>{productCategoryNames[option]||option}</option>)}</select></label>)}</div>
+                      <footer className="settings-modal-footer"><button type="button" className="settings-cancel-button" onClick={()=>setShowShortcutCategoryModal(false)}>{t.cancel}</button><button type="button" className="settings-save-button" onClick={()=>{try{localStorage.setItem("veltro_pos_shortcut_categories",JSON.stringify(productShortcutCategories));localStorage.setItem("veltro_pos_visible_weighed_categories",JSON.stringify([...new Set(productShortcutCategories.filter(Boolean))]));setProductVisibleCategories([...new Set(productShortcutCategories.filter(Boolean))]);}catch{}setShowShortcutCategoryModal(false);}}>{locale==="ar"?"حفظ الاختصارات":locale==="fr"?"Enregistrer les raccourcis":"Save shortcuts"}</button></footer>
+                    </section></div>}
                     <div className="settings-weighed-grid settings-weighed-grid-3" dir="rtl" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
                         {[8, 7, 6, 5, 4, 3, 2, 1, 0].map((index) => {
                           const selectedId = String(productWeighedSlots[index] || "");
@@ -1001,7 +1026,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                             </div>
                             <select aria-label={locale === "ar" ? "المنتج في الخانة " + (index + 1) : locale === "fr" ? "Produit dans la case " + (index + 1) : "Product in tile " + (index + 1)} value={selectedId} onChange={(event) => setProductWeighedSlots((previous) => previous.map((value, slotIndex) => slotIndex === index ? event.target.value : value))} style={{ width: "100%", minWidth: 0, minHeight: 40, padding: "7px 8px", borderRadius: 8, border: "1px solid rgba(148,163,184,.28)", background: "#0b1423", color: "#e2e8f0", fontSize: 12 }}>
                               <option value="">{locale === "ar" ? "— اختر منتجًا —" : locale === "fr" ? "— Choisir un produit —" : "— Choose product —"}</option>
-                              {weighedSettingsProducts.map((item) => { const itemId = String(item.id ?? item.productId ?? item.sku ?? ""); return <option key={itemId} value={itemId}>{item.name || itemId} · {item.sku || item.reference || itemId}</option>; })}
+                              {weighedSettingsProducts.filter((item) => !selectedShortcutCategory || (productCategoriesById[String(item.id ?? item.productId ?? item.sku ?? "")] || item.category || "") === selectedShortcutCategory || String(item.id ?? item.productId ?? item.sku ?? "") === selectedId).map((item) => { const itemId = String(item.id ?? item.productId ?? item.sku ?? ""); return <option key={itemId} value={itemId}>{item.name || itemId} · {item.sku || item.reference || itemId}</option>; })}
                             </select>
                             {product ? <><small style={{ color: "#94a3b8", fontSize: 11, overflowWrap: "anywhere" }}>{product.sku || product.reference || id}</small><select aria-label={t.category} value={productCategoriesById[id] || (productCategoryList.includes(product.category) ? product.category : "")} onChange={(event) => setProductCategoriesById((previous) => ({ ...previous, [id]: event.target.value }))} style={{ width: "100%", minWidth: 0, padding: "6px 5px", borderRadius: 7, border: "1px solid rgba(148,163,184,.25)", background: "#0b1423", color: "#cbd5e1", fontSize: 11 }}><option value="">{locale === "ar" ? "اختر الفئة" : locale === "fr" ? "Choisir catégorie" : "Choose category"}</option>{productCategoryList.map((category) => <option key={category} value={category}>{category}</option>)}</select></> : <small style={{ color: "#64748b", fontSize: 11 }}>{locale === "ar" ? "خانة فارغة — اختر منتجًا" : locale === "fr" ? "Case vide — choisissez un produit" : "Empty tile — choose a product"}</small>}
                           </div>;
