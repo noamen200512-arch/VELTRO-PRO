@@ -1035,6 +1035,12 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         : `Added one carton of ${inventoryProduct.name} as ${cartonSize} units at the unit price.`,
       "success"
     );
+
+    // Keep the scanner ready after adding a carton from either the product
+    // list or the invoice table, without stealing focus from warning dialogs.
+    requestAnimationFrame(() => {
+      document.getElementById("product-barcode")?.focus({ preventScroll: true });
+    });
   };
 
   const removeItem = (itemOrId) => {
