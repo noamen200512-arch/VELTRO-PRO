@@ -6458,3 +6458,46 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     min-height: 34px !important;
   }
 }
+
+
+/* Previous/next invoice navigation inside the invoice information panel. */
+.pos-page .sales-invoice-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+  margin: 7px 0 10px;
+}
+.pos-page .sales-invoice-nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 8px 7px;
+  border: 1px solid rgba(53, 214, 194, .24);
+  border-radius: 9px;
+  background: rgba(53, 214, 194, .07);
+  color: var(--sales-text, #edf4ff);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, opacity .16s ease;
+}
+.pos-page .sales-invoice-nav-button:not(:disabled):hover {
+  background: rgba(53, 214, 194, .15);
+  border-color: rgba(53, 214, 194, .55);
+}
+.pos-page .sales-invoice-nav-button:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+.pos-page .sales-invoice-navigation > small {
+  grid-column: 1 / -1;
+  color: var(--sales-muted, #8d9bb0);
+  font-size: 9px;
+  text-align: center;
+}
+@media (max-width: 420px) {
+  .pos-page .sales-invoice-nav-button { font-size: 9px; padding: 7px 4px; gap: 3px; }
+}
