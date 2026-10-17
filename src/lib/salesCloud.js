@@ -1,5 +1,15 @@
 import { supabase } from "./supabase.js";
 
+// Serialize invoice cloud writes so a delayed "save as pending" cannot finish
+// after a later "void this empty invoice" operation and resurrect the record.
+let invoiceCloudQueue = Promise.resolve();
+
+function enqueueInvoiceCloudTask(task) {
+  const next = invoiceCloudQueue.catch(() => {}).then(task);
+  invoiceCloudQueue = next;
+  return next;
+}
+
 async function getAccount() {
   const { data, error } = await supabase.auth.getUser();
   if (error) throw error;
@@ -31,7 +41,7 @@ function stableLineId(invoiceId, item, index) {
   return `${raw.slice(0, 8)}-${raw.slice(8, 12)}-4${raw.slice(13, 16)}-a${raw.slice(17, 20)}-${raw.slice(20, 32)}`;
 }
 
-export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
+async function saveSaleToCloudNow(sale, { status = "posted" } = {}) {
   if (!sale?.id && !sale?.invoiceId) throw new Error("The sale has no invoice ID.");
   if (!Array.isArray(sale.items) || sale.items.length === 0) throw new Error("The sale must contain at least one item.");
 
@@ -131,13 +141,17 @@ export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
   return true;
 }
 
+export function saveSaleToCloud(sale, options = {}) {
+  return enqueueInvoiceCloudTask(() => saveSaleToCloudNow(sale, options));
+}
+
 /**
  * Void a pending invoice after its final item is removed.
  * Keeping a void row is intentional: realtime clients can reconcile stale
  * local pending caches against this tombstone instead of resurrecting it.
  * Completed/posted invoices are protected by the status filter.
  */
-export async function voidPendingSaleFromCloud(invoiceId) {
+async function voidPendingSaleFromCloudNow(invoiceId) {
   if (!invoiceId) throw new Error("The invoice has no ID.");
   const { organizationId } = await getAccount();
 
@@ -166,6 +180,10 @@ export async function voidPendingSaleFromCloud(invoiceId) {
   if (itemsError) throw itemsError;
 
   return true;
+}
+
+export function voidPendingSaleFromCloud(invoiceId) {
+  return enqueueInvoiceCloudTask(() => voidPendingSaleFromCloudNow(invoiceId));
 }
 
 export async function deleteSaleFromCloud(invoiceId) {
