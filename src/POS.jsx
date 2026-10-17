@@ -823,6 +823,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
     if (currentQuantity + quantityToAdd > available) {
       setWarningPayload({ type: "addProduct", product: productForInvoice, quantity: quantityToAdd, requested: currentQuantity + quantityToAdd, available: Math.max(0, available - currentQuantity) });
+      playSound("alerts");
       setKeyboardDialog("stockWarning");
       return false;
     }
@@ -873,7 +874,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
       if (quantity > available && !options.allowOversell) {
         setWarningPayload({ type: "quantity", itemId: id, value: quantity, requested: quantity, available });
-        setKeyboardDialog("stockWarning");
+        playSound("alerts");
+      setKeyboardDialog("stockWarning");
         return;
       }
 
@@ -989,6 +991,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
     if (cartonSize > remainingStock && !allowOversell) {
       setWarningPayload({ type: "addCarton", item, requested: cartonSize, available: remainingStock });
+      playSound("alerts");
       setKeyboardDialog("stockWarning");
       return;
     }
@@ -1429,6 +1432,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const available = getAvailableForProduct(getProductId(item), item.id);
     if (size > available && !allowOversell) {
       setWarningPayload({ type: "convertCarton", item, requested: size, available });
+      playSound("alerts");
       setKeyboardDialog("stockWarning");
       return;
     }
@@ -1463,6 +1467,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     const available = getAvailableForProduct(getProductId(item), item.id);
     if (quantity > available) {
       setWarningPayload({ type: "quantity", itemId: item.id, value: quantity, requested: quantity, available, returnTo: "quantity" });
+      playSound("alerts");
       setKeyboardDialog("stockWarning");
       return;
     }
