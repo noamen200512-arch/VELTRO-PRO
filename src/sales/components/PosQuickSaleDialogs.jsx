@@ -284,10 +284,22 @@ export default function PosQuickSaleDialogs({
       event.preventDefault(); event.stopPropagation();
       if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
       const slotIndex = Number(event.key) - 1;
+      // Number keys map to the visible tile labels (1–9). On the first page
+      // the grid is visually reversed to preserve the configured slot layout.
       const visualIndex = weighedPage === 1 ? 8 - slotIndex : slotIndex;
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
-      setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
+      // In the weigh-sale list, pressing 1–9 adds that tile directly to the
+      // invoice using the default quantity of 1 measure unit. F1/F2 remain
+      // available for entering a custom amount or weight before adding.
+      onAddProduct({
+        ...product,
+        quantity: 1,
+        price: priceOf(product),
+        weighedSale: true,
+        weighedCategory: categoriesByProduct[idOf(product)] || product.category || "",
+        unitLabel: String(product.unit || "kg").toLowerCase()
+      });
     };
     // Capture at window, before any document-level POS shortcut handlers.
     window.addEventListener("keydown", handler, true);
