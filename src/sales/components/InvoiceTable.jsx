@@ -197,7 +197,10 @@ export function InvoiceTable({
   const getCartonSize = (item) =>
     Math.max(1, Number(item.piecesPerCarton) || 1);
 
-  const totalEnteredQuantity = items.reduce((sum, item) => sum + Math.max(0, Number(item.quantity ?? item.qty) || 0), 0);
+  const totalEnteredQuantity = items.reduce((sum, item) => {
+    const quantity = Math.max(0, Number(item.quantity ?? item.qty) || 0);
+    return sum + (item.isCartonLine ? quantity * getCartonSize(item) : quantity);
+  }, 0);
   const totalCartons = items.reduce((sum, item) => {
     const quantity = Math.max(0, Number(item.quantity ?? item.qty) || 0);
     if (item.isCartonLine) return sum + quantity;
