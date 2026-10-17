@@ -168,11 +168,30 @@ export default function PosQuickSaleDialogs({
     ? (weighedPage === 1 ? assignedTileProducts : Array.from({ length: 9 }, (_, index) => extraWeighedProducts[(weighedPage - 2) * 9 + index] || null))
     : orderedProducts;
   useEffect(() => {
-    if (dialog !== "weigh") return undefined;
+    if (!dialog) return undefined;
     const handler = (event) => {
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
       const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
+      if (dialog !== "weigh") {
+        if (event.key === "Escape") {
+          event.preventDefault(); event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+          resetAndClose(); return;
+        }
+        if (event.key === "Enter") {
+          event.preventDefault(); event.stopPropagation();
+          if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+          if (dialog === "settings") {
+            document.querySelector(".pos-quick-modal button.primary")?.click();
+          } else if (dialog === "favorites" && selectedId) {
+            const selectedProduct = orderedProducts.find((product) => idOf(product) === selectedId);
+            if (selectedProduct) { onAddProduct(selectedProduct); resetAndClose(); }
+          }
+          return;
+        }
+        return;
+      }
       if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
