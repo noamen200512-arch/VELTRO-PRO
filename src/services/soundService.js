@@ -1,11 +1,15 @@
 const DEFAULT_SOUND_SETTINGS = Object.freeze({
   enabled: true,
-  volume: 55,
+  volume: 75,
   barcode: true,
   sale: true,
   errors: true,
   alerts: true,
-  soundProfileVersion: 2,
+  price: true,
+  quantity: true,
+  delete: true,
+  confirm: true,
+  soundProfileVersion: 3,
 });
 
 let activeUserId = "device";
@@ -23,21 +27,25 @@ export function getSoundSettings(userId = activeUserId) {
   try {
     const key = storageKey(userId);
     const saved = JSON.parse(localStorage.getItem(key) || "null");
-    const legacyDefaultVolume = saved && saved.soundProfileVersion !== 2 && Number(saved.volume ?? 100) === 100;
+    const legacyDefaultVolume = saved && saved.soundProfileVersion !== 3 && Number(saved.volume ?? 100) === 100;
     const settings = {
       ...DEFAULT_SOUND_SETTINGS,
       ...(saved && typeof saved === "object" ? saved : {}),
       enabled: saved?.enabled !== false,
       // Move the old 100% default to the requested medium level once, without
       // changing the user's enable/disable or per-event preferences.
-      volume: Math.min(100, Math.max(0, Number(legacyDefaultVolume ? 55 : (saved?.volume ?? DEFAULT_SOUND_SETTINGS.volume)) || 0)),
+      volume: Math.min(100, Math.max(0, Number(legacyDefaultVolume ? 75 : (saved?.volume ?? DEFAULT_SOUND_SETTINGS.volume)) || 0)),
       barcode: saved?.barcode !== false,
       sale: saved?.sale !== false,
       errors: saved?.errors !== false,
       alerts: saved?.alerts !== false,
-      soundProfileVersion: 2,
+      price: saved?.price !== false,
+      quantity: saved?.quantity !== false,
+      delete: saved?.delete !== false,
+      confirm: saved?.confirm !== false,
+      soundProfileVersion: 3,
     };
-    if (saved && saved.soundProfileVersion !== 2) {
+    if (saved && saved.soundProfileVersion !== 3) {
       localStorage.setItem(key, JSON.stringify(settings));
     }
     return settings;
@@ -56,7 +64,11 @@ export function saveSoundSettings(settings, userId = activeUserId) {
     sale: settings?.sale !== false,
     errors: settings?.errors !== false,
     alerts: settings?.alerts !== false,
-    soundProfileVersion: 2,
+    price: settings?.price !== false,
+    quantity: settings?.quantity !== false,
+    delete: settings?.delete !== false,
+    confirm: settings?.confirm !== false,
+    soundProfileVersion: 3,
   };
 
   try {
@@ -78,24 +90,44 @@ function getAudioContext() {
   return audioContext;
 }
 
-// Soft, rounded tones with gentle pitch movement and short fades make each
-// event feel like feedback from a polished payment terminal rather than a beep.
+// Distinct, punchy POS-style sound signatures using triangle and sine tones.
 const SOUND_PATTERNS = {
   barcode: [
-    { frequency: 880, endFrequency: 1046.5, duration: 0.075, delay: 0, level: 0.24 },
+    { frequency: 1174.66, endFrequency: 1567.98, duration: 0.09, delay: 0, level: 0.42, wave: "triangle" },
+    { frequency: 1567.98, duration: 0.11, delay: 0.075, level: 0.36, wave: "sine" },
   ],
   sale: [
-    { frequency: 523.25, duration: 0.105, delay: 0, level: 0.24 },
-    { frequency: 659.25, duration: 0.105, delay: 0.085, level: 0.26 },
-    { frequency: 783.99, duration: 0.17, delay: 0.17, level: 0.28 },
+    { frequency: 659.25, duration: 0.12, delay: 0, level: 0.40, wave: "triangle" },
+    { frequency: 830.61, duration: 0.12, delay: 0.09, level: 0.43, wave: "triangle" },
+    { frequency: 987.77, duration: 0.13, delay: 0.18, level: 0.45, wave: "triangle" },
+    { frequency: 1318.51, duration: 0.22, delay: 0.27, level: 0.48, wave: "sine" },
   ],
   errors: [
-    { frequency: 392, endFrequency: 349.23, duration: 0.11, delay: 0, level: 0.22 },
-    { frequency: 311.13, duration: 0.14, delay: 0.105, level: 0.22 },
+    { frequency: 440, endFrequency: 330, duration: 0.15, delay: 0, level: 0.42, wave: "triangle" },
+    { frequency: 293.66, duration: 0.19, delay: 0.13, level: 0.46, wave: "triangle" },
+    { frequency: 220, duration: 0.22, delay: 0.29, level: 0.42, wave: "sine" },
   ],
   alerts: [
-    { frequency: 659.25, duration: 0.09, delay: 0, level: 0.22 },
-    { frequency: 783.99, duration: 0.11, delay: 0.12, level: 0.24 },
+    { frequency: 880, duration: 0.12, delay: 0, level: 0.38, wave: "triangle" },
+    { frequency: 659.25, duration: 0.13, delay: 0.14, level: 0.40, wave: "triangle" },
+    { frequency: 880, duration: 0.16, delay: 0.29, level: 0.42, wave: "triangle" },
+  ],
+  price: [
+    { frequency: 740, duration: 0.075, delay: 0, level: 0.38, wave: "triangle" },
+    { frequency: 988, duration: 0.10, delay: 0.065, level: 0.43, wave: "sine" },
+  ],
+  quantity: [
+    { frequency: 587.33, duration: 0.075, delay: 0, level: 0.37, wave: "triangle" },
+    { frequency: 783.99, duration: 0.09, delay: 0.065, level: 0.41, wave: "triangle" },
+  ],
+  delete: [
+    { frequency: 784, endFrequency: 587.33, duration: 0.10, delay: 0, level: 0.42, wave: "triangle" },
+    { frequency: 392, endFrequency: 293.66, duration: 0.16, delay: 0.09, level: 0.45, wave: "sine" },
+  ],
+  confirm: [
+    { frequency: 659.25, duration: 0.09, delay: 0, level: 0.39, wave: "triangle" },
+    { frequency: 880, duration: 0.10, delay: 0.075, level: 0.43, wave: "triangle" },
+    { frequency: 1174.66, duration: 0.16, delay: 0.15, level: 0.46, wave: "sine" },
   ],
 };
 
@@ -114,7 +146,7 @@ export function playSound(eventType) {
     const master = context.createGain();
     // Keep 55% as a comfortable, medium default. The slider still scales it
     // proportionally from silent to full output.
-    master.gain.setValueAtTime(Math.max(0.0001, settings.volume / 100) * 0.16, now);
+    master.gain.setValueAtTime(Math.max(0.0001, settings.volume / 100) * 0.30, now);
     master.connect(context.destination);
 
     pattern.forEach((tone) => {
@@ -125,7 +157,7 @@ export function playSound(eventType) {
       const attackEnd = start + Math.min(0.018, tone.duration * 0.28);
       const releaseStart = Math.max(attackEnd, end - Math.min(0.045, tone.duration * 0.3));
 
-      oscillator.type = "sine";
+      oscillator.type = tone.wave || "triangle";
       oscillator.frequency.setValueAtTime(tone.frequency, start);
       if (tone.endFrequency) {
         oscillator.frequency.exponentialRampToValueAtTime(tone.endFrequency, end);
