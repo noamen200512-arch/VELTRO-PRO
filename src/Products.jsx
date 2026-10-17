@@ -1183,22 +1183,25 @@ export default function Products() {
   );
 }
 
+function parseProfitNumber(value) {
+  if (value === "" || value === null || value === undefined) return 0;
+  const normalized = typeof value === "string" ? value.trim().replace(/\s/g, "").replace(",", ".") : value;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
+}
+
+// All product profit percentages use purchase cost as the denominator.
+// Example: purchase 100 DA and sale 110 DA = 10% profit on cost.
 function getProfitPercent(price, cost) {
-  const p = Number(price || 0);
-  const c = Number(cost || 0);
-
+  const p = parseProfitNumber(price);
+  const c = parseProfitNumber(cost);
   if (c <= 0) return "";
-
-  return String(
-    Number((((p - c) / c) * 100).toFixed(2))
-  );
+  return String(Number((((p - c) / c) * 100).toFixed(2)));
 }
 
 function priceFromProfit(cost, profit) {
-  const c = Number(cost || 0);
-  const pct = Number(profit || 0);
-
-  if (profit === "" || !Number.isFinite(pct)) return "";
-
+  const c = parseProfitNumber(cost);
+  const pct = parseProfitNumber(profit);
+  if (profit === "" || c < 0 || !Number.isFinite(pct)) return "";
   return String(Number((c * (1 + pct / 100)).toFixed(2)));
 }
