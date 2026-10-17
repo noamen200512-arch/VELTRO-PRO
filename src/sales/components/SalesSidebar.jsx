@@ -82,6 +82,11 @@ export function SalesSidebar({
           <strong>{formattedInvoiceNumber}</strong>
         </div>
 
+        <div className="sales-info-card sales-invoice-status-card">
+          <span className="sales-field-label">{labels.status}</span>
+          <strong className={Number(remaining) <= 0 && Number(newAmount) > 0 ? "is-paid" : Number(paid) > 0 ? "is-partial" : "is-unpaid"}>{invoiceStatus}</strong>
+        </div>
+
         <div className="sales-invoice-navigation" aria-label={language === "ar" ? "التنقل بين البونات" : language === "fr" ? "Navigation entre les bons" : "Invoice navigation"} dir={language === "ar" ? "rtl" : "ltr"}>
           <button type="button" className="sales-invoice-nav-button" onClick={onPreviousInvoice || undefined} disabled={!onPreviousInvoice} title={previousInvoiceNumber || labels.previousInvoice}>
             <ChevronLeft size={15} />
@@ -107,10 +112,7 @@ export function SalesSidebar({
             <strong>{time}</strong>
           </div>
         </div>
-        <div className="sales-info-card sales-invoice-status-card">
-          <span className="sales-field-label">{labels.status}</span>
-          <strong className={Number(remaining) <= 0 && Number(newAmount) > 0 ? "is-paid" : Number(paid) > 0 ? "is-partial" : "is-unpaid"}>{invoiceStatus}</strong>
-        </div>
+
       </section>
 
       <section className="sales-side-section sales-account-section">
