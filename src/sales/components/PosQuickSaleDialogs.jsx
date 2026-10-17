@@ -160,6 +160,7 @@ export default function PosQuickSaleDialogs({
       <span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
     </button>)}
+    {dialog === "weigh" && Array.from({ length: Math.max(0, 25 - orderedProducts.length) }, (_, index) => <div key={"empty-weighed-slot-" + index} className="pos-quick-empty-tile" aria-hidden="true"><span>{orderedProducts.length + index + 1}</span></div>)}
     {!filtered.length && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
   </div>;
 
