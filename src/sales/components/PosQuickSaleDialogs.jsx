@@ -99,7 +99,7 @@ export default function PosQuickSaleDialogs({
     if (dialog === "weigh" && !(weighedSet.has(id) || p.weighedSale === true || p.weighedSale === "true")) return false;
     const q = normalize(search);
     if (q && ![p.name, p.id, p.productId, p.sku, p.reference, p.barcode].some((v) => normalize(v).includes(q))) return false;
-    if (dialog === "weigh" && categoryFilter !== "all" && (categoriesByProduct[id] || p.category || "") !== categoryFilter) return false;
+    if (dialog === "weigh" && categoryFilter !== "all" && (p.category || categoriesByProduct[id] || "") !== categoryFilter) return false;
     return true;
   }), [products, dialog, favoriteSet, weighedSet, search, categoryFilter, categoriesByProduct]);
   const orderedProducts = useMemo(() => {
