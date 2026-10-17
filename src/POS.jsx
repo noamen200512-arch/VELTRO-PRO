@@ -1887,6 +1887,12 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         setSelectedPendingIndex(0);setShowPending(true);return;
       }
       if(e.key==="F10"){stop();setQuickSaleDialog("favorites");return;}
+      if(e.key==="F12"){
+        stop();
+        try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {}
+        setQuickSaleDialog("weigh");
+        return;
+      }
       if(items.length&&(e.key==="ArrowUp"||e.key==="ArrowDown")){stop();setSelectedCartIndex(v=>e.key==="ArrowDown"?Math.min(items.length-1,v+1):Math.max(0,v-1));}
     };
     document.addEventListener("keydown",handler,true);
@@ -2328,15 +2334,15 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             <div className="pos-shortcuts-grid">
               {(locale === "ar" ? [
                 ["البون والبيع", [["F1","إنشاء بون جديد"],["F2","تعديل البون المغلق المحدد"],["F7","تأكيد البون وإتمام البيع"],["F8","فتح البونات المعلّقة"],["F9","الشاشة الكاملة"]]],
-                ["المنتجات", [["F3","تعديل الكمية؛ اضغط مرة ثانية للتحويل إلى كرتونة"],["F4","تعديل السعر"],["F5","فتح درج النقود"],["F6","فتح قائمة البحث عن المنتجات"],["F10","فتح المنتجات المفضلة"],["↑ / ↓","التنقل بين المنتجات أو أسطر البون"],["Enter","اختيار المنتج أو التأكيد"]]],
+                ["المنتجات", [["F3","تعديل الكمية؛ اضغط مرة ثانية للتحويل إلى كرتونة"],["F4","تعديل السعر"],["F5","فتح درج النقود"],["F6","فتح قائمة البحث عن المنتجات"],["F10","فتح المنتجات المفضلة"],["F12","فتح واجهة البيع بالميزان"],["↑ / ↓","التنقل بين المنتجات أو أسطر البون"],["Enter","اختيار المنتج أو التأكيد"]]],
                 ["أدوات إضافية", [["Ctrl + I","فتح هذا الدليل"],["Escape","إغلاق النافذة أو الإلغاء"],["Enter","تأكيد الإجراء داخل النافذة"]]]
               ] : locale === "fr" ? [
                 ["Facture et vente", [["F1","Nouvelle facture"],["F2","Modifier la facture clôturée sélectionnée"],["F7","Confirmer et finaliser la vente"],["F8","Factures en attente"],["F9","Plein écran"]]],
-                ["Produits", [["F3","Modifier la quantité ; appuyer encore pour convertir en carton"],["F4","Modifier le prix"],["F5","Ouvrir le tiroir-caisse"],["F6","Rechercher un produit"],["F10","Produits favoris"],["↑ / ↓","Naviguer entre les produits ou lignes"],["Entrée","Choisir ou confirmer"]]],
+                ["Produits", [["F3","Modifier la quantité ; appuyer encore pour convertir en carton"],["F4","Modifier le prix"],["F5","Ouvrir le tiroir-caisse"],["F6","Rechercher un produit"],["F10","Produits favoris"],["F12","Ouvrir la vente au poids"],["↑ / ↓","Naviguer entre les produits ou lignes"],["Entrée","Choisir ou confirmer"]]],
                 ["Outils", [["Ctrl + I","Ouvrir ce guide"],["Échap","Fermer ou annuler"],["Entrée","Confirmer dans une fenêtre"]]]
               ] : [
                 ["Invoice & sale", [["F1","Create a new invoice"],["F2","Edit selected closed invoice"],["F7","Confirm and complete sale"],["F8","Pending invoices"],["F9","Full screen"]]],
-                ["Products", [["F3","Edit quantity; press again to convert to carton"],["F4","Edit price"],["F5","Open cash drawer"],["F6","Search products"],["F10","Favorite products"],["↑ / ↓","Navigate products or invoice rows"],["Enter","Select or confirm"]]],
+                ["Products", [["F3","Edit quantity; press again to convert to carton"],["F4","Edit price"],["F5","Open cash drawer"],["F6","Search products"],["F10","Favorite products"],["F12","Open weighed-sale screen"],["↑ / ↓","Navigate products or invoice rows"],["Enter","Select or confirm"]]],
                 ["More tools", [["Ctrl + I","Open this guide"],["Escape","Close or cancel"],["Enter","Confirm inside a dialog"]]]
               ]).map(([group, rows]) => <section className="pos-shortcuts-group" key={group}><h3>{group}</h3>{rows.map(([key, label]) => <div className="pos-shortcuts-row" key={key + label}><kbd>{key}</kbd><span>{label}</span></div>)}</section>)}
             </div>
@@ -2558,7 +2564,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             quickActions={<>
 <div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
             <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
-            <button type="button" className="pos-quick-launch-weigh" onClick={() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {} setQuickSaleDialog("weigh"); }}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
+            <button type="button" className="pos-quick-launch-weigh" onClick={() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {} setQuickSaleDialog("weigh"); }}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span><kbd>F12</kbd></button>
           </div>
             </>}
             selectedProductInfo={<>
