@@ -775,34 +775,68 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     ]
   );
 
-  // F1 reuses the current empty draft instead of creating duplicate empty invoices.
-  // A new invoice is created only after a non-empty invoice has been saved as pending.
+  // F1 reuses the newest empty draft, but creates a new invoice if this empty
+  // draft sits before a newer pending/completed invoice in the invoice timeline.
   const createNewInvoice = () => {
     if (busy) return;
-    if (closedInvoiceMode) {
-      notify(locale === "ar" ? "ارجع إلى البون الحالي قبل إنشاء بون جديد." : locale === "fr" ? "Revenez à la facture actuelle avant d’en créer une nouvelle." : "Return to the current invoice before creating a new one.", "info");
+
+    // Leave read-only closed-invoice browsing without treating the closed sale
+    // as the active draft. The original draft is retained in the navigation ref.
+    const activeDraft = closedInvoiceMode === "review" && invoiceBeforeClosedBrowseRef.current
+      ? invoiceBeforeClosedBrowseRef.current
+      : invoice;
+    const activeItems = Array.isArray(activeDraft.items) ? activeDraft.items : [];
+
+    if (closedInvoiceMode === "editing") {
+      // Do not discard an in-progress edit of a completed sale.
       return;
     }
 
-    // If this is already an empty draft, it is the current workspace: keep it.
-    // In particular, do not generate a fresh invoice number on every F1 press.
-    if (items.length === 0) {
+    if (activeItems.length === 0) {
+      const knownInvoices = [...getPendingInvoices(), ...getCompletedSales()];
+      const newestKnownTime = knownInvoices.reduce((latest, row) => {
+        const time = new Date(row.createdAt || row.updatedAt || row.completedAt || 0).getTime();
+        return Number.isFinite(time) ? Math.max(latest, time) : latest;
+      }, 0);
+      const draftTime = new Date(activeDraft.createdAt || activeDraft.updatedAt || 0).getTime();
+      const draftIsNewest = !knownInvoices.some((row) =>
+        String(row.id) !== String(activeDraft.id) &&
+        new Date(row.createdAt || row.updatedAt || row.completedAt || 0).getTime() > draftTime
+      );
+
+      setClosedInvoiceMode(null);
+      setClosedInvoiceIndex(-1);
+      invoiceBeforeClosedBrowseRef.current = null;
+      setInvoice(draftIsNewest || draftTime >= newestKnownTime ? activeDraft : createInvoice());
       setShowPending(false);
       setShowEmptyWarning(false);
       setRemovedItem(null);
+      setMessage("");
+      return;
+    }
+
+    // If F1 is pressed while reviewing a completed invoice, restore the saved
+    // draft first; otherwise save the active sale as pending before starting fresh.
+    if (closedInvoiceMode === "review") {
+      setClosedInvoiceMode(null);
+      setClosedInvoiceIndex(-1);
+      invoiceBeforeClosedBrowseRef.current = null;
+      setInvoice(createInvoice());
+      setShowPending(false);
+      setShowEmptyWarning(false);
+      setRemovedItem(null);
+      setMessage("");
       return;
     }
 
     setShowPending(false);
     setShowEmptyWarning(false);
 
-    if (!saveCurrentAsPending(true)) {
-      return;
-    }
+    if (!saveCurrentAsPending(true)) return;
 
     setInvoice(createInvoice());
     setRemovedItem(null);
-
+    setMessage("");
     notify("A new invoice is ready.", "success");
   };
 
@@ -1702,6 +1736,76 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setRemovedItem(null);
   };
 
+  // One chronological navigation sequence for the current draft, pending invoices,
+  // and completed sales. Navigation wraps at both ends and never shows boundary errors.
+  const navigateAllInvoices = (direction) => {
+    const savedDraft = closedInvoiceMode
+      ? invoiceBeforeClosedBrowseRef.current
+      : invoice;
+    const pending = getPendingInvoices();
+    const completed = getCompletedSales();
+    const entries = [];
+    const seen = new Set();
+
+    const addEntry = (record, type) => {
+      if (!record?.id) return;
+      const id = String(record.id);
+      if (seen.has(id)) return;
+      seen.add(id);
+      entries.push({ ...record, __navigationType: type });
+    };
+
+    pending.forEach((record) => addEntry(record, "pending"));
+    completed.forEach((record) => addEntry(record, "completed"));
+    if (savedDraft && !seen.has(String(savedDraft.id))) addEntry(savedDraft, "draft");
+
+    entries.sort((a, b) => {
+      const aTime = new Date(a.createdAt || a.updatedAt || a.completedAt || 0).getTime();
+      const bTime = new Date(b.createdAt || b.updatedAt || b.completedAt || 0).getTime();
+      return aTime - bTime;
+    });
+
+    if (!entries.length) return;
+    const currentIndex = entries.findIndex((entry) => String(entry.id) === String(invoice.id));
+    const startIndex = currentIndex >= 0 ? currentIndex : (direction === "previous" ? 0 : entries.length - 1);
+    const offset = direction === "previous" ? -1 : 1;
+    const target = entries[(startIndex + offset + entries.length) % entries.length];
+    if (!target || String(target.id) === String(invoice.id)) return;
+
+    // Preserve the draft that was open before browsing invoices so the arrows
+    // can always return to it, even when the destination is a completed sale.
+    if (!invoiceBeforeClosedBrowseRef.current && closedInvoiceMode === null) {
+      invoiceBeforeClosedBrowseRef.current = { ...invoice, items: (invoice.items || []).map((item) => ({ ...item })) };
+      saveAutoSavedDraft({ ...invoice, status: "Draft", subtotal, total, paid, remaining });
+    }
+
+    if (target.__navigationType === "draft") {
+      const draft = invoiceBeforeClosedBrowseRef.current || target;
+      setInvoice({ ...draft, status: "Draft", items: (draft.items || []).map((item) => ({ ...item })) });
+      setClosedInvoiceMode(null);
+      setClosedInvoiceIndex(-1);
+      invoiceBeforeClosedBrowseRef.current = null;
+    } else if (target.__navigationType === "completed") {
+      const latestCompleted = [...completed].sort((a, b) =>
+        new Date(b.completedAt || b.createdAt || 0).getTime() -
+        new Date(a.completedAt || a.createdAt || 0).getTime()
+      );
+      setClosedInvoiceIndex(latestCompleted.findIndex((row) => String(row.id) === String(target.id)));
+      setClosedInvoiceMode("review");
+      setInvoice({ ...target, status: "Completed", items: (target.items || []).map((item) => ({ ...item })) });
+    } else {
+      setClosedInvoiceMode(null);
+      setClosedInvoiceIndex(-1);
+      setInvoice({ ...target, status: "Draft", items: (target.items || []).map((item) => ({ ...item })) });
+    }
+
+    setRemovedItem(null);
+    setShowPending(false);
+    setShowEmptyWarning(false);
+    setMessage("");
+    refreshPending();
+  };
+
   const reopenSelectedClosedInvoice = () => {
     if (!selectedClosedInvoice || !isReviewingClosedInvoice) return;
     playSound("confirm");
@@ -1849,23 +1953,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       // including while a text field is focused. Do not let input caret movement
       // or other keyboard handlers swallow them.
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-        const direction = e.key === "ArrowLeft" ? "previous" : "next";
-        if (closedInvoices.length > 0) {
-          stop();
-          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-          navigateClosedInvoice(direction);
-          return;
-        }
-
-        // If there are no completed invoices yet, arrows still browse pending
-        // invoices, even while the barcode/search/input field has focus.
-        const destination = direction === "previous" ? previousInvoice : nextInvoice;
-        if (destination) {
-          stop();
-          if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
-          openPendingInvoice(destination.id);
-          return;
-        }
+        stop();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        navigateAllInvoices(e.key === "ArrowLeft" ? "previous" : "next");
+        return;
       }
       if(e.key==="F1"){stop();createNewInvoice();return;}
       if(e.key==="F2"){stop();if(isReviewingClosedInvoice && selectedClosedInvoice){setShowEditInvoiceConfirm(true);}else{notify(locale==="ar"?"اختر بونًا مغلقًا بالأسهم أولًا لتعديله.":locale==="fr"?"Sélectionnez d’abord une facture clôturée avec les flèches.":"Select a closed invoice with the arrows first to edit it.","info");}return;}
@@ -1947,7 +2038,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           }}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
-          newDisabled={items.length === 0}
+          newDisabled={false}
           disabled={busy}
           message={message ? translatePosMessage(message, locale) : ""}
           messageType={messageType}
@@ -2687,16 +2778,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               </div>
             }
               invoiceNumber={invoice.invoiceNumber}
-              onPreviousInvoice={
-                closedInvoices.length > 0 && (closedInvoiceMode === null || closedInvoiceIndex < closedInvoices.length - 1)
-                  ? () => navigateClosedInvoice("previous")
-                  : null
-              }
-              onNextInvoice={
-                closedInvoices.length > 0 && (closedInvoiceMode === null || closedInvoiceIndex > 0)
-                  ? () => navigateClosedInvoice("next")
-                  : null
-              }
+              onPreviousInvoice={() => navigateAllInvoices("previous")}
+              onNextInvoice={() => navigateAllInvoices("next")}
               previousInvoiceNumber={
                 closedInvoiceMode === null
                   ? closedInvoices[Math.min(1, closedInvoices.length - 1)]?.invoiceNumber || ""
