@@ -6032,3 +6032,66 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     background: transparent !important;
   }
 }
+
+
+/* One right-side card: Product Entry on top, Invoice Information beneath it. */
+.pos-page .pos-product-info-card {
+  display: contents;
+}
+
+@media screen and (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .pos-product-info-card,
+  .pos-page:fullscreen .pos-product-info-card {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+    border: 1px solid var(--sales-border, rgba(148, 163, 184, .18)) !important;
+    border-radius: 14px !important;
+    background: var(--sales-panel, #101725) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16) !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .product-entry,
+  .pos-page:fullscreen .pos-product-info-card > .product-entry {
+    flex: 0 1 58% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 65% !important;
+    height: auto !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    border: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar,
+  .pos-page:fullscreen .pos-product-info-card > .sales-sidebar {
+    flex: 1 1 42% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(148, 163, 184, .18) !important;
+    border-radius: 0 0 14px 14px !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column,
+  .pos-page:fullscreen .pos-entry-column {
+    grid-template-rows: minmax(0, 1fr) !important;
+  }
+}
