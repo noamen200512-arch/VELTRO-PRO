@@ -3,9 +3,10 @@ import {
   Building2, UsersRound, ShieldCheck, MapPinned, SlidersHorizontal,
   RefreshCw, Search, Mail, Phone, CheckCircle2, AlertCircle,
   Languages, Store, KeyRound, ChevronRight, UserRound, Database, Save, Pencil, X,
-  Package, Scale, Star, Plus, Trash2,
+  Package, Scale, Star, Plus, Trash2, Volume2,
 } from "lucide-react";
 import { supabase } from "./lib/supabase.js";
+import { getSoundSettings, playSound, saveSoundSettings, setSoundUser } from "./services/soundService.js";
 import { getProducts } from "./productStore.js";
 
 const copy = {
@@ -13,7 +14,7 @@ const copy = {
     eyebrow: "WORKSPACE CONTROL CENTER", title: "Settings",
     subtitle: "Manage your business workspace, users, access rules, and branches.",
     business: "Business profile", users: "Users & roles", permissions: "Permissions",
-    branches: "Branches", preferences: "Preferences", productSettings: "Product Settings", overview: "Workspace overview",
+    branches: "Branches", preferences: "Preferences", productSettings: "Product Settings", soundSettings: "Sound Settings", soundSettingsText: "Configure audio feedback for barcode scans, sales, errors, and system alerts.", soundEnabled: "Enable interactive sounds", soundVolume: "Volume", soundBarcode: "Barcode scanned successfully", soundSale: "Sale completed", soundErrors: "Errors and invalid actions", soundAlerts: "Stock and server alerts", soundPreview: "Preview sound", soundSaved: "Sound preferences saved for this user on this device.", soundHint: "Some browsers require a click or keypress before audio can play.", overview: "Workspace overview",
     productSettingsText: "Manage the weighed-sale screen and arrange weighed products in its tiles.", layoutTitle: "Weighed-sale tile layout", layoutText: "Only products marked for measured sale in product entry appear here. Drag a tile to set its position in the sales screen.", dragHint: "Drag products between squares to change their order in the sale screen.", noWeighedProducts: "No products are marked for measured sale. Edit a product and enable measured sale first.", poundGrams: "Pound size (grams)", categories: "Product categories", newCategory: "New category name", addCategory: "Add category", visibleCategories: "Show this category on the weigh-sale screen", renameCategory: "Category name", deleteCategory: "Delete category", productList: "Product assignment", productListText: "Choose which products appear in quick-sale tiles and assign each weighed product to a category.", favorite: "Favorite", weighed: "Sell by weight", category: "Category", uncategorized: "Uncategorized", saveProductSettings: "Save product settings", productSettingsSaved: "Product settings saved on this device.", noProducts: "No products found in the product catalog.",
     overviewText: "Your organization and account setup at a glance.",
     organization: "Organization", status: "Status", active: "Active", suspended: "Suspended",
@@ -52,7 +53,7 @@ const copy = {
     eyebrow: "CENTRE DE CONTRÔLE", title: "Paramètres",
     subtitle: "Gérez votre espace professionnel, les utilisateurs, les accès et les agences.",
     business: "Profil de l’entreprise", users: "Utilisateurs et rôles", permissions: "Autorisations",
-    branches: "Agences", preferences: "Préférences", productSettings: "Paramètres des produits", overview: "Vue d’ensemble",
+    branches: "Agences", preferences: "Préférences", productSettings: "Paramètres des produits", soundSettings: "Paramètres sonores", soundSettingsText: "Configurez les sons du scan, des ventes, des erreurs et des alertes système.", soundEnabled: "Activer les sons interactifs", soundVolume: "Volume", soundBarcode: "Code-barres scanné avec succès", soundSale: "Vente finalisée", soundErrors: "Erreurs et actions invalides", soundAlerts: "Alertes de stock et du serveur", soundPreview: "Tester le son", soundSaved: "Préférences sonores enregistrées pour cet utilisateur sur cet appareil.", soundHint: "Certains navigateurs exigent un clic ou une touche avant la lecture audio.", overview: "Vue d’ensemble",
     productSettingsText: "Gérez l’écran de vente au poids et l’ordre des produits dans ses cases.", layoutTitle: "Disposition des cases de vente au poids", layoutText: "Seuls les produits marqués pour la vente mesurée dans la fiche produit apparaissent ici. Faites glisser une case pour définir sa position dans l’écran de vente.", dragHint: "Faites glisser les produits entre les cases pour modifier leur ordre dans l’écran de vente.", noWeighedProducts: "Aucun produit n’est marqué pour la vente mesurée. Modifiez un produit et activez cette option d’abord.", poundGrams: "Valeur de la livre (grammes)", categories: "Catégories de produits", newCategory: "Nom de la nouvelle catégorie", addCategory: "Ajouter la catégorie", visibleCategories: "Afficher cette catégorie dans la vente au poids", renameCategory: "Nom de la catégorie", deleteCategory: "Supprimer la catégorie", productList: "Affectation des produits", productListText: "Choisissez les produits affichés dans la vente rapide et classez les produits vendus au poids.", favorite: "Favori", weighed: "Vente au poids", category: "Catégorie", uncategorized: "Sans catégorie", saveProductSettings: "Enregistrer les paramètres produits", productSettingsSaved: "Paramètres produits enregistrés sur cet appareil.", noProducts: "Aucun produit trouvé dans le catalogue.",
     overviewText: "Résumé de votre organisation et de votre compte.",
     organization: "Organisation", status: "Statut", active: "Actif", suspended: "Suspendu",
@@ -91,7 +92,7 @@ const copy = {
     eyebrow: "مركز التحكم في مساحة العمل", title: "الإعدادات",
     subtitle: "إدارة المؤسسة والمستخدمين والصلاحيات والفروع من مكان واحد.",
     business: "بيانات المؤسسة", users: "المستخدمون والأدوار", permissions: "الصلاحيات",
-    branches: "الفروع", preferences: "التفضيلات", productSettings: "إعدادات المنتجات", overview: "نظرة عامة",
+    branches: "الفروع", preferences: "التفضيلات", productSettings: "إعدادات المنتجات", soundSettings: "إعدادات الأصوات", soundSettingsText: "تحكم في أصوات مسح الباركود والبيع والأخطاء وتنبيهات النظام.", soundEnabled: "تفعيل الأصوات التفاعلية", soundVolume: "مستوى الصوت", soundBarcode: "نجاح مسح الباركود", soundSale: "إتمام عملية البيع", soundErrors: "الأخطاء والإجراءات غير الصالحة", soundAlerts: "تنبيهات المخزون والسيرفر", soundPreview: "تجربة الصوت", soundSaved: "تم حفظ إعدادات الصوت لهذا المستخدم على هذا الجهاز.", soundHint: "قد يتطلب المتصفح نقرة أو ضغطة مفتاح قبل تشغيل الصوت.", overview: "نظرة عامة",
     productSettingsText: "إدارة شاشة البيع بوحدات القياس وترتيب المنتجات داخل مربعات البيع.", layoutTitle: "مخطط مربعات البيع بوحدات القياس", layoutText: "تظهر هنا تلقائيًا المنتجات التي فعّلت لها البيع بوحدات القياس عند إدخال المنتج فقط. اسحب مربع المنتج لتحديد مكانه في شاشة البيع.", dragHint: "اسحب المنتجات بين المربعات لتغيير ترتيب ظهورها في شاشة البيع.", noWeighedProducts: "لا توجد منتجات مفعّل لها البيع بوحدات القياس. افتح إدخال المنتج وفعّل هذا الخيار أولًا.", poundGrams: "قيمة الرطل بالغرام", categories: "فئات المنتجات", newCategory: "اسم الفئة الجديدة", addCategory: "إضافة الفئة", visibleCategories: "إظهار هذه الفئة في صفحة البيع بالميزان", renameCategory: "اسم الفئة", deleteCategory: "حذف الفئة", productList: "تعيين المنتجات للفئات", productListText: "اختر المنتجات التي تظهر في مربعات البيع السريع وحدد فئة كل منتج يُباع بالميزان.", favorite: "مفضّل", weighed: "بيع بالميزان", category: "الفئة", uncategorized: "بلا فئة", saveProductSettings: "حفظ إعدادات المنتجات", productSettingsSaved: "تم حفظ إعدادات المنتجات على هذا الجهاز.", noProducts: "لا توجد منتجات في قائمة المنتجات.",
     overviewText: "ملخص المؤسسة والحساب الحالي.",
     organization: "المؤسسة", status: "الحالة", active: "نشطة", suspended: "موقوفة",
@@ -135,6 +136,7 @@ const nav = [
   { id: "branches", icon: MapPinned, label: "branches" },
   { id: "preferences", icon: SlidersHorizontal, label: "preferences" },
   { id: "productSettings", icon: Package, label: "productSettings" },
+  { id: "soundSettings", icon: Volume2, label: "soundSettings" },
 ];
 
 const localeName = { en: "English", fr: "Français", ar: "العربية" };
@@ -462,6 +464,23 @@ function getPermissionDescription(permission, locale = "en") {
 export default function SettingsPage({ locale = "en", onLocaleChange, currentUser }) {
   const t = copy[locale] || copy.en;
   const [section, setSection] = useState("business");
+  const soundUserId = currentUser?.id || currentUser?.user_id || "device";
+  const [soundSettings, setSoundSettingsState] = useState(() => getSoundSettings(soundUserId));
+  const [soundSettingsMessage, setSoundSettingsMessage] = useState("");
+  useEffect(() => {
+    setSoundUser(soundUserId);
+    setSoundSettingsState(getSoundSettings(soundUserId));
+    setSoundSettingsMessage("");
+  }, [soundUserId]);
+  const updateSoundSetting = (key, value) => {
+    const next = saveSoundSettings({ ...soundSettings, [key]: value }, soundUserId);
+    setSoundSettingsState(next);
+    setSoundSettingsMessage(t.soundSaved);
+  };
+  const previewSound = (eventType) => {
+    setSoundUser(soundUserId);
+    playSound(eventType);
+  };
   const [productSettingsProducts, setProductSettingsProducts] = useState(() => getProducts());
   const [productWeighedLayout, setProductWeighedLayout] = useState(() => { try { const value = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.isArray(value) ? value.map(String) : []; } catch { return []; } });
   const [productWeighedSlots, setProductWeighedSlots] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) return Array.from({ length: 9 }, (_, i) => String(saved[i] || "")); const legacy = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.from({ length: 9 }, (_, i) => String(legacy[i] || "")); } catch { return Array(9).fill(""); } });
@@ -846,9 +865,9 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
         </aside>
 
         <div className="settings-content">
-          {section !== "productSettings" && loading ? (
+          {section !== "productSettings" && section !== "soundSettings" && loading ? (
             <div className="settings-state"><RefreshCw size={23} className="settings-spin" /><span>{t.loading}</span></div>
-          ) : section !== "productSettings" && error ? (
+          ) : section !== "productSettings" && section !== "soundSettings" && error ? (
             <div className="settings-state settings-state-error">
               <AlertCircle size={23} />
               <span>{t.loadError}</span>
@@ -860,7 +879,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                 <div className="settings-section-icon"><activeNav.icon size={20} /></div>
                 <div>
                   <h3>{t[activeNav.label]}</h3>
-                  <p>{section === "business" ? t.overviewText : section === "users" ? t.teamText : section === "permissions" ? t.accessRulesText : section === "branches" ? t.branchesText : section === "productSettings" ? t.productSettingsText : t.languageText}</p>
+                  <p>{section === "business" ? t.overviewText : section === "users" ? t.teamText : section === "permissions" ? t.accessRulesText : section === "branches" ? t.branchesText : section === "productSettings" ? t.productSettingsText : section === "soundSettings" ? t.soundSettingsText : t.languageText}</p>
                 </div>
               </div>
 
@@ -1042,6 +1061,38 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     </div>
                   </div>
                 </>
+              )}
+
+              {section === "soundSettings" && (
+                <div className="settings-card settings-preferences-card">
+                  <div className="settings-card-heading"><Volume2 size={18} /><div><h4>{t.soundSettings}</h4><p>{t.soundSettingsText}</p></div></div>
+                  <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "1px solid rgba(148,163,184,.16)", color: "#e2e8f0", fontWeight: 650 }}>
+                    <span>{t.soundEnabled}</span>
+                    <input type="checkbox" checked={soundSettings.enabled} onChange={(event) => updateSoundSetting("enabled", event.target.checked)} />
+                  </label>
+                  <div style={{ padding: "18px 0", borderBottom: "1px solid rgba(148,163,184,.16)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, color: "#cbd5e1" }}><label htmlFor="veltro-sound-volume">{t.soundVolume}</label><strong>{soundSettings.volume}%</strong></div>
+                    <input id="veltro-sound-volume" type="range" min="0" max="100" step="5" value={soundSettings.volume} disabled={!soundSettings.enabled} onChange={(event) => updateSoundSetting("volume", Number(event.target.value))} style={{ width: "100%", accentColor: "#35d6d0" }} />
+                  </div>
+                  <div style={{ display: "grid", gap: 12, padding: "18px 0" }}>
+                    {[
+                      ["barcode", t.soundBarcode],
+                      ["sale", t.soundSale],
+                      ["errors", t.soundErrors],
+                      ["alerts", t.soundAlerts],
+                    ].map(([key, label]) => (
+                      <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 12px", border: "1px solid rgba(148,163,184,.18)", borderRadius: 10, background: "rgba(15,23,42,.32)", color: "#cbd5e1" }}>
+                        <span>{label}</span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <button type="button" className="settings-secondary-button" onClick={() => previewSound(key)} disabled={!soundSettings.enabled || !soundSettings[key]}>{t.soundPreview}</button>
+                          <input type="checkbox" aria-label={label} checked={soundSettings[key]} disabled={!soundSettings.enabled} onChange={(event) => updateSoundSetting(key, event.target.checked)} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ color: "#94a3b8", fontSize: 12, lineHeight: 1.6, margin: "0 0 12px" }}>{t.soundHint}</p>
+                  {soundSettingsMessage && <div className="settings-feedback settings-feedback-success" role="status"><CheckCircle2 size={15} />{soundSettingsMessage}</div>}
+                </div>
               )}
 
               {section === "preferences" && (
