@@ -5235,3 +5235,74 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-page.pos-fullscreen-active .sales-sidebar,
   .pos-page:fullscreen .sales-sidebar { grid-column: 2; }
 }
+
+
+/* POS desktop layout correction (2026-10-17):
+   Invoice Summary anchors the left column, Product Entry sits beside it,
+   the cart stays directly below the summary, and Invoice Information sits
+   below Product Entry. Mobile keeps its existing stacked layout. */
+@media (min-width: 761px) {
+  .pos-page .sales-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: start;
+    gap: 12px;
+    direction: ltr;
+  }
+
+  .pos-page .sales-workspace {
+    display: contents;
+  }
+
+  .pos-page .invoice-summary {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .pos-page .product-entry {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .pos-page .invoice-table-section {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+  }
+
+  .pos-page .sales-sidebar {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .pos-page .sales-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pos-page .sales-workspace {
+    display: flex;
+  }
+
+  .pos-page .sales-sidebar,
+  .pos-page .product-entry,
+  .pos-page .invoice-table-section,
+  .pos-page .invoice-summary {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
