@@ -4974,3 +4974,115 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 .settings-shortcut-category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .settings-shortcut-category-grid .settings-form-field{min-width:0;margin:0;padding:10px;border:1px solid rgba(148,163,184,.16);border-radius:10px;background:rgba(15,23,42,.45)}
 @media(max-width:620px){.settings-shortcut-category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-modal-card{padding:14px}}
+
+
+/* Final POS fullscreen sizing and quick-action alignment (2026-10-17). */
+.pos-page .product-entry-quick-actions {
+  width: 100%;
+  min-width: 0;
+  gap: 7px;
+}
+.pos-page .product-entry-quick-actions .pos-quick-launcher {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  gap: 7px;
+  margin: 0 0 7px !important;
+}
+.pos-page .product-entry-quick-actions .pos-quick-launcher > button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 6px 9px;
+  gap: 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.pos-page .product-entry-quick-actions .pos-quick-launcher > button > span {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+.pos-page .product-entry-quick-actions .pos-quick-launcher > button > svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+.pos-page .product-entry-quick-actions .pos-quick-launcher > button > kbd {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+}
+.pos-page .product-entry-quick-actions .pos-selected-product-preview {
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+@media (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    min-width: 0;
+    min-height: 0;
+  }
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar {
+    min-height: 0;
+    gap: 8px;
+    padding: 8px !important;
+  }
+  .pos-page.pos-fullscreen-active .sales-sidebar > .sales-side-section,
+  .pos-page:fullscreen .sales-sidebar > .sales-side-section {
+    min-height: 0;
+    margin: 0 !important;
+  }
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .product-entry,
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-table-section,
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-summary {
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(8px, 0.8vw, 12px) !important;
+    border-radius: 12px;
+    box-sizing: border-box;
+  }
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace {
+    min-width: 0;
+    min-height: 0;
+    gap: 8px !important;
+  }
+  .pos-page.pos-fullscreen-active .product-entry-quick-actions .pos-quick-launcher > button,
+  .pos-page:fullscreen .product-entry-quick-actions .pos-quick-launcher > button {
+    min-height: 34px;
+    height: 34px;
+    padding: 4px 7px;
+    font-size: clamp(10px, 0.78vw, 12px);
+  }
+  .pos-page.pos-fullscreen-active .pos-selected-product-preview,
+  .pos-page:fullscreen .pos-selected-product-preview {
+    min-height: 48px;
+    padding: 6px 9px !important;
+  }
+}
+@media (max-width: 760px) {
+  .pos-page .product-entry-quick-actions .pos-quick-launcher > button {
+    min-height: 36px;
+    height: auto;
+    padding: 7px 6px;
+    font-size: 11px;
+  }
+  .pos-page .product-entry-quick-actions .pos-quick-launcher > button > kbd {
+    display: none;
+  }
+}
