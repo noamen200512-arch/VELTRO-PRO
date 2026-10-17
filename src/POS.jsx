@@ -895,6 +895,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       }));
 
       notify("Quantity updated for " + currentItem.name + ": " + getQuantity(currentItem) + " → " + quantity + ".", "success");
+      playSound("quantity");
       return;
     }
 
@@ -924,7 +925,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         updatedAt: new Date().toISOString(),
       }));
 
-      if (field === "price") notify("Price updated for " + currentItem.name + ": " + previousValue.toFixed(2) + " → " + nextValue.toFixed(2) + " DA.", "success");
+      if (field === "price") {
+        notify("Price updated for " + currentItem.name + ": " + previousValue.toFixed(2) + " → " + nextValue.toFixed(2) + " DA.", "success");
+        playSound("price");
+      }
     }
   };
 
@@ -1090,6 +1094,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     }
 
     notify(`${removed.name} removed. You can undo this action.`, "info");
+    playSound("delete");
   };
 
   const undoRemove = (itemToRestore) => {
@@ -1494,6 +1499,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
   const confirmKeyboardWarning = () => {
     const w = warningPayload;
+    playSound("confirm");
     if (!w) { setKeyboardDialog("options"); return; }
     if (w.type === "price") {
       updateItem(w.itemId, "price", w.value);
