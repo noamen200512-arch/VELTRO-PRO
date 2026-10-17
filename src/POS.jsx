@@ -959,6 +959,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addUnit = (item) => {
+    if (isReviewingClosedInvoice) {
+      playSound("errors");
+      notify(
+        locale === "ar"
+          ? "لا يمكن إضافة وحدة إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
+          : locale === "fr"
+            ? "Impossible d’ajouter une unité à une facture clôturée avant de cliquer sur « Modifier la facture » et de confirmer."
+            : "You cannot add a unit to a closed invoice. Click Edit Invoice and confirm first.",
+        "error"
+      );
+      return;
+    }
     // Adding a loose unit beside a carton must create/use a separate unit line.
     if (item?.isCartonLine) {
       addProduct(item);
@@ -1627,6 +1639,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const reopenSelectedClosedInvoice = () => {
     if (!selectedClosedInvoice || !isReviewingClosedInvoice) return;
+    playSound("confirm");
     setInvoice({ ...selectedClosedInvoice, status: "Draft", items: (selectedClosedInvoice.items || []).map(item => ({ ...item })) });
     setClosedInvoiceMode("editing");
     setRemovedItem(null);
@@ -2456,6 +2469,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             onAddUnit={addUnit}
             onAddCarton={addCarton}
             locale={locale}
+            readOnly={isReviewingClosedInvoice}
+            onBlockedAction={() => {
+              playSound("errors");
+              notify(
+                locale === "ar"
+                  ? "هذا البون مغلق للعرض فقط. اضغط «تعديل البون» ثم أكّد التعديل قبل حذف المنتجات."
+                  : locale === "fr"
+                    ? "Cette facture est en lecture seule. Cliquez sur « Modifier la facture » puis confirmez avant de supprimer des produits."
+                    : "This invoice is read-only. Click Edit Invoice and confirm editing before deleting products.",
+                "error"
+              );
+            }}
           />
           </div>
         </div>
