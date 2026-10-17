@@ -784,10 +784,19 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       return;
     }
 
+    // F1 should always take the cashier back to a clean, empty invoice.
+    // If the current invoice is already empty, simply reset the workspace instead
+    // of showing an error. Non-empty invoices are still saved as pending below.
     if (items.length === 0) {
+      setShowPending(false);
+      setShowEmptyWarning(false);
+      setInvoice(createInvoice());
+      setRemovedItem(null);
       notify(
-        "Add at least one product to the current invoice before creating a new invoice.",
-        "error"
+        locale === "ar" ? "تم فتح بون فارغ جديد." :
+        locale === "fr" ? "Une nouvelle facture vide est prête." :
+        "A new empty invoice is ready.",
+        "success"
       );
       return;
     }
