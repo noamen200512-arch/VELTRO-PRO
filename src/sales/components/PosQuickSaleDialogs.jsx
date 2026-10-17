@@ -51,6 +51,7 @@ export default function PosQuickSaleDialogs({
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedId, setSelectedId] = useState("");
+  const [showWeighEntry, setShowWeighEntry] = useState(false);
   const [mode, setMode] = useState("weight");
   const [weight, setWeight] = useState("1");
   const [amount, setAmount] = useState("");
@@ -80,6 +81,7 @@ export default function PosQuickSaleDialogs({
       setSearch("");
       setCategoryFilter("all");
       setSelectedId("");
+      setShowWeighEntry(false);
       setWeight("1");
       setAmount("");
       setMode("weight");
@@ -116,7 +118,7 @@ export default function PosQuickSaleDialogs({
   const computedAmount = selected ? unitPrice * computedWeight : 0;
   if (!dialog) return null;
 
-  const resetAndClose = () => { setSearch(""); setCategoryFilter("all"); setSelectedId(""); onClose(); };
+  const resetAndClose = () => { setSearch(""); setCategoryFilter("all"); setSelectedId(""); setShowWeighEntry(false); onClose(); };
   const keypad = (key, setter, current) => {
     if (key === "⌫") setter(replaceInput ? "" : String(current).slice(0, -1));
     else if (key === "C") setter("");
@@ -154,7 +156,7 @@ export default function PosQuickSaleDialogs({
     {["1","2","3","4","5","6","7","8","9","⌫","0",".","C"].map((key) => <button type="button" key={key} onClick={() => keypad(key, setter, current)}>{key}</button>)}
   </div>;
   const productTiles = <div className="pos-quick-tiles">
-    {orderedProducts.map((p) => <button type="button" key={idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); }}>
+    {orderedProducts.map((p) => <button type="button" key={idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
       <span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
     </button>)}
@@ -203,13 +205,17 @@ export default function PosQuickSaleDialogs({
         {dialog === "weigh" && <div className="pos-quick-category-row"><span>{t.category}</span><button type="button" className={categoryFilter === "all" ? "active" : ""} onClick={() => setCategoryFilter("all")}>{t.all}</button>{visibleWeighedCategories.filter((c) => categories.includes(c)).map((c) => <button type="button" key={c} className={categoryFilter === c ? "active" : ""} onClick={() => setCategoryFilter(c)}>{categoryLabel(c)}</button>)}</div>}
         <label className="pos-quick-search"><Search size={18}/><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.search}/></label>
         {productTiles}
-        {dialog === "weigh" && selected && <div className="pos-quick-weigh-panel">
-          <div className="pos-quick-selected"><div><small>{t.selected}</small><strong>{selected.name}</strong></div><span>{({ kg: t.priceKg, g: locale === "ar" ? "السعر لكل غرام" : locale === "fr" ? "Prix au gramme" : "Price per gram", liter: locale === "ar" ? "السعر لكل لتر" : locale === "fr" ? "Prix au litre" : "Price per liter", ml: locale === "ar" ? "السعر لكل مل" : locale === "fr" ? "Prix au ml" : "Price per ml", meter: locale === "ar" ? "السعر لكل متر" : locale === "fr" ? "Prix au mètre" : "Price per meter", cm: locale === "ar" ? "السعر لكل سم" : locale === "fr" ? "Prix au cm" : "Price per cm" })[measureUnit] || t.priceKg}: {unitPrice.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</span></div>
-          <div className="pos-quick-mode-switch"><button type="button" className={mode === "weight" ? "active" : ""} onClick={() => { if (unitPrice > 0 && computedWeight > 0) setWeight(String(Number(computedWeight.toFixed(3)))); setMode("weight"); setReplaceInput(true); }}>{t.weight}</button><button type="button" className={mode === "amount" ? "active" : ""} onClick={() => { if (unitPrice > 0 && computedAmount > 0) setAmount(String(Number(computedAmount.toFixed(2)))); setMode("amount"); setReplaceInput(true); }}>{t.amount}</button></div>
-          <div className="pos-quick-weight-input"><label>{mode === "weight" ? (locale === "ar" ? `الكمية (${measureLabel})` : locale === "fr" ? `Quantité (${measureLabel})` : `Quantity (${measureLabel})`) : t.paidAmount}<input inputMode="decimal" value={mode === "weight" ? weight : amount} onFocus={() => setReplaceInput(true)} onChange={(e) => { (mode === "weight" ? setWeight : setAmount)(e.target.value); setReplaceInput(false); }}/></label>{keypadButtons(mode === "weight" ? setWeight : setAmount, mode === "weight" ? weight : amount)}</div>
-          {measureUnit === "kg" && <div className="pos-quick-pound-buttons"><button type="button" onClick={() => { setMode("weight"); setWeight(String(Number(poundGrams || 500) / 1000)); setReplaceInput(true); }}>{t.onePound} ({Number(poundGrams || 500)} g)</button><button type="button" onClick={() => { setMode("weight"); setWeight(String(Number(poundGrams || 500) / 2000)); setReplaceInput(true); }}>{t.halfPound} ({Number(poundGrams || 500) / 2} g)</button></div>}
-          <div className="pos-quick-calculation"><span>{locale === "ar" ? "الكمية" : locale === "fr" ? "Quantité" : "Quantity"}: <strong>{computedWeight.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 3 })} {measureLabel}</strong></span><span>{t.total}: <strong>{computedAmount.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</strong></span></div>
-          <footer className="pos-quick-footer"><button type="button" onClick={() => setSelectedId("")}>{t.cancel}</button><button type="button" className="primary" disabled={unitPrice <= 0 || computedWeight <= 0 || !Number.isFinite(computedWeight)} onClick={() => { if (unitPrice <= 0) { window.alert(t.invalidPrice); return; } if (computedWeight <= 0) { window.alert(t.invalidWeight); return; } onAddProduct({ ...selected, quantity: Number(computedWeight.toFixed(3)), price: unitPrice, weighedSale: true, weighedCategory: categoriesByProduct[idOf(selected)] || selected.category || "", unitLabel: measureLabel }); resetAndClose(); }}><Check size={17}/>{t.add}</button></footer>
+        {dialog === "weigh" && selected && showWeighEntry && <div className="pos-weigh-entry-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setShowWeighEntry(false); setSelectedId(""); } }}>
+          <section className="pos-weigh-entry-modal" role="dialog" aria-modal="true" aria-label={t.selected} dir={locale === "ar" ? "rtl" : "ltr"}>
+            <header className="pos-weigh-entry-heading"><div><small>{t.selected}</small><h3>{selected.name}</h3><p>{({ kg: t.priceKg, g: locale === "ar" ? "السعر لكل غرام" : locale === "fr" ? "Prix au gramme" : "Price per gram", liter: locale === "ar" ? "السعر لكل لتر" : locale === "fr" ? "Prix au litre" : "Price per liter", ml: locale === "ar" ? "السعر لكل مل" : locale === "fr" ? "Prix au ml" : "Price per ml", meter: locale === "ar" ? "السعر لكل متر" : locale === "fr" ? "Prix au mètre" : "Price per meter", cm: locale === "ar" ? "السعر لكل سم" : locale === "fr" ? "Prix au cm" : "Price per cm" })[measureUnit] || t.priceKg}: <strong>{unitPrice.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</strong></p></div><button type="button" className="pos-quick-close" onClick={() => { setShowWeighEntry(false); setSelectedId(""); }} aria-label={t.cancel}><X size={19}/></button></header>
+            <div className="pos-quick-weigh-panel">
+              <div className="pos-quick-mode-switch"><button type="button" className={mode === "weight" ? "active" : ""} onClick={() => { if (unitPrice > 0 && computedWeight > 0) setWeight(String(Number(computedWeight.toFixed(3)))); setMode("weight"); setReplaceInput(true); }}>{t.weight}</button><button type="button" className={mode === "amount" ? "active" : ""} onClick={() => { if (unitPrice > 0 && computedAmount > 0) setAmount(String(Number(computedAmount.toFixed(2)))); setMode("amount"); setReplaceInput(true); }}>{t.amount}</button></div>
+              <div className="pos-quick-weight-input"><label>{mode === "weight" ? (locale === "ar" ? `الوزن (${measureLabel})` : locale === "fr" ? `Poids (${measureLabel})` : `Weight (${measureLabel})`) : t.paidAmount}<input autoFocus inputMode="decimal" value={mode === "weight" ? weight : amount} onFocus={() => setReplaceInput(true)} onChange={(e) => { (mode === "weight" ? setWeight : setAmount)(e.target.value); setReplaceInput(false); }}/></label>{keypadButtons(mode === "weight" ? setWeight : setAmount, mode === "weight" ? weight : amount)}</div>
+              {measureUnit === "kg" && <div className="pos-quick-pound-buttons"><button type="button" onClick={() => { setMode("weight"); setWeight(String(Number(poundGrams || 500) / 1000)); setReplaceInput(true); }}>{t.onePound} ({Number(poundGrams || 500)} g)</button><button type="button" onClick={() => { setMode("weight"); setWeight(String(Number(poundGrams || 500) / 2000)); setReplaceInput(true); }}>{t.halfPound} ({Number(poundGrams || 500) / 2} g)</button></div>}
+              <div className="pos-quick-calculation"><span>{locale === "ar" ? "الوزن المحسوب" : locale === "fr" ? "Poids calculé" : "Calculated weight"}: <strong>{computedWeight.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 3 })} {measureLabel}</strong></span><span>{t.total}: <strong>{computedAmount.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</strong></span></div>
+              <footer className="pos-quick-footer"><button type="button" onClick={() => { setShowWeighEntry(false); setSelectedId(""); }}>{t.cancel}</button><button type="button" className="primary" disabled={unitPrice <= 0 || computedWeight <= 0 || !Number.isFinite(computedWeight)} onClick={() => { if (unitPrice <= 0) { window.alert(t.invalidPrice); return; } if (computedWeight <= 0) { window.alert(t.invalidWeight); return; } onAddProduct({ ...selected, quantity: Number(computedWeight.toFixed(3)), price: unitPrice, weighedSale: true, weighedCategory: categoriesByProduct[idOf(selected)] || selected.category || "", unitLabel: measureLabel }); resetAndClose(); }}><Check size={17}/>{t.add}</button></footer>
+            </div>
+          </section>
         </div>}
         {dialog === "favorites" && selected && <footer className="pos-quick-footer"><button type="button" onClick={resetAndClose}>{t.close}</button><button type="button" className="primary" onClick={() => { onAddProduct(selected); resetAndClose(); }}><Plus size={17}/>{t.add}</button></footer>}
       </>}
