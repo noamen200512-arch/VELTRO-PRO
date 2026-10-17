@@ -793,7 +793,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addProduct = (product) => {
-    if (closedInvoiceMode) return false;
+    if (isReviewingClosedInvoice) {
+      playSound("errors");
+      notify(
+        locale === "ar"
+          ? "لا يمكن إضافة منتج إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
+          : locale === "fr"
+            ? "Impossible d’ajouter un produit à une facture clôturée avant de cliquer sur « Modifier la facture » et de confirmer."
+            : "You cannot add a product to a closed invoice. Click Edit Invoice and confirm first.",
+        "error"
+      );
+      return false;
+    }
     const productId = getProductId(product);
 
     const inventoryProduct = getProducts().find(
@@ -957,6 +968,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addCarton = (item, allowOversell = false) => {
+    if (isReviewingClosedInvoice) {
+      playSound("errors");
+      notify(
+        locale === "ar"
+          ? "لا يمكن إضافة كرتون إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
+          : locale === "fr"
+            ? "Impossible d’ajouter un carton à une facture clôturée avant de cliquer sur « Modifier la facture » et de confirmer."
+            : "You cannot add a carton to a closed invoice. Click Edit Invoice and confirm first.",
+        "error"
+      );
+      return;
+    }
     // Accept both product cards and invoice rows (whose display id may differ
     // from the real inventory id), then always use the saved inventory record.
     const productId = String(item?.productId ?? item?.id ?? "").trim();
@@ -1059,7 +1082,18 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const removeItem = (itemOrId) => {
-    if (isReviewingClosedInvoice) return;
+    if (isReviewingClosedInvoice) {
+      playSound("errors");
+      notify(
+        locale === "ar"
+          ? "لا يمكن حذف منتج من بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
+          : locale === "fr"
+            ? "Impossible de supprimer un produit d’une facture clôturée avant de cliquer sur « Modifier la facture » et de confirmer."
+            : "You cannot delete a product from a closed invoice. Click Edit Invoice and confirm first.",
+        "error"
+      );
+      return;
+    }
     // InvoiceTable passes the full item from its confirmation dialog; also
     // support callers that pass only the item id.
     const itemId = itemOrId && typeof itemOrId === "object"
@@ -1787,7 +1821,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       <header className="pos-heading">
         <SalesToolbar
           onNew={createNewInvoice}
-          onEditInvoice={() => setShowEditInvoiceConfirm(true)}
+          onEditInvoice={() => { playSound("confirm"); setShowEditInvoiceConfirm(true); }}
           editInvoiceDisabled={!isReviewingClosedInvoice || !selectedClosedInvoice || busy}
           onPrint={printInvoice}
           onCustomer={chooseCustomer}
@@ -1799,6 +1833,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               setClosedInvoiceMode(null);
               setClosedInvoiceIndex(-1);
               invoiceBeforeClosedBrowseRef.current = null;
+              refreshPending();
               setShowPending(true);
               return;
             }
@@ -1813,7 +1848,10 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               );
               return;
             }
-            setShowPending((current) => !current);
+            // Always open the list from the toolbar. Closing is handled by the
+            // modal close button or backdrop, avoiding a stale toggle state.
+            refreshPending();
+            setShowPending(true);
           }}
           pendingCount={pendingInvoices.length}
           showPending={showPending}
@@ -2233,7 +2271,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 10000,
+            zIndex: 2147483000,
             display: "grid",
             placeItems: "center",
             padding: 20,
@@ -2288,7 +2326,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
               <button type="button" onClick={() => setShowEditInvoiceConfirm(false)} style={{ minHeight: 40, padding: "0 16px", borderRadius: 10, border: "1px solid rgba(148,163,184,.25)", color: "#cbd5e1", background: "rgba(148,163,184,.08)", fontWeight: 750, cursor: "pointer" }}>
                 {locale === "ar" ? "إلغاء" : locale === "fr" ? "Annuler" : "Cancel"}
               </button>
-              <button type="button" disabled={!selectedClosedInvoice || !isReviewingClosedInvoice || busy} onClick={() => { setShowEditInvoiceConfirm(false); reopenSelectedClosedInvoice(); }} style={{ minHeight: 40, padding: "0 18px", borderRadius: 10, border: "1px solid rgba(45,212,191,.42)", color: "#042f2e", background: "linear-gradient(135deg,#5eead4,#2dd4bf)", fontWeight: 850, cursor: "pointer", opacity: (!selectedClosedInvoice || !isReviewingClosedInvoice || busy) ? .55 : 1 }}>
+              <button type="button" disabled={!selectedClosedInvoice || !isReviewingClosedInvoice || busy} onClick={() => { playSound("confirm"); setShowEditInvoiceConfirm(false); reopenSelectedClosedInvoice(); }} style={{ minHeight: 40, padding: "0 18px", borderRadius: 10, border: "1px solid rgba(45,212,191,.42)", color: "#042f2e", background: "linear-gradient(135deg,#5eead4,#2dd4bf)", fontWeight: 850, cursor: "pointer", opacity: (!selectedClosedInvoice || !isReviewingClosedInvoice || busy) ? .55 : 1 }}>
                 {locale === "ar" ? "تأكيد التعديل" : locale === "fr" ? "Confirmer" : "Confirm edit"}
               </button>
             </footer>
