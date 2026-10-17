@@ -6727,3 +6727,24 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     gap: 6px;
   }
 }
+
+/* Keep invoice information visible in the side card without its own scrolling pane. */
+@media screen and (min-width: 761px) {
+  .pos-page .pos-product-info-card > .sales-sidebar,
+  .pos-page:fullscreen .pos-product-info-card > .sales-sidebar,
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar {
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    overscroll-behavior: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .pos-page .pos-product-info-card > .sales-sidebar::-webkit-scrollbar,
+  .pos-page:fullscreen .pos-product-info-card > .sales-sidebar::-webkit-scrollbar,
+  .pos-page.pos-fullscreen-active .pos-product-info-card > .sales-sidebar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
