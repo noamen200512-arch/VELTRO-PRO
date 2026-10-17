@@ -5834,3 +5834,125 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     overflow: hidden !important;
   }
 }
+
+
+/* Structural fullscreen fix: keep the cart and invoice summary in their own
+   left column; keep product entry and invoice information in their own right
+   column. These wrappers replace fragile grid placement across descendants. */
+@media screen and (min-width: 761px) {
+  .pos-page .pos-invoice-column,
+  .pos-page .pos-entry-column {
+    display: contents;
+  }
+
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    grid-template-areas: none !important;
+    flex: 1 1 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    align-items: stretch !important;
+    gap: 9px !important;
+    overflow: hidden !important;
+    direction: ltr !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-invoice-column,
+  .pos-page:fullscreen .pos-invoice-column {
+    display: grid !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: max-content minmax(0, 1fr) !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    gap: 9px !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column,
+  .pos-page:fullscreen .pos-entry-column {
+    display: grid !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: max-content minmax(0, 1fr) !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    gap: 9px !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-invoice-column > .invoice-summary,
+  .pos-page:fullscreen .pos-invoice-column > .invoice-summary {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    grid-area: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-invoice-column > .invoice-table-section,
+  .pos-page:fullscreen .pos-invoice-column > .invoice-table-section {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    grid-area: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column > .product-entry,
+  .pos-page:fullscreen .pos-entry-column > .product-entry {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    grid-area: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column > .sales-sidebar,
+  .pos-page:fullscreen .pos-entry-column > .sales-sidebar {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    grid-area: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .pos-page .pos-invoice-column,
+  .pos-page .pos-entry-column {
+    display: contents;
+  }
+
+  .pos-page .sales-sidebar { order: 1; }
+  .pos-page .pos-heading-status-cards { order: 2; }
+  .pos-page .product-entry { order: 3; }
+  .pos-page .invoice-table-section { order: 4; }
+  .pos-page .invoice-summary { order: 5; }
+}
