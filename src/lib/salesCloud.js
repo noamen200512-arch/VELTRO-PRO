@@ -75,6 +75,22 @@ async function saveSaleToCloudNow(sale, { status = "posted" } = {}) {
     if (!customerError && customer) customerId = String(customer.id);
   }
 
+  // Ignore a delayed pending save if another operation has already
+  // completed or voided this invoice. Otherwise a stale client could undo
+  // the final-item deletion or resurrect a completed sale in the pending list.
+  if (status === "pending") {
+    const { data: existingInvoice, error: existingInvoiceError } = await supabase
+      .from("sales_invoices")
+      .select("status")
+      .eq("organization_id", organizationId)
+      .eq("id", id)
+      .maybeSingle();
+    if (existingInvoiceError) throw existingInvoiceError;
+    if (existingInvoice?.status === "posted" || existingInvoice?.status === "void") {
+      return true;
+    }
+  }
+
   const total = Math.max(0, numeric(sale.total));
   const paid = Math.min(total, Math.max(0, numeric(sale.paid)));
   const header = {
