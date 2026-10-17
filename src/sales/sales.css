@@ -6897,3 +6897,86 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     display: none;
   }
 }
+
+
+/* Tighter, aligned toolbar controls after removing the extra invoice navigation pair. */
+.pos-page .sales-toolbar {
+  gap: 6px !important;
+  padding: 7px 10px !important;
+  min-height: 0 !important;
+}
+
+.pos-page .sales-toolbar-brand {
+  gap: 6px !important;
+  font-size: 10px !important;
+  letter-spacing: .07em !important;
+  white-space: nowrap;
+}
+
+.pos-page .sales-toolbar-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  min-width: 0;
+}
+
+.pos-page .sales-toolbar-button {
+  min-height: 30px !important;
+  padding: 5px 8px !important;
+  gap: 5px !important;
+  border-radius: 8px !important;
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  white-space: nowrap !important;
+}
+
+.pos-page .sales-toolbar-button-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pos-page .sales-toolbar-button-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+.pos-page .sales-toolbar-shortcut-hint {
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+}
+
+.pos-page .sales-toolbar-notice {
+  gap: 5px !important;
+  padding: 4px 7px !important;
+  font-size: 10px !important;
+  min-height: 28px !important;
+}
+
+@media screen and (max-width: 760px) {
+  .pos-page .sales-toolbar {
+    align-items: center !important;
+    padding: 6px !important;
+  }
+
+  .pos-page .sales-toolbar-brand {
+    font-size: 9px !important;
+  }
+
+  .pos-page .sales-toolbar-actions {
+    gap: 4px !important;
+  }
+
+  .pos-page .sales-toolbar-button {
+    min-height: 28px !important;
+    padding: 4px 6px !important;
+    font-size: 9px !important;
+  }
+
+  .pos-page .sales-toolbar-button-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
