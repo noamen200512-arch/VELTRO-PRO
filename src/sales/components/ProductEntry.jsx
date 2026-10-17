@@ -60,6 +60,8 @@ export function ProductEntry({
   onAddCarton,
   showProducts = true,
   onShowProducts,
+  quickActions = null,
+  selectedProductInfo = null,
 }) {
   const [products, setProducts] = useState([]);
   const [barcode, setBarcode] = useState("");
@@ -452,6 +454,8 @@ export function ProductEntry({
         </button>
       </div>
 
+      {quickActions && <div className="product-entry-quick-actions">{quickActions}</div>}
+
       {/* Search remains visible even when the inventory list is hidden. */}
       <div className="product-entry-fields">
         <div className="product-entry-field product-search-field">
@@ -488,6 +492,8 @@ export function ProductEntry({
           </div>
         </div>
       </div>
+
+      {selectedProductInfo}
 
       {/* The toggle controls the full inventory list only. */}
       {showProducts && (
