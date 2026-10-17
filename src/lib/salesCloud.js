@@ -131,6 +131,38 @@ export async function saveSaleToCloud(sale, { status = "posted" } = {}) {
   return true;
 }
 
+/**
+ * Void a pending invoice after its final item is removed.
+ * Keeping a void row is intentional: realtime clients can reconcile stale
+ * local pending caches against this tombstone instead of resurrecting it.
+ * Completed/posted invoices are protected by the status filter.
+ */
+export async function voidPendingSaleFromCloud(invoiceId) {
+  if (!invoiceId) throw new Error("The invoice has no ID.");
+  const { organizationId } = await getAccount();
+
+  const { error: invoiceError } = await supabase
+    .from("sales_invoices")
+    .update({
+      status: "void",
+      posted_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("organization_id", organizationId)
+    .eq("id", String(invoiceId))
+    .eq("status", "pending");
+  if (invoiceError) throw invoiceError;
+
+  const { error: itemsError } = await supabase
+    .from("sales_invoice_items")
+    .delete()
+    .eq("organization_id", organizationId)
+    .eq("invoice_id", String(invoiceId));
+  if (itemsError) throw itemsError;
+
+  return true;
+}
+
 export async function deleteSaleFromCloud(invoiceId) {
   if (!invoiceId) throw new Error("The sale has no invoice ID.");
   const { organizationId } = await getAccount();
