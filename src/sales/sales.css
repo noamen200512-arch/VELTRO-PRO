@@ -6982,34 +6982,20 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
-/* Compact top action buttons ONLY in fullscreen POS mode */
+/* Reduce top action button WIDTH only in fullscreen POS mode.
+   Keep the original button height, text size, and icon size unchanged. */
 .pos-page.pos-fullscreen-active .sales-toolbar-button,
-.pos-page:fullscreen .sales-toolbar-button {
-  min-height: 27px !important;
-  height: 27px !important;
-  padding: 3px 5px !important;
-  gap: 4px !important;
-  border-radius: 7px !important;
-  font-size: 9px !important;
-  line-height: 1 !important;
-}
-.pos-page.pos-fullscreen-active .sales-toolbar-button-icon svg,
-.pos-page:fullscreen .sales-toolbar-button-icon svg {
-  width: 13px !important;
-  height: 13px !important;
-}
-.pos-page.pos-fullscreen-active .sales-toolbar-shortcut-hint,
-.pos-page:fullscreen .sales-toolbar-shortcut-hint {
-  font-size: 8px !important;
-  padding: 1px 3px !important;
-}
+.pos-page:fullscreen .sales-toolbar-button,
 .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
 .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
-  min-height: 27px !important;
-  height: 27px !important;
-  padding: 3px 5px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  flex: 0 1 auto !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
   gap: 4px !important;
-  font-size: 9px !important;
+  white-space: nowrap;
 }
 .pos-page.pos-fullscreen-active .invoice-summary-current-user,
 .pos-page:fullscreen .invoice-summary-current-user {
@@ -7017,16 +7003,11 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 @media screen and (max-width: 760px) {
   .pos-page.pos-fullscreen-active .sales-toolbar-button,
-  .pos-page:fullscreen .sales-toolbar-button {
-    min-height: 25px !important;
-    height: 25px !important;
-    padding: 3px 4px !important;
-    font-size: 8px !important;
+  .pos-page:fullscreen .sales-toolbar-button,
+  .pos-page.pos-fullscreen-active .sales-toolbar-actions > .sales-toolbar-button,
+  .pos-page:fullscreen .sales-toolbar-actions > .sales-toolbar-button {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     gap: 3px !important;
-  }
-  .pos-page.pos-fullscreen-active .sales-toolbar-button-icon svg,
-  .pos-page:fullscreen .sales-toolbar-button-icon svg {
-    width: 12px !important;
-    height: 12px !important;
   }
 }
