@@ -210,7 +210,9 @@ export default function PosQuickSaleDialogs({
         setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
         return;
       }
-      if (!typing && selectedId && showWeighEntry && (event.key === "F1" || event.key === "F2")) {
+      // The weighing-entry modal owns F1/F2 even while an input is focused.
+      // Stop the event here so the underlying POS screen cannot run its shortcuts.
+      if (showWeighEntry && (event.key === "F1" || event.key === "F2")) {
         event.preventDefault(); event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         setMode(event.key === "F1" ? "amount" : "weight");
@@ -240,9 +242,11 @@ export default function PosQuickSaleDialogs({
         return;
       }
       if (/^F([1-9]|1[0-2])$/.test(event.key)) {
+        event.preventDefault(); event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         const categoryIndex = Number(event.key.slice(1)) - 1;
         const category = shortcutCategories.some(Boolean) ? shortcutCategories[categoryIndex] : visibleWeighedCategories.filter((item) => categories.includes(item))[categoryIndex];
-        if (category) { event.preventDefault(); event.stopPropagation(); setCategoryFilter(category); setWeighedPage(1); }
+        if (category) { setCategoryFilter(category); setWeighedPage(1); }
         return;
       }
       if (!typing && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
@@ -256,6 +260,7 @@ export default function PosQuickSaleDialogs({
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
       event.preventDefault(); event.stopPropagation();
+      if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
       setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
     };
     document.addEventListener("keydown", handler, true);
