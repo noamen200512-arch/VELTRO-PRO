@@ -210,13 +210,33 @@ export default function PosQuickSaleDialogs({
         setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
         return;
       }
-      // The weighing-entry modal owns F1/F2 even while an input is focused.
-      // Stop the event here so the underlying POS screen cannot run its shortcuts.
-      if (showWeighEntry && (event.key === "F1" || event.key === "F2")) {
+      // F1 and F2 belong exclusively to the weigh-sale workflow, even when
+      // the input has focus. They must never fall through to category shortcuts
+      // or the underlying POS invoice shortcuts.
+      if (event.key === "F1" || event.key === "F2") {
         event.preventDefault(); event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-        setMode(event.key === "F1" ? "amount" : "weight");
-        setReplaceInput(true);
+        const nextMode = event.key === "F1" ? "amount" : "weight";
+        if (showWeighEntry) {
+          setMode(nextMode);
+          setReplaceInput(true);
+          return;
+        }
+        const selectedProduct = orderedProducts.find((product) => idOf(product) === selectedId);
+        if (selectedProduct) {
+          setWeight("1");
+          setAmount("");
+          setMode(nextMode);
+          setShowWeighEntry(true);
+          setReplaceInput(true);
+        }
+        return;
+      }
+      // F12 opens the weigh-sale list from the POS screen; inside this dialog
+      // it must not change categories or trigger the background screen.
+      if (event.key === "F12") {
+        event.preventDefault(); event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         return;
       }
       if (event.key === "Enter" && showWeighEntry) {
@@ -229,19 +249,7 @@ export default function PosQuickSaleDialogs({
         }
         return;
       }
-      if (!typing && selectedId && !showWeighEntry && (event.key === "F1" || event.key === "F2")) {
-        event.preventDefault(); event.stopPropagation();
-        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
-        const selectedProduct = orderedProducts.find((product) => idOf(product) === selectedId);
-        if (!selectedProduct) return;
-        if (event.key === "F1") {
-          setWeight("1"); setAmount(""); setMode("amount"); setShowWeighEntry(true); setReplaceInput(true);
-        } else {
-          setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
-        }
-        return;
-      }
-      if (/^F([1-9]|1[0-2])$/.test(event.key)) {
+      if (/^F([3-9]|1[0-1])$/.test(event.key)) {
         event.preventDefault(); event.stopPropagation();
         if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
         const categoryIndex = Number(event.key.slice(1)) - 1;
