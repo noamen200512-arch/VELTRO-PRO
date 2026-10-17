@@ -139,6 +139,7 @@ export function createInvoice() {
     items: [],
     discount: 0,
     paid: 0,
+    paymentMethod: "cash",
     note: "",
   };
 }
