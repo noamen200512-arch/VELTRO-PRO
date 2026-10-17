@@ -351,6 +351,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [weighedProductIds, setWeighedProductIds] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_products") || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } });
   const [weighedCategories, setWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_categories") || "{}"); return v && typeof v === "object" ? v : {}; } catch { return {}; } });
   const [weighedProductLayout, setWeighedProductLayout] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.isArray(v) ? v.map(String) : []; } catch { return []; } });
+  const [weighedProductSlots, setWeighedProductSlots] = useState(() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) return Array.from({ length: 9 }, (_, i) => String(saved[i] || "")); const legacy = JSON.parse(localStorage.getItem("veltro_pos_weighed_layout") || "[]"); return Array.from({ length: 9 }, (_, i) => String(legacy[i] || "")); } catch { return Array(9).fill(""); } });
   const [weighedCategoryList, setWeighedCategoryList] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || '["Nuts","Grains","Spices","Other"]'); return Array.isArray(v) && v.length ? v : ["Nuts","Grains","Spices","Other"]; } catch { return ["Nuts","Grains","Spices","Other"]; } });
   const [visibleWeighedCategories, setVisibleWeighedCategories] = useState(() => { try { const v = JSON.parse(localStorage.getItem("veltro_pos_visible_weighed_categories") || "null"); return Array.isArray(v) ? v : ["Nuts", "Grains", "Spices", "Other"]; } catch { return ["Nuts", "Grains", "Spices", "Other"]; } });
   const [poundGrams, setPoundGrams] = useState(() => { try { return Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500); } catch { return 500; } });
@@ -2163,6 +2164,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         favoriteIds={favoriteProductIds}
         weighedIds={weighedProductIds}
         weighedLayout={weighedProductLayout}
+        weighedSlots={weighedProductSlots}
         categoriesByProduct={weighedCategories}
         categories={weighedCategoryList}
         visibleWeighedCategories={visibleWeighedCategories}
@@ -2174,6 +2176,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           setFavoriteProductIds(settings.favoriteIds);
           setWeighedProductIds(settings.weighedIds);
           setWeighedCategories(settings.categoriesByProduct);
+          if (Array.isArray(settings.weighedSlots)) { setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(settings.weighedSlots[i] || ""))); try { localStorage.setItem("veltro_pos_weighed_slots", JSON.stringify(settings.weighedSlots)); } catch {} }
           if (Array.isArray(settings.weighedLayout)) {
             setWeighedProductLayout(settings.weighedLayout.map(String));
             try { localStorage.setItem("veltro_pos_weighed_layout", JSON.stringify(settings.weighedLayout.map(String))); } catch {}
@@ -2217,7 +2220,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         <main className="sales-workspace">
           <div className="pos-quick-launcher" dir={locale === "ar" ? "rtl" : "ltr"}>
             <button type="button" className="pos-quick-launch-favorite" onClick={() => setQuickSaleDialog("favorites")}><Star size={18}/><span>{locale === "ar" ? "المنتجات المفضلة" : locale === "fr" ? "Produits favoris" : "Favorite products"}</span><kbd>F10</kbd></button>
-            <button type="button" className="pos-quick-launch-weigh" onClick={() => setQuickSaleDialog("weigh")}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
+            <button type="button" className="pos-quick-launch-weigh" onClick={() => { try { const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_slots") || "null"); if (Array.isArray(saved)) setWeighedProductSlots(Array.from({ length: 9 }, (_, i) => String(saved[i] || ""))); } catch {} setQuickSaleDialog("weigh"); }}><Scale size={18}/><span>{locale === "ar" ? "البيع بالميزان" : locale === "fr" ? "Vente au poids" : "Sell by weight"}</span></button>
           </div>
           <ProductEntry
             onAddProduct={addProduct}
