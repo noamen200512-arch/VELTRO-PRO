@@ -1638,6 +1638,19 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         setShowShortcutsHelp((current) => !current);
         return;
       }
+      // Handle invoice-edit confirmation before dialog-specific early returns.
+      // Click the real confirmation button so keyboard and mouse follow one code path.
+      if (showEditInvoiceConfirm && (e.key === "Enter" || e.key === "Escape")) {
+        stop();
+        if (typeof e.stopImmediatePropagation === "function") e.stopImmediatePropagation();
+        if (e.key === "Escape") {
+          setShowEditInvoiceConfirm(false);
+        } else {
+          const confirmButton = document.querySelector(".pos-edit-invoice-confirm-modal footer button:last-child");
+          if (confirmButton && !confirmButton.disabled) confirmButton.click();
+        }
+        return;
+      }
       // The weighed-sale dialog owns F1-F12 category shortcuts and left/right page navigation.
       if (quickSaleDialog === "weigh") return;
       // F9 toggles the POS app's fullscreen layout.
@@ -1668,18 +1681,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       if(showSaleConfirm){if(e.key==="Escape"){stop();setShowSaleConfirm(false);return;}if(e.key==="Enter"){stop();void confirmSaleCompletion(false);return;}if(e.key==="F12"){stop();void confirmSaleCompletion(true);return;}return;}
       if(showSaleReview){if(e.key==="Escape"){stop();setShowSaleReview(false);return;}if(e.key==="Enter"||e.key==="F12"){stop();setShowSaleReview(false);setShowSaleConfirm(true);return;}return;}
       if(showBelowCostWarning){if(e.key==="Escape"){stop();setShowBelowCostWarning(false);return;}if(e.key==="Enter"){stop();openSaleConfirmation();return;}return;}
-      if (showEditInvoiceConfirm) {
-        if (e.key === "Escape") { stop(); setShowEditInvoiceConfirm(false); return; }
-        if (e.key === "Enter") {
-          stop();
-          if (selectedClosedInvoice && isReviewingClosedInvoice && !busy) {
-            setShowEditInvoiceConfirm(false);
-            reopenSelectedClosedInvoice();
-          }
-          return;
-        }
-        return;
-      }
       if (showCustomerPicker) {
         if (e.key === "Escape") { stop(); setShowCustomerPicker(false); return; }
         if (e.key === "Enter") {
@@ -2228,14 +2229,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setShowEditInvoiceConfirm(false);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") setShowEditInvoiceConfirm(false);
-            if (event.key === "Enter") {
-              event.preventDefault();
-              setShowEditInvoiceConfirm(false);
-              reopenSelectedClosedInvoice();
-            }
           }}
           style={{
             position: "fixed",
