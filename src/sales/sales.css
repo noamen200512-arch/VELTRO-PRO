@@ -4951,5 +4951,10 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 .pos-weighed-pagination small{flex-basis:100%;text-align:center;color:#71839c}
 .pos-quick-category-row kbd{display:inline-block;margin-inline-end:3px;padding:1px 4px;border:1px solid #ffffff26;border-radius:4px;color:#8deee2;font-size:10px;font-family:inherit}
 
-/* Keep weighed-sale keypad in calculator order even when the dialog language is RTL. */
-.pos-quick-tiles.pos-weighed-grid-3{direction:ltr}
+/* Mirror the weighed-sale keypad while keeping 1 at bottom-left and 9 at top-right. */
+.pos-quick-tiles.pos-weighed-grid-3{direction:rtl}
+
+.product-entry-quick-actions{display:flex;flex-direction:column;gap:10px;min-width:0}
+.product-entry-quick-actions .pos-quick-launcher{margin:0;flex-wrap:wrap}
+.product-entry-quick-actions .pos-quick-launcher button{min-height:36px}
+.product-entry .pos-selected-product-preview{width:100%;box-sizing:border-box}
