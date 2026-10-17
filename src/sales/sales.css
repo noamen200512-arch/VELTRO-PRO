@@ -5237,57 +5237,77 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 }
 
 
-/* POS desktop layout correction (2026-10-17):
-   Invoice Summary anchors the left column, Product Entry sits beside it,
-   the cart stays directly below the summary, and Invoice Information sits
-   below Product Entry. Mobile keeps its existing stacked layout. */
+/* Full-screen POS layout only.
+   Top row: Invoice Summary on the left, Product Entry on the right.
+   Bottom row: invoice/cart table under the summary, invoice information under Product Entry.
+   Normal desktop and mobile layouts remain unchanged. */
 @media (min-width: 761px) {
-  .pos-page .sales-layout {
+  .pos-page.pos-fullscreen-active .sales-layout,
+  .pos-page:fullscreen .sales-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    align-items: start;
-    gap: 12px;
+    grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+    align-items: stretch;
+    align-content: stretch;
     direction: ltr;
+    gap: 10px;
+    flex: 1 1 0;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
-  .pos-page .sales-workspace {
+  .pos-page.pos-fullscreen-active .sales-workspace,
+  .pos-page:fullscreen .sales-workspace {
     display: contents;
   }
 
-  .pos-page .invoice-summary {
+  .pos-page.pos-fullscreen-active .invoice-summary,
+  .pos-page:fullscreen .invoice-summary {
     grid-column: 1;
     grid-row: 1;
     min-width: 0;
+    min-height: 0;
     width: 100%;
     margin: 0;
+    overflow: auto;
   }
 
-  .pos-page .product-entry {
+  .pos-page.pos-fullscreen-active .product-entry,
+  .pos-page:fullscreen .product-entry {
     grid-column: 2;
     grid-row: 1;
     min-width: 0;
+    min-height: 0;
     width: 100%;
     margin: 0;
+    overflow: auto;
   }
 
-  .pos-page .invoice-table-section {
+  .pos-page.pos-fullscreen-active .invoice-table-section,
+  .pos-page:fullscreen .invoice-table-section {
     grid-column: 1;
     grid-row: 2;
     min-width: 0;
+    min-height: 0;
     width: 100%;
     margin: 0;
+    overflow: auto;
   }
 
-  .pos-page .sales-sidebar {
+  .pos-page.pos-fullscreen-active .sales-sidebar,
+  .pos-page:fullscreen .sales-sidebar {
     grid-column: 2;
     grid-row: 2;
     min-width: 0;
+    min-height: 0;
     width: 100%;
     margin: 0;
+    overflow: auto;
   }
 }
 
+/* Keep the compact single-column layout on small screens. */
 @media (max-width: 760px) {
   .pos-page .sales-layout {
     display: grid;
