@@ -170,6 +170,13 @@ export default function PosQuickSaleDialogs({
   useEffect(() => {
     if (!dialog) return undefined;
     const handler = (event) => {
+      // While the weigh-sale modal is open, this modal owns the keyboard.
+      // Stop every key event at capture phase, not only recognized shortcuts,
+      // so the underlying POS screen can never react to the same key press.
+      if (dialog === "weigh") {
+        event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+      }
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
       const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
@@ -263,6 +270,7 @@ export default function PosQuickSaleDialogs({
         return;
       }
       if (typing || !/^[1-9]$/.test(event.key)) return;
+      event.preventDefault();
       const slotIndex = Number(event.key) - 1;
       const visualIndex = weighedPage === 1 ? 8 - slotIndex : slotIndex;
       const product = visibleTileProducts[visualIndex];
