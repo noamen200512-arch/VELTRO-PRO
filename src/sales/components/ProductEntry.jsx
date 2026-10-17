@@ -91,9 +91,12 @@ export function ProductEntry({
   }, []);
 
   useEffect(() => {
+    // Put the scanner cursor in the barcode field whenever the POS opens or
+    // returns from fullscreen mode, so the cashier can scan immediately.
+    focusBarcodeInput();
+
     if (!isFullscreen) return undefined;
 
-    focusBarcodeInput();
     const handleWindowFocus = () => focusBarcodeInput();
     window.addEventListener("focus", handleWindowFocus);
 
@@ -223,10 +226,12 @@ export function ProductEntry({
       setBarcode("");
       setSearch("");
       setCurrentPage(1);
-      if (isFullscreen) focusBarcodeInput();
+      // Return focus to the barcode after adding from the product list too,
+      // not only when POS is in fullscreen mode.
+      focusBarcodeInput();
       return added !== false;
     },
-    [onAddProduct, isFullscreen, focusBarcodeInput]
+    [onAddProduct, focusBarcodeInput]
   );
 
   const submitBarcode = useCallback(
@@ -691,8 +696,9 @@ export function ProductEntry({
                         className="product-carton-button"
                         disabled={cartonSize <= 1 || typeof onAddCarton !== "function"}
                         onClick={() => {
+                          // POS restores focus only after the carton is accepted;
+                          // stock-warning dialogs must keep their own focus.
                           onAddCarton(product);
-                          focusBarcodeInput();
                         }}
                         title={cartonSize <= 1 ? "Configure pieces per carton for this product" : `Add one carton (${cartonSize} units)`}
                       >
