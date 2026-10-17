@@ -20,6 +20,7 @@ export function SalesSidebar({
   newAmount,
   invoiceDate,
   previousDebt = 0,
+  statusCards = null,
 }) {
   const parsedDate = invoiceDate
     ? new Date(invoiceDate)
@@ -51,6 +52,7 @@ export function SalesSidebar({
 
   return (
     <aside className="sales-sidebar">
+      {statusCards && <div className="pos-unified-status-cards">{statusCards}</div>}
       <section className="sales-side-section">
         <div className="sales-section-heading">
           <FileText size={18} />
