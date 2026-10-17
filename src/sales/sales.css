@@ -5956,3 +5956,65 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-page .invoice-table-section { order: 4; }
   .pos-page .invoice-summary { order: 5; }
 }
+
+
+/* Combine Invoice Items and Invoice Information into one physical card
+   in fullscreen mode. Keep both components and all their behavior intact. */
+@media screen and (min-width: 761px) {
+  .pos-page.pos-fullscreen-active .pos-invoice-column,
+  .pos-page:fullscreen .pos-invoice-column {
+    grid-template-rows: max-content minmax(0, 1fr) !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-invoice-column > .pos-cart-info-card,
+  .pos-page:fullscreen .pos-invoice-column > .pos-cart-info-card {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    gap: 0 !important;
+    border: 1px solid var(--sales-border, rgba(148, 163, 184, .18)) !important;
+    border-radius: 14px !important;
+    background: var(--sales-panel, #101725) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .16) !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-cart-info-card > .invoice-table-section,
+  .pos-page:fullscreen .pos-cart-info-card > .invoice-table-section {
+    flex: 1 1 58% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    border: 0 !important;
+    border-radius: 14px 14px 0 0 !important;
+    box-shadow: none !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-cart-info-card > .sales-sidebar,
+  .pos-page:fullscreen .pos-cart-info-card > .sales-sidebar {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: 44% !important;
+    height: auto !important;
+    margin: 0 !important;
+    overflow: auto !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(148, 163, 184, .18) !important;
+    border-radius: 0 0 14px 14px !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+
+  .pos-page.pos-fullscreen-active .pos-entry-column,
+  .pos-page:fullscreen .pos-entry-column {
+    grid-template-rows: minmax(0, 1fr) !important;
+  }
+}
