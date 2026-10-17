@@ -226,7 +226,9 @@ export function ProductEntry({
         } else {
           playSound("errors");
           setNotice(`No product found for barcode: ${code}`);
-          setBarcode(code);
+          // Clear an invalid scanned/entered code immediately so the next
+          // scan can be entered without manually deleting the previous value.
+          setBarcode("");
         }
       } finally {
         busyRef.current = false;
