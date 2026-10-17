@@ -265,7 +265,9 @@ function normalizeItem(product, quantity = 1) {
     price: money(product.price),
     qty: quantity,
     quantity,
-    discount: money(product.discount),
+    // Product catalog metadata must never silently discount a sale line.
+    // Invoice discounts are applied explicitly in the POS summary or on the line.
+    discount: 0,
     piecesPerCarton: Math.max(
       1,
       Number(product.piecesPerCarton) || 1
