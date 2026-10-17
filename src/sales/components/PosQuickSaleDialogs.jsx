@@ -185,7 +185,7 @@ export default function PosQuickSaleDialogs({
       }
       if (typing || !/^[1-9]$/.test(event.key)) return;
       const slotIndex = Number(event.key) - 1;
-      const visualIndex = slotOrder.indexOf(slotIndex);
+      const visualIndex = weighedPage === 1 ? slotOrder.indexOf(slotIndex) : slotIndex;
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
       event.preventDefault(); event.stopPropagation();
