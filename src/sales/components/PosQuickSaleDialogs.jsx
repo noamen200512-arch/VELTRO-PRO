@@ -168,7 +168,7 @@ export default function PosQuickSaleDialogs({
     ? (weighedPage === 1 ? assignedTileProducts : Array.from({ length: 9 }, (_, index) => extraWeighedProducts[(weighedPage - 2) * 9 + index] || null))
     : orderedProducts;
   useEffect(() => {
-    if (dialog !== "weigh" || showWeighEntry) return undefined;
+    if (dialog !== "weigh") return undefined;
     const handler = (event) => {
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
