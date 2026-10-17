@@ -289,17 +289,14 @@ export default function PosQuickSaleDialogs({
       const visualIndex = weighedPage === 1 ? 8 - slotIndex : slotIndex;
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
-      // In the weigh-sale list, pressing 1–9 adds that tile directly to the
-      // invoice using the default quantity of 1 measure unit. F1/F2 remain
-      // available for entering a custom amount or weight before adding.
-      onAddProduct({
-        ...product,
-        quantity: 1,
-        price: priceOf(product),
-        weighedSale: true,
-        weighedCategory: categoriesByProduct[idOf(product)] || product.category || "",
-        unitLabel: String(product.unit || "kg").toLowerCase()
-      });
+      // Trigger the same action as clicking the numbered tile: open the
+      // weight/amount entry for that exact product. F1/F2 then choose the mode.
+      setSelectedId(idOf(product));
+      setWeight("1");
+      setAmount("");
+      setMode("weight");
+      setShowWeighEntry(true);
+      setReplaceInput(true);
     };
     // Capture at window, before any document-level POS shortcut handlers.
     window.addEventListener("keydown", handler, true);
@@ -309,7 +306,7 @@ export default function PosQuickSaleDialogs({
     {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true); }}>
       {dialog === "weigh" && <span className="pos-quick-tile-number">{weighedPage === 1 ? [9,8,7,6,5,4,3,2,1][index] : index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
-    </button> : <div key={"empty-weighed-page-" + weighedPage + "-slot-" + index} className="pos-quick-empty-tile"><span>{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span></div>)}
+    </button> : <div key={"empty-weighed-page-" + weighedPage + "-slot-" + index} className="pos-quick-empty-tile"><span>{weighedPage === 1 ? [9,8,7,6,5,4,3,2,1][index] : index + 1}</span></div>)}
     {!visibleTileProducts.some(Boolean) && <p className="pos-quick-empty">{dialog === "favorites" ? t.noFavorites : dialog === "weigh" ? t.noWeighed : t.noProducts}</p>}
   </div>;
 
