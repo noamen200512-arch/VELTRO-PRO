@@ -4912,3 +4912,22 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 @media(max-width:700px){.pos-quick-launcher{gap:5px}.pos-quick-launcher button{padding:8px 7px;font-size:11px;gap:4px}.pos-quick-launcher .pos-quick-launch-settings{width:40px;flex-basis:40px}.pos-quick-backdrop{padding:5px}.pos-quick-modal{width:100%;max-height:97vh}.pos-quick-tiles{grid-template-columns:repeat(2,minmax(0,1fr));padding-inline:9px}.pos-quick-weight-input{grid-template-columns:1fr}.pos-quick-settings-toolbar{grid-template-columns:1fr}.pos-quick-settings-row{grid-template-columns:minmax(0,1fr) auto auto}.pos-quick-settings-row select{grid-column:1/-1;width:100%}.pos-quick-pound-buttons{flex-direction:column}.pos-quick-footer{padding:9px}.pos-quick-footer button{flex:1}}
 
 .invoice-weighed-unit{align-self:center;color:#5eead4;font-size:11px;font-weight:850;padding:2px 4px;border-radius:5px;background:rgba(45,212,191,.1)}
+
+/* Weighed-sale: five-column tile board and focused weight/amount modal */
+
+.pos-quick-tiles{grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(96px,auto);gap:8px;max-height:calc(5 * 118px + 40px)}
+.pos-quick-tiles>button{min-width:0;min-height:112px;padding:9px;overflow-wrap:anywhere}
+.pos-quick-tiles>button strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:100%}
+.pos-weigh-entry-backdrop{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px;background:rgba(2,6,23,.78);backdrop-filter:blur(7px)}
+.pos-weigh-entry-modal{width:min(650px,96vw);max-height:92vh;overflow:auto;border:1px solid rgba(94,234,212,.32);border-radius:18px;background:#0c1525;box-shadow:0 26px 80px #000b;color:#e5edf8}
+.pos-weigh-entry-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px;border-bottom:1px solid #ffffff18}
+.pos-weigh-entry-heading small{color:#94a3b8;font-size:11px}
+.pos-weigh-entry-heading h3{margin:4px 0;font-size:22px}
+.pos-weigh-entry-heading p{margin:0;color:#94a3b8;font-size:12px}
+.pos-weigh-entry-heading p strong{color:#5eead4}
+.pos-weigh-entry-modal .pos-quick-weigh-panel{border-top:0;padding:16px}
+.pos-weigh-entry-modal .pos-quick-weight-input{grid-template-columns:minmax(130px,.9fr) minmax(200px,1.1fr)}
+.settings-weighed-grid>div{min-width:0}
+.settings-weighed-grid select{cursor:pointer}
+@media(max-width:760px){.pos-quick-tiles{grid-template-columns:repeat(3,minmax(0,1fr));max-height:55vh}.settings-weighed-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}.pos-weigh-entry-modal .pos-quick-weight-input{grid-template-columns:1fr}.pos-weigh-entry-modal .pos-quick-keypad{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:460px){.pos-quick-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-weighed-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
