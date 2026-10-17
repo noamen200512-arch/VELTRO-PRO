@@ -794,7 +794,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const addProduct = (product) => {
     if (isReviewingClosedInvoice) {
-      playSound("errors");
       notify(
         locale === "ar"
           ? "لا يمكن إضافة منتج إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
@@ -960,7 +959,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const addUnit = (item) => {
     if (isReviewingClosedInvoice) {
-      playSound("errors");
       notify(
         locale === "ar"
           ? "لا يمكن إضافة وحدة إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
@@ -981,7 +979,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const addCarton = (item, allowOversell = false) => {
     if (isReviewingClosedInvoice) {
-      playSound("errors");
       notify(
         locale === "ar"
           ? "لا يمكن إضافة كرتون إلى بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
@@ -1095,7 +1092,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
   const removeItem = (itemOrId) => {
     if (isReviewingClosedInvoice) {
-      playSound("errors");
       notify(
         locale === "ar"
           ? "لا يمكن حذف منتج من بون مغلق قبل الضغط على «تعديل البون» وتأكيد التعديل."
@@ -2471,8 +2467,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
             locale={locale}
             readOnly={isReviewingClosedInvoice}
             onBlockedAction={() => {
-              playSound("errors");
-              notify(
+                      notify(
                 locale === "ar"
                   ? "هذا البون مغلق للعرض فقط. اضغط «تعديل البون» ثم أكّد التعديل قبل حذف المنتجات."
                   : locale === "fr"
