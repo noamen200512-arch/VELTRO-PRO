@@ -256,7 +256,7 @@ export default function PosQuickSaleDialogs({
       const product = visibleTileProducts[visualIndex];
       if (!product) return;
       event.preventDefault(); event.stopPropagation();
-      setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(false);
+      setSelectedId(idOf(product)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); setReplaceInput(true);
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
