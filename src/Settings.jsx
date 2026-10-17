@@ -646,7 +646,8 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
       setProductPoundGrams(Math.max(1, Number(localStorage.getItem("veltro_pos_pound_grams")) || 500));
       const shortcutCategories = JSON.parse(localStorage.getItem("veltro_pos_shortcut_categories") || "null");
       setProductShortcutCategories(Array.isArray(shortcutCategories) ? Array.from({ length: 12 }, (_, i) => String(shortcutCategories[i] || "")) : Array(12).fill(""));
-      setSelectedShortcutCategory((current) => current || (Array.isArray(categories) && categories[0]) || "");
+      // Start with all categories so newly enabled weighed products are not hidden by the first category filter.
+      setSelectedShortcutCategory("");
     } catch (error) { console.warn("Could not load product settings", error); }
   }, [section]);
   const saveProductSettings = () => {
