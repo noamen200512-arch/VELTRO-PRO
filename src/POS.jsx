@@ -29,6 +29,7 @@ import { saveProductsToCloud } from "./lib/productCloud.js";
 import { saveSaleToCloud } from "./lib/salesCloud.js";
 import { supabase } from "./lib/supabase.js";
 import { loadCustomersFromCloud } from "./lib/customerCloud.js";
+import { playSound, setSoundUser, unlockSoundAudio } from "./services/soundService.js";
 
 let cloudDraftSaveQueue = Promise.resolve();
 
@@ -335,6 +336,29 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const posPageRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [serverConnected, setServerConnected] = useState(navigator.onLine);
+
+  useEffect(() => {
+    setSoundUser(currentUserId || "device");
+    const unlock = () => unlockSoundAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, [currentUserId]);
+
+  const previousServerConnectedRef = useRef(null);
+  useEffect(() => {
+    if (previousServerConnectedRef.current === null) {
+      previousServerConnectedRef.current = serverConnected;
+      return;
+    }
+    if (previousServerConnectedRef.current !== serverConnected) {
+      playSound("alerts");
+      previousServerConnectedRef.current = serverConnected;
+    }
+  }, [serverConnected]);
   useEffect(() => {
     let active = true;
     const checkServer = async () => {
@@ -594,6 +618,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   }, [refreshPending]);
 
   const notify = (text, type = "info") => {
+    if (type === "error") playSound("errors");
     setMessage(text);
     setMessageType(type);
   };
@@ -753,7 +778,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   };
 
   const addProduct = (product) => {
-    if (closedInvoiceMode) return;
+    if (closedInvoiceMode) return false;
     const productId = getProductId(product);
 
     const inventoryProduct = getProducts().find(
@@ -762,13 +787,13 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
 
     if (!inventoryProduct) {
       notify("Product not found in the current inventory.", "error");
-      return;
+      return false;
     }
 
     const quantityToAdd = product.weighedSale
       ? Math.max(0, Number(Number(String(product.quantity ?? "").replace(",", ".")).toFixed(3)) || 0)
       : Math.max(1, Math.floor(Number(product.quantity) || 1));
-    if (quantityToAdd <= 0) return;
+    if (quantityToAdd <= 0) return false;
     const productForInvoice = product.weighedSale
       ? { ...inventoryProduct, price: money(product.price ?? inventoryProduct.price), weighedSale: true, weighedCategory: product.weighedCategory || "", unitLabel: product.unitLabel || ({ kg: "kg", g: "g", liter: "L", ml: "ml", meter: "m", cm: "cm" })[inventoryProduct.unit] || inventoryProduct.unit || "kg" }
       : inventoryProduct;
@@ -799,7 +824,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     if (currentQuantity + quantityToAdd > available) {
       setWarningPayload({ type: "addProduct", product: productForInvoice, quantity: quantityToAdd, requested: currentQuantity + quantityToAdd, available: Math.max(0, available - currentQuantity) });
       setKeyboardDialog("stockWarning");
-      return;
+      return false;
     }
 
     const existingUnitLineIndex = items.findIndex(
@@ -819,6 +844,7 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
     setShowEmptyWarning(false);
     setRemovedItem(null);
     notify(currentQuantity > 0 ? "Quantity updated for " + inventoryProduct.name + ": " + currentQuantity + " → " + (currentQuantity + quantityToAdd) + "." : "Added " + inventoryProduct.name + " to invoice.", "success");
+    return true;
   };
 
   const updateItem = (id, field, value, options = {}) => {
@@ -1331,6 +1357,8 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         notify(getErrorMessage(result), "error");
         return;
       }
+      // The local sale and stock update succeeded; cloud sync may still fail separately.
+      playSound("sale");
 
       // Persist the completed invoice and its stock changes to the shared workspace.
       try {
