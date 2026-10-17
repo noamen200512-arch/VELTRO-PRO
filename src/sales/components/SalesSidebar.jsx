@@ -21,6 +21,8 @@ export function SalesSidebar({
   invoiceDate,
   previousDebt = 0,
   statusCards = null,
+  customerReference = "",
+  locale = "en",
 }) {
   const parsedDate = invoiceDate
     ? new Date(invoiceDate)
@@ -30,12 +32,18 @@ export function SalesSidebar({
     ? new Date()
     : parsedDate;
 
-  const date = validDate.toLocaleDateString("en-GB");
-
-  const time = validDate.toLocaleTimeString("en-GB", {
+  const language = locale === "ar" ? "ar" : locale === "fr" ? "fr" : "en";
+  const date = validDate.toLocaleDateString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB");
+  const time = validDate.toLocaleTimeString(language === "ar" ? "ar-DZ" : language === "fr" ? "fr-FR" : "en-GB", {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const labels = {
+    en: { reference: "Customer Reference", status: "Invoice Status", paid: "Paid", partial: "Partially paid", unpaid: "Unpaid", noItems: "No items", accountSummary: "Account Overview" },
+    fr: { reference: "Référence client", status: "État de la facture", paid: "Payée", partial: "Partiellement payée", unpaid: "Impayée", noItems: "Vide", accountSummary: "Résumé du compte" },
+    ar: { reference: "مرجع الزبون", status: "حالة الفاتورة", paid: "مدفوعة", partial: "مدفوعة جزئيًا", unpaid: "غير مدفوعة", noItems: "فارغة", accountSummary: "ملخص الحساب" },
+  }[language];
+  const invoiceStatus = Number(newAmount) <= 0 ? labels.noItems : Number(remaining) <= 0 ? labels.paid : Number(paid) > 0 ? labels.partial : labels.unpaid;
 
   const displayInvoiceNumber = String(invoiceNumber || "—");
 
@@ -80,6 +88,10 @@ export function SalesSidebar({
             <strong>{time}</strong>
           </div>
         </div>
+        <div className="sales-info-card sales-invoice-status-card">
+          <span className="sales-field-label">{labels.status}</span>
+          <strong className={Number(remaining) <= 0 && Number(newAmount) > 0 ? "is-paid" : Number(paid) > 0 ? "is-partial" : "is-unpaid"}>{invoiceStatus}</strong>
+        </div>
       </section>
 
       <section className="sales-side-section sales-account-section">
@@ -105,8 +117,15 @@ export function SalesSidebar({
             onCustomerChange?.(event.target.value)
           }
         />
+        {customerReference && !["anonyme", "anonymous"].includes(String(customer || "").trim().toLowerCase()) && (
+          <div className="sales-info-card sales-customer-reference">
+            <span className="sales-field-label">{labels.reference}</span>
+            <strong>{customerReference}</strong>
+          </div>
+        )}
 
         <div className="sales-account-card">
+          <div className="sales-account-card-heading">{labels.accountSummary}</div>
           <div className="sales-account-row">
             <span>
               <CreditCard size={15} />
