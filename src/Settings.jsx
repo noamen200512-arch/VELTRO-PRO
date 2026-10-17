@@ -990,7 +990,7 @@ export default function SettingsPage({ locale = "en", onLocaleChange, currentUse
                     <div className="settings-card-heading"><Scale size={18} /><div><h4>{t.layoutTitle}</h4><p>{t.layoutText}</p></div><span className="settings-count">{weighedSettingsProducts.length}</span></div>
                     <p style={{ color: "var(--settings-muted, #94a3b8)", fontSize: 12, margin: "0 0 14px" }}>{t.dragHint}</p>
                     <div className="settings-weighed-grid settings-weighed-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
-                        {Array.from({ length: 9 }, (_, index) => {
+                        {[6, 7, 8, 3, 4, 5, 0, 1, 2].map((index) => {
                           const selectedId = String(productWeighedSlots[index] || "");
                           const product = weighedSettingsProducts.find((item) => String(item.id ?? item.productId ?? item.sku ?? "") === selectedId);
                           const id = product ? String(product.id ?? product.productId ?? product.sku ?? "") : "";
