@@ -204,6 +204,24 @@ function makeBarcodePattern(value) {
 export default function Products() {
   const [products, setProducts] = useState(() => getProducts());
 
+  const [settingsCategories, setSettingsCategories] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || "null");
+      return Array.isArray(saved) ? saved.map((item) => String(item).trim()).filter(Boolean) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  function refreshSettingsCategories() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("veltro_pos_weighed_category_list") || "null");
+      setSettingsCategories(Array.isArray(saved) ? saved.map((item) => String(item).trim()).filter(Boolean) : []);
+    } catch {
+      setSettingsCategories([]);
+    }
+  }
+
   useEffect(() => {
     const refreshCloudProducts = () => setProducts(getProducts());
     window.addEventListener("storage", refreshCloudProducts);
@@ -510,6 +528,7 @@ export default function Products() {
   }
 
   function openAddModal() {
+    refreshSettingsCategories();
     setEditingId(null);
     setForm({
       ...EMPTY_FORM,
@@ -522,6 +541,7 @@ export default function Products() {
   }
 
   function openEditModal(product) {
+    refreshSettingsCategories();
     setEditingId(product.id);
     const piecesPerCarton = Math.max(1, Number(product.piecesPerCarton || 1));
 
@@ -1083,7 +1103,8 @@ export default function Products() {
         editingId={editingId}
         form={form}
         products={products}
-        categories={categories.filter((item) => item !== "All")}
+        categories={[...new Set([...settingsCategories, ...categories.filter((item) => item !== "All")])]}
+        settingsCategories={settingsCategories}
         buttonStyle={buttonStyle}
         fileInputRef={fileInputRef}
         cameraInputRef={cameraInputRef}
