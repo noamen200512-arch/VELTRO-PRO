@@ -5245,7 +5245,7 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
   .pos-page.pos-fullscreen-active .sales-layout,
   .pos-page:fullscreen .sales-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     grid-template-rows: minmax(0, auto) minmax(0, 1fr);
     align-items: stretch;
     align-content: stretch;
@@ -5325,4 +5325,33 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
     grid-column: auto;
     grid-row: auto;
   }
+}
+
+
+/* Status indicators now live inside the Product Entry card. */
+.pos-page .product-entry-status-cards {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 8px;
+}
+.pos-page .product-entry-status-cards .pos-user-status-card,
+.pos-page .product-entry-status-cards .pos-server-status-card {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 245px;
+  padding: 6px 9px;
+}
+.pos-page .product-entry-status-cards .pos-status-card-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+}
+@media (max-width: 760px) {
+  .pos-page .product-entry-status-cards { gap: 6px; }
+  .pos-page .product-entry-status-cards .pos-user-status-card,
+  .pos-page .product-entry-status-cards .pos-server-status-card { padding: 6px; }
 }
