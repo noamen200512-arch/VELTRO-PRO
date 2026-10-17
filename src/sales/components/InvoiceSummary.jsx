@@ -116,16 +116,6 @@ export function InvoiceSummary({
         </div>
       </div>
 
-      <div className="invoice-summary-meta-strip" dir={language === "ar" ? "rtl" : "ltr"}>
-        <div><span>{labels.invoice}</span><strong>{String(invoiceNumber || "—").startsWith("INV-") || !invoiceNumber ? (invoiceNumber || "—") : `INV-${invoiceNumber}`}</strong></div>
-        <div><span>{labels.date}</span><strong>{invoiceDateLabel}</strong></div>
-        <div><span>{labels.time}</span><strong>{invoiceTimeLabel}</strong></div>
-        <div><span>{labels.lines}</span><strong>{invoiceLineCount}</strong></div>
-        <div><span>{labels.units}</span><strong>{Number(invoiceUnitCount.toFixed(3)).toLocaleString(language === "ar" ? "ar-DZ" : "fr-FR")}</strong></div>
-        <div><span>{labels.cartons}</span><strong>{Number(invoiceCartonCount.toFixed(3)).toLocaleString(language === "ar" ? "ar-DZ" : "fr-FR")}</strong></div>
-        <div className="invoice-summary-payment-status"><span>{labels.status}</span><strong className={safeRemaining <= 0 ? "is-paid" : safePaid > 0 ? "is-partial" : "is-unpaid"}>{paymentStatus}</strong></div>
-      </div>
-
       <div className="invoice-summary-content">
         <div className="invoice-summary-details">
           <div className="invoice-summary-row">
