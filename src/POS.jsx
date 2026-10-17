@@ -1,6 +1,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle, Star, Scale } from "lucide-react";
+import { Search, X, UserRound, Phone, Fingerprint, Users, Check, UserRoundPlus, BadgeCheck, ReceiptText, WalletCards, AlertTriangle, Hash, CalendarClock, Clock, ChevronRight, ChevronLeft, ClipboardList, RotateCcw, Maximize2, Minimize2, Keyboard, HelpCircle, Star, Scale, Wifi, WifiOff, Server } from "lucide-react";
 
 import { SalesToolbar } from "./sales/components/SalesToolbar";
 import { SalesSidebar } from "./sales/components/SalesSidebar";
@@ -334,6 +334,34 @@ function getErrorMessage(result) {
 export default function POS({ currentUserName = "", currentUserId = "", organizationId = "", locale = "en" } = {}) {
   const posPageRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [serverConnected, setServerConnected] = useState(navigator.onLine);
+  useEffect(() => {
+    let active = true;
+    const checkServer = async () => {
+      if (!navigator.onLine) {
+        if (active) setServerConnected(false);
+        return;
+      }
+      try {
+        const { error } = await supabase.auth.getUser();
+        if (active) setServerConnected(!error);
+      } catch {
+        if (active) setServerConnected(false);
+      }
+    };
+    const onOnline = () => { void checkServer(); };
+    const onOffline = () => setServerConnected(false);
+    void checkServer();
+    const timer = window.setInterval(checkServer, 30000);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
   const [invoice, setInvoice] = useState(() => getAutoSavedDraft() || createInvoice());
   const [draftIdentity, setDraftIdentity] = useState(() => currentUserId && organizationId ? { userId: currentUserId, organizationId } : null);
   const [draftCloudReady, setDraftCloudReady] = useState(false);
@@ -1605,10 +1633,22 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   return (
     <div ref={posPageRef} className={`pos-page${isFullscreen ? " pos-fullscreen-active" : ""}${isReviewingClosedInvoice ? " closed-invoice-review-mode" : ""}`}>
       <header className="pos-heading">
-        <div className="pos-heading-copy">
-          <div className="pos-eyebrow">VELTRO-PRO / COMMERCE</div>
-          <h1>Point of Sale</h1>
-          <p>Manage invoices, products and payments.</p>
+        <div className="pos-heading-status-cards">
+          <section className="pos-user-status-card" aria-label="Current user">
+            <span className="pos-status-card-icon"><UserRound size={17} /></span>
+            <span className="pos-status-card-copy">
+              <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
+              <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
+            </span>
+          </section>
+          <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
+            <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
+            <span className="pos-status-card-copy">
+              <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
+              <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
+            </span>
+            <span className="pos-server-status-dot" />
+          </section>
         </div>
 
         <SalesToolbar
