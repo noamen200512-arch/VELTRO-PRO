@@ -172,7 +172,14 @@ export default function PosQuickSaleDialogs({
     const handler = (event) => {
       if (event.ctrlKey || event.altKey || event.metaKey) return;
       const target = event.target;
-      const typing = target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName));
+      // Only treat fields inside the quick-sale modal as typing targets.
+      // F12 does not necessarily move focus away from the POS barcode/search
+      // input behind the modal; numbers typed there must still activate the
+      // numbered weigh-sale tiles, not go into the background field.
+      const insideQuickSaleModal = Boolean(target?.closest?.(".pos-quick-modal"));
+      const typing = insideQuickSaleModal && Boolean(
+        target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(target.tagName))
+      );
       if (dialog !== "weigh") {
         if (event.key === "Escape") {
           event.preventDefault(); event.stopPropagation();
