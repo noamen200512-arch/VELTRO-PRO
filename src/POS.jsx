@@ -435,6 +435,21 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
   const [quantityDraft, setQuantityDraft] = useState("1");
   const [priceDraft, setPriceDraft] = useState("0.00");
   const [warningPayload, setWarningPayload] = useState(null);
+
+  // In fullscreen, restore the hardware-scanner cursor after POS dialogs close.
+  // The carton stock-warning confirmation closes asynchronously relative to the
+  // click handler, so focusing only on the next animation frame is too early.
+  useEffect(() => {
+    if (!isFullscreen || keyboardDialog || warningPayload) return undefined;
+
+    const timer = window.setTimeout(() => {
+      const input = document.getElementById("product-barcode");
+      if (!input || input.disabled) return;
+      input.focus({ preventScroll: true });
+    }, 100);
+
+    return () => window.clearTimeout(timer);
+  }, [isFullscreen, keyboardDialog, warningPayload]);
   const [selectedPendingIndex, setSelectedPendingIndex] = useState(0);
 
   const dialogText = (locale === "ar" ? {
