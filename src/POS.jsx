@@ -1122,35 +1122,65 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
       invoiceId: invoice.id,
     });
 
+    const updatedAt = new Date().toISOString();
+    const nextSubtotal = calculateSubtotal(nextItems);
+    const nextTotal = Math.max(0, nextSubtotal - money(invoice.discount));
+    const nextPaid = money(invoice.paid);
+    const nextRemaining = Math.max(0, nextTotal - nextPaid);
+
     setInvoice((current) => ({
       ...current,
       items: (current.items || []).filter(
         (item) => String(item.id) !== String(itemId)
       ),
+      subtotal: nextSubtotal,
+      total: nextTotal,
+      paid: nextPaid,
+      remaining: nextRemaining,
       status: "Draft",
-      updatedAt: new Date().toISOString(),
+      updatedAt,
     }));
 
-    // If this invoice was already saved as pending, keep its saved copy in
-    // sync with the live invoice. Remove it from Pending Invoices entirely
-    // when its last product is deleted, so it cannot appear falsely filled.
+    // Persist the exact new contents immediately. This prevents the autosaved
+    // draft from retaining the previous items if the user switches invoices,
+    // reloads, or opens the pending list before the next React effect runs.
+    saveAutoSavedDraft({
+      ...invoice,
+      items: nextItems.map((item) => ({ ...item })),
+      subtotal: nextSubtotal,
+      total: nextTotal,
+      paid: nextPaid,
+      remaining: nextRemaining,
+      status: "Draft",
+      updatedAt,
+    });
+
+    // Keep a pending invoice synchronized with the cart. If its final item is
+    // removed, remove the pending record and refresh the list immediately.
     const savedPending = getPendingInvoice(invoice.id);
     if (savedPending) {
       if (nextItems.length === 0) {
-        cancelPendingInvoice(invoice.id);
+        const cancelResult = cancelPendingInvoice(invoice.id);
+        if (!cancelResult?.ok) {
+          notify(
+            locale === "ar"
+              ? "تعذر حذف البون الفارغ من قائمة البونات المعلقة."
+              : locale === "fr"
+                ? "Impossible de retirer la facture vide des factures en attente."
+                : "Could not remove the empty invoice from Pending Invoices.",
+            "error"
+          );
+        }
       } else {
-        const nextSubtotal = calculateSubtotal(nextItems);
-        const nextTotal = Math.max(0, nextSubtotal - money(invoice.discount));
-        const nextPaid = money(invoice.paid);
         savePendingInvoice({
           ...invoice,
-          items: nextItems,
+          items: nextItems.map((item) => ({ ...item })),
           subtotal: nextSubtotal,
           total: nextTotal,
           paid: nextPaid,
-          remaining: Math.max(0, nextTotal - nextPaid),
+          remaining: nextRemaining,
           status: "Pending",
-          updatedAt: new Date().toISOString(),
+          updatedAt,
         });
       }
       refreshPending();
