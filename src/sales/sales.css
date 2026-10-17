@@ -4950,3 +4950,6 @@ html[dir="rtl"] .sales-toolbar-notice-text { text-align: right; }
 .pos-weighed-pagination button:disabled{opacity:.3;cursor:not-allowed}
 .pos-weighed-pagination small{flex-basis:100%;text-align:center;color:#71839c}
 .pos-quick-category-row kbd{display:inline-block;margin-inline-end:3px;padding:1px 4px;border:1px solid #ffffff26;border-radius:4px;color:#8deee2;font-size:10px;font-family:inherit}
+
+/* Keep weighed-sale keypad in calculator order even when the dialog language is RTL. */
+.pos-quick-tiles.pos-weighed-grid-3{direction:ltr}
