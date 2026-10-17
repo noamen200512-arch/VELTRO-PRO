@@ -1688,6 +1688,26 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
           {isFullscreen ? <Minimize2 size={17} /> : <Maximize2 size={17} />}
           <span>{isFullscreen ? "Exit Full Screen" : "Full Screen"}</span>
         </button>
+          {!isFullscreen && (
+            <div className="pos-heading-status-cards">
+              <section className="pos-user-status-card" aria-label="Current user">
+                <span className="pos-status-card-icon"><UserRound size={17} /></span>
+                <span className="pos-status-card-copy">
+                  <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
+                  <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
+                </span>
+              </section>
+              <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
+                <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
+                <span className="pos-status-card-copy">
+                  <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
+                  <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
+                </span>
+                <span className="pos-server-status-dot" />
+              </section>
+            </div>
+          )}
+
       </header>
 
       {closedInvoices.length > 0 && (
@@ -2245,25 +2265,6 @@ export default function POS({ currentUserName = "", currentUserId = "", organiza
         />
 
         <main className="sales-workspace">
-          {!isFullscreen && (
-            <div className="pos-heading-status-cards">
-              <section className="pos-user-status-card" aria-label="Current user">
-                <span className="pos-status-card-icon"><UserRound size={17} /></span>
-                <span className="pos-status-card-copy">
-                  <small>{locale === "ar" ? "المستخدم الحالي" : locale === "fr" ? "Utilisateur actuel" : "CURRENT USER"}</small>
-                  <strong>{currentUserName || localStorage.getItem("veltro_current_user") || "User"}</strong>
-                </span>
-              </section>
-              <section className={`pos-server-status-card ${serverConnected ? "is-connected" : "is-disconnected"}`} role="status" aria-live="polite">
-                <span className="pos-status-card-icon">{serverConnected ? <Wifi size={17} /> : <WifiOff size={17} />}</span>
-                <span className="pos-status-card-copy">
-                  <small>{locale === "ar" ? "السيرفر الرئيسي" : locale === "fr" ? "SERVEUR PRINCIPAL" : "MAIN SERVER"}</small>
-                  <strong>{serverConnected ? (locale === "ar" ? "متصل" : locale === "fr" ? "Connecté" : "Connected") : (locale === "ar" ? "غير متصل" : locale === "fr" ? "Déconnecté" : "Disconnected")}</strong>
-                </span>
-                <span className="pos-server-status-dot" />
-              </section>
-            </div>
-          )}
           <ProductEntry
             isFullscreen={isFullscreen}
             statusCards={isFullscreen ? <>
