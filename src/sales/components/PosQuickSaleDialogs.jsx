@@ -3,7 +3,7 @@ import { X, Search, Star, Scale, Settings2, Check, Plus, Package, ListFilter, Tr
 
 const COPY = {
   en: {
-    favorites:"Favorite products", weigh:"Sell by weight", settings:"Quick-sale settings", search:"Search by product name or reference…",
+    favorites:"Favorite products", weigh:"Sell by weight", settings:"Quick-sale settings", search:"Search by product name or reference…", priceMode:"F1 · Sell at regular price", weightMode:"F2 · Sell by weight", chooseMode:"Select a product, then choose the sale mode.",
     noFavorites:"No favorite products configured.", noWeighed:"No products configured for weighing.", close:"Close", add:"Add to invoice",
     choose:"Choose a product", category:"Category", all:"All categories", nuts:"Nuts", grains:"Grains", spices:"Spices", other:"Other",
     weight:"Weight", amount:"Amount to pay", kg:"kg", priceKg:"Price per kg", total:"Total", onePound:"1 pound", halfPound:"½ pound",
@@ -14,7 +14,7 @@ const COPY = {
     remove:"Remove", enter:"Enter", clear:"Clear", poundSize:"Pound size (grams)", noCategory:"Uncategorized", manageCategoryContents:"Manage category names", categoryName:"Category name", deleteCategory:"Delete category", categoryRenameHint:"Edit a name, then leave the field to apply it."
   },
   fr: {
-    favorites:"Produits favoris", weigh:"Vente au poids", settings:"Réglages de vente rapide", search:"Rechercher par nom ou référence…",
+    favorites:"Produits favoris", weigh:"Vente au poids", settings:"Réglages de vente rapide", search:"Rechercher par nom ou référence…", priceMode:"F1 · Prix normal", weightMode:"F2 · Vente au poids", chooseMode:"Choisissez un produit, puis le mode de vente.",
     noFavorites:"Aucun produit favori configuré.", noWeighed:"Aucun produit configuré pour la pesée.", close:"Fermer", add:"Ajouter à la facture",
     choose:"Choisir un produit", category:"Catégorie", all:"Toutes les catégories", nuts:"Fruits à coque", grains:"Céréales", spices:"Épices", other:"Autre",
     weight:"Poids", amount:"Montant à payer", kg:"kg", priceKg:"Prix au kg", total:"Total", onePound:"1 livre", halfPound:"½ livre",
@@ -25,7 +25,7 @@ const COPY = {
     remove:"Supprimer", enter:"Entrée", clear:"Effacer", poundSize:"Valeur de la livre (grammes)", noCategory:"Sans catégorie", manageCategoryContents:"Gérer les noms des catégories", categoryName:"Nom de la catégorie", deleteCategory:"Supprimer la catégorie", categoryRenameHint:"Modifiez un nom puis quittez le champ pour appliquer."
   },
   ar: {
-    favorites:"المنتجات المفضلة", weigh:"البيع بالميزان", settings:"إعدادات البيع السريع", search:"ابحث باسم المنتج أو مرجعه…",
+    favorites:"المنتجات المفضلة", weigh:"البيع بالميزان", settings:"إعدادات البيع السريع", search:"ابحث باسم المنتج أو مرجعه…", priceMode:"F1 · البيع بالسعر العادي", weightMode:"F2 · البيع بالميزان", chooseMode:"اختر المنتج ثم حدّد طريقة البيع.",
     noFavorites:"لم تُحدَّد منتجات مفضلة بعد.", noWeighed:"لم تُحدَّد منتجات للبيع بالميزان.", close:"إغلاق", add:"إضافة إلى الفاتورة",
     choose:"اختر منتجًا", category:"الفئة", all:"كل الفئات", nuts:"مكسرات", grains:"حبوب", spices:"توابل", other:"أخرى",
     weight:"الوزن", amount:"المبلغ المراد دفعه", kg:"كغ", priceKg:"السعر لكل كغ", total:"الإجمالي", onePound:"رطل واحد", halfPound:"نصف رطل",
@@ -185,6 +185,12 @@ export default function PosQuickSaleDialogs({
         }
         return;
       }
+      if (event.key === "Enter" && selectedId && !showWeighEntry) {
+        event.preventDefault(); event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
+        return;
+      }
       if (event.key === "Enter" && showWeighEntry) {
         const confirmButton = document.querySelector(".pos-weigh-entry-modal button.primary:not(:disabled)");
         if (confirmButton) {
@@ -192,6 +198,19 @@ export default function PosQuickSaleDialogs({
           event.stopPropagation();
           if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
           confirmButton.click();
+        }
+        return;
+      }
+      if (selectedId && !showWeighEntry && (event.key === "F1" || event.key === "F2")) {
+        event.preventDefault(); event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === "function") event.stopImmediatePropagation();
+        const selectedProduct = orderedProducts.find((product) => idOf(product) === selectedId);
+        if (!selectedProduct) return;
+        if (event.key === "F1") {
+          onAddProduct({ ...selectedProduct, quantity: 1, weighedSale: false });
+          resetAndClose();
+        } else {
+          setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true);
         }
         return;
       }
@@ -216,9 +235,9 @@ export default function PosQuickSaleDialogs({
     };
     document.addEventListener("keydown", handler, true);
     return () => document.removeEventListener("keydown", handler, true);
-  }, [dialog, showWeighEntry, visibleTileProducts, visibleWeighedCategories, categories, weighedPageCount]);
+  }, [dialog, showWeighEntry, selectedId, orderedProducts, onAddProduct, visibleTileProducts, visibleWeighedCategories, categories, weighedPageCount]);
   const productTiles = <div className={"pos-quick-tiles" + (dialog === "weigh" ? " pos-weighed-grid-3" : "")}>
-    {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh"); }}>
+    {visibleTileProducts.map((p, index) => p ? <button type="button" key={dialog === "weigh" ? "weighed-page-" + weighedPage + "-slot-" + index : idOf(p)} className={selectedId === idOf(p) ? "is-selected" : ""} onClick={() => { setSelectedId(idOf(p)); setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(dialog === "weigh" ? false : false); }}>
       {dialog === "weigh" && <span className="pos-quick-tile-number">{weighedPage === 1 ? [9,8,7,6,5,4,3,2,1][index] : index + 1}</span>}<span className="pos-quick-tile-icon"><Package size={20}/></span><strong>{p.name || idOf(p)}</strong><small>{p.sku || p.reference || p.id || ""}</small><b>{priceOf(p).toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</b>
       {dialog === "favorites" && <span role="presentation" className="pos-quick-star" onClick={(e) => { e.stopPropagation(); onToggleFavorite(p); }}><Star size={17} fill="currentColor"/></span>}
     </button> : <div key={"empty-weighed-page-" + weighedPage + "-slot-" + index} className="pos-quick-empty-tile"><span>{weighedPage === 1 ? [7,8,9,4,5,6,1,2,3][index] : index + 1}</span></div>)}
@@ -269,6 +288,7 @@ export default function PosQuickSaleDialogs({
         {dialog === "weigh" && <><div className="pos-quick-category-row"><span>{t.category}</span><button type="button" className={categoryFilter === "all" ? "active" : ""} onClick={() => { setCategoryFilter("all"); setWeighedPage(1); }}>{t.all}</button>{visibleWeighedCategories.filter((c) => categories.includes(c)).map((c, index) => { const shortcutIndex = shortcutCategories.some(Boolean) ? shortcutCategories.indexOf(c) : index; return <button type="button" key={c} className={categoryFilter === c ? "active" : ""} onClick={() => { setCategoryFilter(c); setWeighedPage(1); }}>{shortcutIndex >= 0 && <kbd>F{shortcutIndex + 1}</kbd>} {categoryLabel(c)}</button>; })}</div><div className="pos-weighed-pagination"><button type="button" disabled={weighedPage <= 1} onClick={() => setWeighedPage((page) => Math.max(1, page - 1))} aria-label="Previous page">‹</button><span>Page {weighedPage} / {weighedPageCount}</span><button type="button" disabled={weighedPage >= weighedPageCount} onClick={() => setWeighedPage((page) => Math.min(weighedPageCount, page + 1))} aria-label="Next page">›</button><small>F1–F12 categories · ← → pages</small></div></>}
         <label className="pos-quick-search"><Search size={18}/><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.search}/></label>
         {productTiles}
+        {dialog === "weigh" && selected && !showWeighEntry && <footer className="pos-quick-footer pos-weigh-mode-footer"><button type="button" onClick={resetAndClose}>{t.close}</button><button type="button" onClick={() => { onAddProduct({ ...selected, quantity: 1, weighedSale: false }); resetAndClose(); }}><Plus size={17}/><kbd>F1</kbd>{t.priceMode}</button><button type="button" className="primary" onClick={() => { setWeight("1"); setAmount(""); setMode("weight"); setShowWeighEntry(true); }}><Scale size={17}/><kbd>F2</kbd>{t.weightMode}</button><small>{t.chooseMode}</small></footer>}
         {dialog === "weigh" && selected && showWeighEntry && <div className="pos-weigh-entry-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setShowWeighEntry(false); setSelectedId(""); } }}>
           <section className="pos-weigh-entry-modal" role="dialog" aria-modal="true" aria-label={t.selected} dir={locale === "ar" ? "rtl" : "ltr"}>
             <header className="pos-weigh-entry-heading"><div><small>{t.selected}</small><h3>{selected.name}</h3><p>{({ kg: t.priceKg, g: locale === "ar" ? "السعر لكل غرام" : locale === "fr" ? "Prix au gramme" : "Price per gram", liter: locale === "ar" ? "السعر لكل لتر" : locale === "fr" ? "Prix au litre" : "Price per liter", ml: locale === "ar" ? "السعر لكل مل" : locale === "fr" ? "Prix au ml" : "Price per ml", meter: locale === "ar" ? "السعر لكل متر" : locale === "fr" ? "Prix au mètre" : "Price per meter", cm: locale === "ar" ? "السعر لكل سم" : locale === "fr" ? "Prix au cm" : "Price per cm" })[measureUnit] || t.priceKg}: <strong>{unitPrice.toLocaleString(locale === "ar" ? "ar-DZ" : locale === "fr" ? "fr-DZ" : "en-US", { maximumFractionDigits: 2 })} DA</strong></p></div><button type="button" className="pos-quick-close" onClick={() => { setShowWeighEntry(false); setSelectedId(""); }} aria-label={t.cancel}><X size={19}/></button></header>
